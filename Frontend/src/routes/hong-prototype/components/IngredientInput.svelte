@@ -1,23 +1,19 @@
 <script>
     import { Button, Input } from "flowbite-svelte";
-    import { createEventDispatcher } from 'svelte';
-
-    const dispatch = createEventDispatcher();
-	export let ingredients = [];
+    let { ingredients=[] } = $props();
 	
 
 	let newIngredient = "";
 
     function addIngredient() { 
         if (newIngredient.trim()) {
-            dispatch("add", newIngredient);
+            ingredients = [...ingredients, newIngredient];
             newIngredient = ""
-            console.log
         }
     }
 
     function removeIngredient(index) {
-        dispatch("remove", index);
+        ingredients.slice(index, 1);
     }
 </script>
 
@@ -38,6 +34,12 @@
         <Input 
             type="text"
             bind:value={newIngredient}
+            on:keydown={(event) => {
+                if(event.key === "Enter") {
+                    addIngredient();
+                    newIngredient = ""
+                }
+            }}
             placeholder="Add new ingredient"
             class="px-3 py-1 border rounded-full flex-grow font-sans"
         />
