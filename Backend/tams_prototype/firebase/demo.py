@@ -58,8 +58,10 @@ async def loginOnFirebase(email, password):
     print("Log in...")
     try:
         login = mainAuth.sign_in_with_email_and_password(email, password)
-        if login:
-            return "Successfully logged in!"
+        print("login")
+        return login
+        #if login:
+            #return "Successfully logged in!"
     except Exception as e:
         return f"Invalid email or password: {str(e)}"
     return
