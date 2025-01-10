@@ -1,67 +1,98 @@
 <script>
-	let name = "Tam"
-	import { Footer, FooterCopyright, FooterLinkGroup, FooterLink, FooterBrand, FooterIcon } from 'flowbite-svelte';
-	import { FacebookSolid, GithubSolid, DiscordSolid, TwitterSolid } from 'flowbite-svelte-icons';
+	let email = '';
+	let password = '';
+	let errorMessage = '';
+
+	async function handleLogin() {
+		// Simple validation for email and password
+		if (!email || !password) {
+			errorMessage = 'Both fields are required.';
+			return;
+		}
+
+		// You can replace this with an actual API call to log in
+		if (email && password) {
+			try {
+				// Make the API call to the FastAPI backend for authentication
+				const response = await fetch('http://localhost:8000/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ email, password })
+				});
+
+				// Check if the response is successful (status code 2xx)
+				if (response.ok) {
+					// Handle successful login
+					const data = await response.json();
+					alert('Login successful!');
+					console.log('login successful'); // You can store the token for session management
+				} else {
+					// Handle failed login (invalid credentials, etc.)
+					const errorData = await response.json();
+					errorMessage = errorData.detail || 'Invalid email or password.';
+				}
+			} catch (error) {
+				// Handle network errors or other unexpected issues
+				errorMessage = 'An error occurred. Please try again later.';
+				console.error('Error during login:', error);
+			}
+		} else {
+			errorMessage = 'Invalid email or password.';
+		}
+	}
 </script>
-<div class="bg-red-300 text-xl p-5 px-10 rounded-xl border-2 border-blue-500">
-	Hello, my name is {name}
 
+<div class="login-container">
+	<h2>Login</h2>
+
+	<input class="input" type="email" placeholder="Email" bind:value={email} />
+
+	<input class="input" type="password" placeholder="Password" bind:value={password} />
+
+	{#if errorMessage}
+		<div class="error">{errorMessage}</div>
+	{/if}
+
+	<button class="btn" on:click={handleLogin}>Log in</button>
 </div>
 
-<div>
-	Tam!!!!
-	<br />
-	This is going to be your prototype page~
-	<br />
-	Feel free to write down notes for yourself as well as what your primary goals are going to be, I would
-	like for this to be a way of showcasing how you thoughtfully approached your prototype.
-</div>
-  
-  <Footer footerType="socialmedia" class="bg-red-100">
-	<div class="md:flex md:justify-between">
-	  <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
-		<div>
-		  <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Resources</h2>
-		  <FooterLinkGroup>
-			<FooterLink liClass="mb-4" href="/">Flowbite</FooterLink>
-			<FooterLink liClass="mb-4" href="/">Tailwind CSS</FooterLink>
-		  </FooterLinkGroup>
-		</div>
-		<div>
-		  <h2 class="mb-6 text-sm font-semibold uppercase text-gray-900 dark:text-white">Follow us</h2>
-		  <FooterLinkGroup>
-			<FooterLink liClass="mb-4" href="/">GitHub</FooterLink>
-			<FooterLink liClass="mb-4" href="/">Discord</FooterLink>
-		  </FooterLinkGroup>
-		</div>
-		<div>
-		  <h2 class="mb-6 text-sm font-semibold uppercase text-gray-900 dark:text-white">Legal</h2>
-		  <FooterLinkGroup>
-			<FooterLink liClass="mb-4" href="/">Privacy Policy</FooterLink>
-			<FooterLink liClass="mb-4" href="/">Terms & Conditions</FooterLink>
-		  </FooterLinkGroup>
-		</div>
-	  </div>
-	</div>
-	<hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-	<div class="sm:flex sm:items-center sm:justify-between">
-	  <FooterCopyright href="/" by="Flowbite™" />
-	  <div class="flex mt-4 space-x-6 rtl:space-x-reverse sm:justify-center sm:mt-0">
-		<FooterIcon href="/">
-		  <FacebookSolid class="w-5 h-5 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white" />
-		</FooterIcon>
-		<FooterIcon href="/">
-		  <DiscordSolid class="w-5 h-5 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white" />
-		</FooterIcon>
-		<FooterIcon href="/">
-		  <TwitterSolid class="w-5 h-5 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white" />
-		</FooterIcon>
-		<FooterIcon href="/">
-		  <GithubSolid class="w-5 h-5 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white" />
-		</FooterIcon>
-		<FooterIcon href="/">
-			hello word
-		</FooterIcon>
-	  </div>
-	</div>
-  </Footer>
+<style>
+	.login-container {
+		max-width: 400px;
+		margin: 100px auto;
+		padding: 20px;
+		border-radius: 8px;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		background-color: #fff;
+	}
+
+	.input {
+		width: 100%;
+		padding: 10px;
+		margin: 10px 0;
+		border-radius: 4px;
+		border: 1px solid #ccc;
+	}
+
+	.btn {
+		width: 100%;
+		padding: 10px;
+		background-color: #007bff;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.btn:hover {
+		background-color: #0056b3;
+	}
+
+	.error {
+		color: red;
+		font-size: 12px;
+		margin-top: 10px;
+	}
+</style>
