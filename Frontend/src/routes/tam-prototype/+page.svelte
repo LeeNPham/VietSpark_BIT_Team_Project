@@ -4,44 +4,43 @@
 	let errorMessage = '';
 
 	async function handleLogin() {
-		// Simple validation for email and password
-		if (!email || !password) {
-			errorMessage = 'Both fields are required.';
-			return;
-		}
+    // Simple validation for email and password
+    if (!email || !password) {
+        errorMessage = 'Both fields are required.';
+        return;
+    }
 
-		// You can replace this with an actual API call to log in
-		if (email && password) {
-			try {
-				// Make the API call to the FastAPI backend for authentication
-				const response = await fetch('http://localhost:8000/login', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ email, password })
-				});
+    // Make the API call to the FastAPI backend for authentication
+    await fetch('http://127.0.0.1:8000/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            // If the response is not OK (i.e., not 2xx), handle the error
+            return response.json().then(errorData => {
+                errorMessage = errorData.detail || 'Invalid email or password.';
+                throw new Error(errorMessage); // Throw error to be caught below
+            });
+        }
+        return response.json(); // If OK, parse the JSON body
+    })
+    .then(data => {
+        // Handle successful login
+        console.log(data);
+    })
+    .catch(error => {
+        // Handle network errors or other unexpected issues
+        console.error('Error during login:', error);
+    });
+}
 
-				// Check if the response is successful (status code 2xx)
-				if (response.ok) {
-					// Handle successful login
-					const data = await response.json();
-					alert('Login successful!');
-					console.log('login successful'); // You can store the token for session management
-				} else {
-					// Handle failed login (invalid credentials, etc.)
-					const errorData = await response.json();
-					errorMessage = errorData.detail || 'Invalid email or password.';
-				}
-			} catch (error) {
-				// Handle network errors or other unexpected issues
-				errorMessage = 'An error occurred. Please try again later.';
-				console.error('Error during login:', error);
-			}
-		} else {
-			errorMessage = 'Invalid email or password.';
-		}
-	}
 </script>
 
 <div class="login-container">
