@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from demo import *
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 class publicProfile(BaseModel):
@@ -58,13 +61,36 @@ async def signup(email: str, username: str, password: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+class UserInfo(BaseModel):
+    email: str
+    password: str
+
+#@app.post("/login", tags=['Authentication'])
+#async def sign_in(user_info: UserInfo):
+#    return await loginOnFirebase(user_info[email], user_info[password])
+#async def sign_in(email: str, password: str):
+#    return await loginOnFirebase(email, password)
+
+
 class UserInfo(BaseModel):
     email: str
     password: str
 
 @app.post("/login", tags=['Authentication'])
 async def sign_in(user_info: UserInfo):
-    return await loginOnFirebase(user_info.email, user_info.password)
+    try:
+        # Call the login function and check for successful login
+        login_response = await loginOnFirebase(user_info.email, user_info.password)
+        if login_response:
+            return {"user_info": login_response}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid email or password.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+
 
 @app.get("/user/{user_id}", tags=['Users'])
 async def get_user(user_id: str):
