@@ -55,7 +55,6 @@ async def signup(email: str, username: str, password: str):
                 username=username,  # Adjust if you collect the user's name
                 recipes=[],  # Initialize empty lists
                 allergies=[],
-                admin=False,
                 test=["hello","world"]
             )
             return {"message": signup_response, "firestore": firestore_response}
