@@ -63,8 +63,11 @@ async def loginOnFirebase(email, password):
         #if login:
             #return "Successfully logged in!"
     except Exception as e:
-        return f"Invalid email or password: {str(e)}"
-    return
+        error_message = str(e)
+        #error = Invalid email or password: {str(e)}
+        
+        # Handle other cases if needed
+        return {"error": "UNKNOWN_ERROR", "message": error_message}
 
 
 # Signup function

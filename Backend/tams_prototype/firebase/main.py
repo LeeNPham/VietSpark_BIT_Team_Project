@@ -6,6 +6,7 @@ from demo import *
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
+import json
 
 
 class publicProfile(BaseModel):
@@ -29,37 +30,37 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-@app.get("/")
-async def get_root():
-    return {"hello": "world"}
+# @app.get("/")
+# async def get_root():
+#     return {"hello": "world"}
 
-@app.post("/authentication", tags=['Authentication'])
-async def signup(email: str, username: str, password: str):
-    """
-    Sign up a user and add them to the Firestore collection.
-    """
-    # Sign up user in Firebase Authentication
-    try:
-        signup_response = await signupOnFirebase(email, password)
-        user_id = signup_response[0]
-        if "successfully signed up" in signup_response[1]:
-            # Extract user ID (you may need to adjust this based on actual response format)
-            #for n in range(9999):
+# @app.post("/authentication", tags=['Authentication'])
+# async def signup(email: str, username: str, password: str):
+#     """
+#     Sign up a user and add them to the Firestore collection.
+#     """
+#     # Sign up user in Firebase Authentication
+#     try:
+#         signup_response = await signupOnFirebase(email, password)
+#         user_id = signup_response[0]
+#         if "successfully signed up" in signup_response[1]:
+#             # Extract user ID (you may need to adjust this based on actual response format)
+#             #for n in range(9999):
 
-            #user_id = username  # Assuming email is the unique user ID
-            # Add user to Firestore
-            firestore_response = await add_user_to_firestore(
-                user_id=user_id,
-                user_email=email,
-                username=username,  # Adjust if you collect the user's name
-                recipes=[],  # Initialize empty lists
-                allergies=[]
-            )
-            return {"message": signup_response, "firestore": firestore_response}
-        else:
-            raise HTTPException(status_code=400, detail=signup_response)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#             #user_id = username  # Assuming email is the unique user ID
+#             # Add user to Firestore
+#             firestore_response = await add_user_to_firestore(
+#                 user_id=user_id,
+#                 user_email=email,
+#                 username=username,  # Adjust if you collect the user's name
+#                 recipes=[],  # Initialize empty lists
+#                 allergies=[]
+#             )
+#             return {"message": signup_response, "firestore": firestore_response}
+#         else:
+#             raise HTTPException(status_code=400, detail=signup_response)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 class UserInfo(BaseModel):
@@ -79,17 +80,21 @@ class UserInfo(BaseModel):
 
 @app.post("/login", tags=['Authentication'])
 async def sign_in(user_info: UserInfo):
+    print(user_info)
+    user_info = user_info.model_dump()  # Convert the Pydantic model to a dictionary
+    print(user_info)
     try:
         # Call the login function and check for successful login
-        login_response = await loginOnFirebase(user_info.email, user_info.password)
-        if login_response:
-            return {"user_info": login_response}
-        else:
-            raise HTTPException(status_code=400, detail="Invalid email or password.")
+        response = await loginOnFirebase(user_info["email"], user_info["password"])
+        
+        if 'error' in response:
+            # Firebase login failed, raise an HTTPException with the proper error message
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response['error'])
+        
+        # If login is successful, return the response
+        return JSONResponse(content=response)  # Directly return the response from Firebase
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
-
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
 
 
 @app.get("/user/{user_id}", tags=['Users'])
