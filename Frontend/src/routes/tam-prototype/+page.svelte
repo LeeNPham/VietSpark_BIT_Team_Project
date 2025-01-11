@@ -1,4 +1,5 @@
 <script>
+	//@ts-nocheck
 	let email = '';
 	let password = '';
 	let errorMessage = '';
@@ -21,7 +22,7 @@
             password: password
         })
     })
-    .then(response => {
+    .then(async (response) => {
         if (!response.ok) {
             // If the response is not OK (i.e., not 2xx), handle the error
             return response.json().then(errorData => {
@@ -29,7 +30,11 @@
                 throw new Error(errorMessage); // Throw error to be caught below
             });
         }
-        return response.json(); // If OK, parse the JSON body
+		const r = await response.json()
+		localStorage.setItem("idToken", r.idToken);
+		localStorage.setItem("refreshToken", r.refreshToken);
+		localStorage.setItem("expiresIn", r.expiresIn);
+        return r; // If OK, parse the JSON body
     })
     .then(data => {
         // Handle successful login
