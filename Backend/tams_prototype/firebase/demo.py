@@ -100,7 +100,7 @@ async def add_user_to_firestore(user_id, user_data):
 '''
 
 
-async def add_user_to_firestore(user_id, user_email, username, recipes=None, allergies=None):
+async def add_user_to_firestore(user_id, user_email, username, recipes=None, allergies=None, test=[], admin=False):
     """
     Adds a user to the Firestore 'users' collection.
     
@@ -120,7 +120,9 @@ async def add_user_to_firestore(user_id, user_email, username, recipes=None, all
             "userEmail": user_email,
             "userName": username,
             "recipes": recipes or [],
-            "allergies": allergies or []
+            "allergies": allergies or [],
+            "test":test or [],
+            "admin":admin or False
         }
         user_collection.document(user_id).set(user_data)
         return f"User {user_id} added to Firestore!"
