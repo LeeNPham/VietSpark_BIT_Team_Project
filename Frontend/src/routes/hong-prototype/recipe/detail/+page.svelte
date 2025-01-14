@@ -1,3 +1,4 @@
+<!-- test recipe details -->
 <script>
 	import { Button } from 'flowbite-svelte';
 	let { item } = $props();
