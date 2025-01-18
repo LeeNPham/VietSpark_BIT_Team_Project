@@ -3,10 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from demo import *
+from models import *
 from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
-from fastapi.security import OAuth2PasswordRequestForm
-import json
+#from fastapi.encoders import jsonable_encoder
+#from fastapi.security import OAuth2PasswordRequestForm
+#import json
 
 
 class publicProfile(BaseModel):
@@ -30,15 +31,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# @app.get("/")
-# async def get_root():
-#     return {"hello": "world"}
 
 @app.post("/authentication", tags=['Authentication'])
 async def signup(email: str, username: str, password: str):
-    """
-    Sign up a user and add them to the Firestore collection.
-    """
     # Sign up user in Firebase Authentication
     try:
         signup_response = await signupOnFirebase(email, password)
@@ -65,21 +60,6 @@ async def signup(email: str, username: str, password: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-class UserInfo(BaseModel):
-    email: str
-    password: str
-
-#@app.post("/login", tags=['Authentication'])
-#async def sign_in(user_info: UserInfo):
-#    return await loginOnFirebase(user_info[email], user_info[password])
-#async def sign_in(email: str, password: str):
-#    return await loginOnFirebase(email, password)
-
-
-class UserInfo(BaseModel):
-    email: str
-    password: str
-
 @app.post("/login", tags=['Authentication'])
 async def sign_in(user_info: UserInfo):
     print(user_info)
@@ -99,44 +79,45 @@ async def sign_in(user_info: UserInfo):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
 
 
+
 @app.get("/user/{user_id}", tags=['Users'])
-async def get_user(user_id: str):
-    return await get_user_from_firestore(user_id)
+async def get_user(user_email: str):
+    try:
+        user_id = auth.get_user_by_email(user_email).uid
+        return await get_document(user_collection.document(user_id), details=True)
+    except Exception as e:
+        return f"Error retrieving user: {str(e)}"
+
 
 @app.get("/user", tags=['Users'])
 async def get_all_users():
-    return await get_all_users_from_firestore()
+    return await get_collection(user_collection.stream(), details=True)
+
 
 @app.delete("/user/{user_id}", tags=['Users'])
 async def delete_user(user_email: str):
     return await delete_user_from_firestore(user_email)
+
 
 @app.put("/user/{user_id}", tags=['Users'])
 async def update_user(user_id: str, user_email: Optional[str] = None, user_name: Optional[str] = None, recipes: Optional[str] = None, allergies: Optional[str] = None):
     return await update_user_from_firestore(user_id, user_email, user_name, recipes, allergies)
 
 
-
-# I want you to connect to a collection, and add to it, the name of the collection is going to be users
-# it will store data
-# 
-#  such as userEmail, userName, userId, recipes, allergies, 
-
-
-
-
-
-
+@app.post("/recipes", tags=['Recipes'])
+async def add_recipe(recipe: Recipe, ingredient: Ingredient):
+    t = await get_collection(recipe_collection.stream(), details=True)
+    print(t)
+    if t == "No collection":
+        recipe_id = 1
+    else:
+        recipe_id = int(len(t)) + 1
+    return await new_recipe(recipe, recipe_id)
 
 
-
-
-
-
-
-
-
-
+@app.get("/recipes", tags=['Recipes'])
+async def get_all_recipes():
+    return await get_collection(recipe_collection.stream(), details=False)
 
 
 

@@ -1,4 +1,6 @@
 <script>
+	import { goto } from "$app/navigation";
+
 	//@ts-nocheck
 	let email = '';
 	let password = '';
@@ -34,6 +36,7 @@
 		localStorage.setItem("idToken", r.idToken);
 		localStorage.setItem("refreshToken", r.refreshToken);
 		localStorage.setItem("expiresIn", r.expiresIn);
+		goto("/tam-prototype/profile_page")
         return r; // If OK, parse the JSON body
     })
     .then(data => {
