@@ -1,32 +1,59 @@
+from pydantic import BaseModel
+from typing import List, Optional, Dict
+
+
+class UserInfo(BaseModel):
+  email: str
+  password: str
+
+
+class Ingredient(BaseModel):
+  name: str
+  amount: str
+  recipe_index: List[int] = []
+
+
+class Recipe (BaseModel):
+  name: str
+  ingredients: List[Ingredient]
+  instructions: List[str]
+  duration: int
+  img_url: str
+  serving: int
+
+
+
+
 
 
 
 {
-  "userEmail": "t2@gmail.com",
-  "recipes": [
+  "id": "000001",
+  "name": "scramble egg",
+  "ingredients": [
     {
-      "ingredients": [
-        {
-          "amount": "500g",
-          "name": "flour"
-        },
-        {
-          "amount": "2",
-          "name": "egg"
-        }
-      ],
-      "instructions": [
-        "mix flour with eggs.",
-        "bake for 90m",
-        "eat banh beo"
-      ],
-      "duration": 120,
-      "id": "001010",
-      "img_url": "https://www.cooking-therapy.com/wp-content/uploads/2018/09/Banh-Beo-5.jpg",
-      "name": "banh beo"
+      "name": "egg",
+      "amount": "1",
+      "recipe_index": [
+        "000001"
+      ]
     }
   ],
-  "userId": "t2",
-  "allergies": [],
-  "userName": "t2"
+  "instructions": [
+    "oil up the pan",
+    "break egg to pan",
+    "scramble"
+  ],
+  "duration": 15,
+  "img_url": "img"
 }
+
+
+
+
+
+
+
+
+
+
