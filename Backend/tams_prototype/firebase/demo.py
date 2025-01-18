@@ -8,6 +8,8 @@ from firebase_admin import credentials, auth
 from pydantic import BaseModel
 from typing import Optional
 from models import *
+import json
+import base64
 
 load_dotenv()
 # Load Firebase configuration
