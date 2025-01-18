@@ -2,4 +2,3 @@
 .venv
 credentials.json
 __pycache__/
-.vercel
