@@ -19,7 +19,9 @@ storageBucket = os.getenv("STORAGEBUCKET")
 messagingSenderId = os.getenv("MESSAGINGSENDERID")
 appId = os.getenv("APPID")
 measurementId = os.getenv("MEASUREMENTID")
-serviceAccountKey = os.getenv("SERVICE_ACCOUNT_KEY")  # Path to service account JSON file
+encoded_service_account = os.getenv("SERVICE_ACCOUNT_KEY")
+serviceAccountKey = json.loads(base64.b64decode(encoded_service_account).decode("utf-8"))
+
 
 firebaseConfig = {
     "apiKey": apiKey,
