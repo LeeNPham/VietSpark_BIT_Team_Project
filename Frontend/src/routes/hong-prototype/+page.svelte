@@ -11,7 +11,8 @@
 	<div class="font-bold font-sans text-3xl text-indigo-800">Hello {name}</div>
 	<div>
 		<a href="/hong-prototype" class="text-indigo-700">Home</a> |
-		<a href="/hong-prototype/user" class="text-indigo-700">User</a>
+		<a href="/hong-prototype/user" class="text-indigo-700">User</a> |
+		<a href="/hong-prototype/login" class="text-indigo-700">Login</a>
 	</div>
 </div>
 <!-- Categories -->
@@ -21,5 +22,5 @@
 <IngredientInput />
 
 
-<!-- History -->
+<!-- Recipe -->
 <RecipeList />

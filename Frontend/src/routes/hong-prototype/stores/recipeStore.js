@@ -19,9 +19,8 @@ export const ingredientHandler = {
      */
     addIngredient: (newIngredient) => {
         if (newIngredient) {
-
+            ingredients.update((current) => [...current, newIngredient]);
         }
-        ingredients.update((current) => [...current, newIngredient]);
     },
 
     /**

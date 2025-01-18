@@ -2,10 +2,22 @@
     import { Button, Input } from "flowbite-svelte";
 	import { ingredients, ingredientHandler } from "../stores/recipeStore";
 	
-	let newIngredient = $state("");
+	let newIngredient = "";
     function findRecipe() {
         console.log("Finding recipe");
+
     }
+    const addSearchableIngredient = async() => {
+        await ingredientHandler.addIngredient(newIngredient.trim().split(' '));
+    }
+    $: if (newIngredient) {
+        console.log(newIngredient)
+    }
+
+    ingredients.subscribe((ingredient) => {
+        console.log(ingredient);
+    });
+
 </script>
 
 <div>
@@ -14,12 +26,7 @@
         <Input 
             type="text"
             bind:value={newIngredient}
-            on:keydown={(event) => {
-                if(event.key === "Enter") {
-                    ingredientHandler.addIngredient(newIngredient.trim());
-                    newIngredient = ""
-                }
-            }}
+            on:submit={addSearchableIngredient}
             placeholder="Put your ingredients here"
             class="px-3 py-1 border rounded-full flex-grow font-sans"
         />
