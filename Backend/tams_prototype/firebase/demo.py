@@ -22,33 +22,20 @@ messagingSenderId = os.getenv("MESSAGINGSENDERID")
 appId = os.getenv("APPID")
 measurementId = os.getenv("MEASUREMENTID")
 encoded_service_account = os.getenv("SERVICE_ACCOUNT_KEY")
-# serviceAccountKey = json.loads(base64.b64decode(encoded_service_account).decode("utf-8"))
-# cred = credentials.Certificate(serviceAccountKey)
-# firebase_admin.initialize_app(cred)
-# db = firestore.Client.from_service_account_json(serviceAccountKey)
-
 import tempfile
 
-# Decode the Base64-encoded service account key
 serviceAccountKey = json.loads(
     base64.b64decode(encoded_service_account).decode("utf-8")
 )
-
-# Write the service account key to a temporary file
 with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
     json.dump(serviceAccountKey, temp_file)
     temp_file.flush()  # Ensure all data is written
     service_account_path = temp_file.name  # Path to the temporary file
-
-# Initialize Firebase Admin SDK
 cred = credentials.Certificate(service_account_path)
 firebase_admin.initialize_app(cred)
-
-# Initialize Firestore with the service account key file
 db = firestore.Client.from_service_account_json(service_account_path)
-
-# Clean up: Remove the temporary file after use
 os.remove(service_account_path)
+# do not touch 24-37
 
 
 firebaseConfig = {
