@@ -89,7 +89,7 @@
 </div>
 <div class="mb-4 gap-2">
 	{#each recipes as item, i}
-		<a class="mb-4 items-center gap-4 rounded-lg p-4" href="/hong-prototype/recipe">
+		<a class="mb-4 items-center gap-4 rounded-lg p-4" href={`/hong-prototype/recipe/${item.id}`}>
 			<div class="flex items-center gap-4">
 				<img src={item.image} class="h-20 w-20 rounded-lg object-cover" alt="Recipe image" />
 				<div>
