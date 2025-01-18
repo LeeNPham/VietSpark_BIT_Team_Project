@@ -68,7 +68,7 @@ async def loginOnFirebase(email, password):
     except Exception as e:
         error_message = str(e)
         #error = Invalid email or password: {str(e)}
-        
+
         # Handle other cases if needed
         return {"error": "UNKNOWN_ERROR", "message": error_message}
 
@@ -89,9 +89,9 @@ async def signupOnFirebase(email, password):
         l.append(f"You successfully signed up: {user.email}")
         #return f"You successfully signed up: {user}"
         return l
-    except Exception as e: 
+    except Exception as e:
         return f"Failed Signup: {str(e)}"
-    
+
 
 async def add_user_to_firestore(user_id, user_email, username, recipes=None, allergies=None, test=[], admin=False):
     try:
@@ -107,7 +107,7 @@ async def add_user_to_firestore(user_id, user_email, username, recipes=None, all
         user_collection.document(user_id).set(user_data)
         return f"User {user_id} added to Firestore!"
     except Exception as e:
-        return f"Error adding user to Firestore: {str(e)}"    
+        return f"Error adding user to Firestore: {str(e)}"
 
 
 async def get_document(document, details):
