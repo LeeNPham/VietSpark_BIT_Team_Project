@@ -22,7 +22,33 @@ messagingSenderId = os.getenv("MESSAGINGSENDERID")
 appId = os.getenv("APPID")
 measurementId = os.getenv("MEASUREMENTID")
 encoded_service_account = os.getenv("SERVICE_ACCOUNT_KEY")
-serviceAccountKey = json.loads(base64.b64decode(encoded_service_account).decode("utf-8"))
+# serviceAccountKey = json.loads(base64.b64decode(encoded_service_account).decode("utf-8"))
+# cred = credentials.Certificate(serviceAccountKey)
+# firebase_admin.initialize_app(cred)
+# db = firestore.Client.from_service_account_json(serviceAccountKey)
+
+import tempfile
+
+# Decode the Base64-encoded service account key
+serviceAccountKey = json.loads(
+    base64.b64decode(encoded_service_account).decode("utf-8")
+)
+
+# Write the service account key to a temporary file
+with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
+    json.dump(serviceAccountKey, temp_file)
+    temp_file.flush()  # Ensure all data is written
+    service_account_path = temp_file.name  # Path to the temporary file
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate(service_account_path)
+firebase_admin.initialize_app(cred)
+
+# Initialize Firestore with the service account key file
+db = firestore.Client.from_service_account_json(service_account_path)
+
+# Clean up: Remove the temporary file after use
+os.remove(service_account_path)
 
 
 firebaseConfig = {
@@ -36,23 +62,20 @@ firebaseConfig = {
     "measurementId": measurementId,
 }
 
+
 class publicProfile(BaseModel):
-    user_id: Optional[str] = None,
-    user_email: Optional[str] = None,
-    user_name: Optional[str] = None,  # Adjust if you collect the user's name
-    recipes: Optional[str] = None,  # Initialize empty lists
+    user_id: Optional[str] = (None,)
+    user_email: Optional[str] = (None,)
+    user_name: Optional[str] = (None,)  # Adjust if you collect the user's name
+    recipes: Optional[str] = (None,)  # Initialize empty lists
     allergies: Optional[str] = None
 
-
-cred = credentials.Certificate(serviceAccountKey)
-firebase_admin.initialize_app(cred)
 
 # Initialize Pyrebase
 firebase = pyrebase.initialize_app(firebaseConfig)
 mainAuth = firebase.auth()
 
 # Initialize Firestore with the service account
-db = firestore.Client.from_service_account_json(serviceAccountKey)
 user_collection = db.collection("users")
 recipe_collection = db.collection("recipes")
 ingredient_collection = db.collection("ingredients")
@@ -67,11 +90,11 @@ async def loginOnFirebase(email, password):
         login = mainAuth.sign_in_with_email_and_password(email, password)
         print("login")
         return login
-        #if login:
-            #return "Successfully logged in!"
+        # if login:
+        # return "Successfully logged in!"
     except Exception as e:
         error_message = str(e)
-        #error = Invalid email or password: {str(e)}
+        # error = Invalid email or password: {str(e)}
 
         # Handle other cases if needed
         return {"error": "UNKNOWN_ERROR", "message": error_message}
@@ -80,24 +103,26 @@ async def loginOnFirebase(email, password):
 # Signup function
 async def signupOnFirebase(email, password):
     try:
-        #user = mainAuth.create_user_with_email_and_password(email, password)
+        # user = mainAuth.create_user_with_email_and_password(email, password)
         user = auth.create_user(
-            email = email,
-            password = password,
-            display_name = None,
-            photo_url = None,
-            disabled = False
+            email=email,
+            password=password,
+            display_name=None,
+            photo_url=None,
+            disabled=False,
         )
         l = []
         l.append(user.uid)
         l.append(f"You successfully signed up: {user.email}")
-        #return f"You successfully signed up: {user}"
+        # return f"You successfully signed up: {user}"
         return l
     except Exception as e:
         return f"Failed Signup: {str(e)}"
 
 
-async def add_user_to_firestore(user_id, user_email, username, recipes=None, allergies=None, test=[], admin=False):
+async def add_user_to_firestore(
+    user_id, user_email, username, recipes=None, allergies=None, test=[], admin=False
+):
     try:
         user_data = {
             "userId": user_id,
@@ -105,8 +130,8 @@ async def add_user_to_firestore(user_id, user_email, username, recipes=None, all
             "userName": username,
             "recipes": recipes or [],
             "allergies": allergies or [],
-            "test":test or [],
-            "admin":admin or False
+            "test": test or [],
+            "admin": admin or False,
         }
         user_collection.document(user_id).set(user_data)
         return f"User {user_id} added to Firestore!"
@@ -130,31 +155,33 @@ async def get_document(document, details):
 
 async def delete_user_from_firestore(user_email):
     authUser = auth.get_user_by_email(user_email)
-    #userEmail = user.to_dict().get('userEmail')
+    # userEmail = user.to_dict().get('userEmail')
     try:
         if authUser:
             user_id = authUser.uid
             user_collection.document(user_id).delete()
             auth.delete_user(user_id)
-            return f'deleted user: {user_email}'
+            return f"deleted user: {user_email}"
         else:
             return "User not found"
     except Exception as e:
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def update_user_from_firestore(user_id, user_email, user_name, recipes, allergies):
+async def update_user_from_firestore(
+    user_id, user_email, user_name, recipes, allergies
+):
     try:
         user = user_collection.document(user_id).get()
         user = user.to_dict()
         if not user:
-            return f'{user_id} not found'
+            return f"{user_id} not found"
         user_data = {
             "userId": user_id,
             "userEmail": user_email,
             "userName": user_name,
             "recipes": recipes,
-            "allergies": allergies
+            "allergies": allergies,
         }
         for key, value in user_data.items():
             if value is None:
@@ -182,7 +209,7 @@ async def new_recipe(recipe, recipe_id):
         "instructions": recipe.instructions,
         "duration": recipe.duration,
         "img_url": recipe.img_url,
-        "serving": recipe.serving
+        "serving": recipe.serving,
     }
     recipe_collection.document(str(recipe_id)).set(recipe_data)
     return {"message": "Recipe added successfully"}
@@ -209,7 +236,8 @@ async def get_collection(collection, details):
     except Exception as e:
         return f"Error retrieving {collection} from Firestore: {str(e)}"
 
-#async def check_ingredients():
+
+# async def check_ingredients():
 # Example usage
 # if __name__ == "__main__":
 #     import asyncio
