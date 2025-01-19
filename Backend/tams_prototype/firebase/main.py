@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from demo import *
 from models import *
+from additionalFucntions import *
 from fastapi.responses import JSONResponse
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
@@ -50,7 +51,6 @@ async def signup(email: str, username: str, password: str):
                 username=username,  # Adjust if you collect the user's name
                 recipes=[],  # Initialize empty lists
                 allergies=[],
-                test=["hello","world"],
                 admin=False
             )
             return {"message": signup_response, "firestore": firestore_response}
@@ -80,6 +80,7 @@ async def sign_in(user_info: UserInfo):
 
 
 
+
 @app.get("/user/{user_id}", tags=['Users'])
 async def get_user(user_email: str):
     try:
@@ -104,22 +105,36 @@ async def update_user(user_id: str, user_email: Optional[str] = None, user_name:
     return await update_user_from_firestore(user_id, user_email, user_name, recipes, allergies)
 
 
-@app.post("/recipes", tags=['Recipes'])
-async def add_recipe(recipe: Recipe, ingredient: Ingredient):
-    t = await get_collection(recipe_collection.stream(), details=True)
-    print(t)
-    if t == "No collection":
-        recipe_id = 1
-    else:
-        recipe_id = int(len(t)) + 1
-    return await new_recipe(recipe, recipe_id)
+@app.put("user/{user_id}", tags=['Users'])
+async def update_user_recipes(user_email: ):
 
+@app.put("user/{user_id}", tags=['Users'])
+async def update_user_recipes():
+
+
+
+
+@app.get("/recipes", tags=['Recipes'])
+async def get_all_recipes():
+    
+    return await get_collection(recipe_collection.stream(), details=True)
+
+@app.post("/recipes", tags=['Recipes'])
+async def add_recipe(recipe: Recipe):
+    t = await get_collection(recipe_collection.stream(), details=False)
+    recipe_id = check_missing_index(t)
+    return await new_recipe(recipe, recipe_id)
 
 @app.get("/recipes", tags=['Recipes'])
 async def get_all_recipes():
     return await get_collection(recipe_collection.stream(), details=False)
 
 
+
+
+@app.post("/ingredients", tags=['Ingredients'])
+async def add_ingredients(ingredient: str, recipe_id: str):
+    return await check_ingredient_index(ingredient, recipe_id)
 
 
 

@@ -8,6 +8,7 @@ from firebase_admin import credentials, auth
 from pydantic import BaseModel
 from typing import Optional
 from models import *
+from additionalFucntions import *
 import json
 import base64
 
@@ -49,13 +50,6 @@ firebaseConfig = {
     "measurementId": measurementId,
 }
 
-
-class publicProfile(BaseModel):
-    user_id: Optional[str] = (None,)
-    user_email: Optional[str] = (None,)
-    user_name: Optional[str] = (None,)  # Adjust if you collect the user's name
-    recipes: Optional[str] = (None,)  # Initialize empty lists
-    allergies: Optional[str] = None
 
 
 # Initialize Pyrebase
@@ -117,7 +111,6 @@ async def add_user_to_firestore(
             "userName": username,
             "recipes": recipes or [],
             "allergies": allergies or [],
-            "test": test or [],
             "admin": admin or False,
         }
         user_collection.document(user_id).set(user_data)
@@ -155,9 +148,7 @@ async def delete_user_from_firestore(user_email):
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def update_user_from_firestore(
-    user_id, user_email, user_name, recipes, allergies
-):
+async def update_user_from_firestore(user_id, user_email, user_name, recipes, allergies):
     try:
         user = user_collection.document(user_id).get()
         user = user.to_dict()
@@ -181,30 +172,34 @@ async def update_user_from_firestore(
 
 
 async def new_recipe(recipe, recipe_id):
-    # ingredient_list = await get_collection(ingredient_collection.stream(), details=False)
     for ingredient in recipe.ingredients:
-        print(ingredient)
-        # if ingredient not in ingredient_list:
-        #     add_ingredient_index(ingredient, recipe_id)
-        ingredient.recipe_index.append(recipe_id)
+        # print(ingredient)
+        # ingredient.recipe_index.append(recipe_id)
+        await check_ingredient_index(ingredient.name, recipe_id)
     ingredient_data = [ingredient.dict() for ingredient in recipe.ingredients]
     # print(recipe.to_dict())
     recipe_data = {
-        "id": str(recipe_id),
+        "id": recipe_id,
         "name": recipe.name,
         "ingredients": ingredient_data,
         "instructions": recipe.instructions,
-        "duration": recipe.duration,
+        "duration": recipe.time,
         "img_url": recipe.img_url,
-        "serving": recipe.serving,
+        "serving": recipe.servings,
     }
     recipe_collection.document(str(recipe_id)).set(recipe_data)
     return {"message": "Recipe added successfully"}
 
 
-async def add_ingredient_index(ingredient, recipe_id):
-    ingredient_data = [recipe_id]
-    ingredient_collection.document(ingredient).set(ingredient_data)
+async def check_ingredient_index(ingredient, recipe_id):
+    ingredient_index = await get_collection(ingredient_collection.stream(), details=False)
+    if ingredient in ingredient_index:
+        ingredient_collection.document(ingredient).update({'recipe_id': firestore.ArrayUnion([recipe_id])})
+        return f"new recipe added to {ingredient}"
+    else:
+        ingredient_data = {'recipe_id': [recipe_id]}
+        ingredient_collection.document(ingredient).set(ingredient_data)
+        return f"new ingredient '{ingredient}' added to index"
 
 
 async def get_collection(collection, details):

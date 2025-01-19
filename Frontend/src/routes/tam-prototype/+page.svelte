@@ -14,7 +14,7 @@
     }
 
     // Make the API call to the FastAPI backend for authentication
-    await fetch('http://127.0.0.1:8000/login', {
+    await fetch('https://vietsparkv1.vercel.app/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
