@@ -2,6 +2,7 @@ import os
 import firebase_admin.auth
 import pyrebase
 import firebase_admin
+from fastapi import FastAPI, HTTPException, status
 from google.cloud import firestore
 from dotenv import load_dotenv
 from firebase_admin import credentials, auth
@@ -56,39 +57,22 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 mainAuth = firebase.auth()
 
-# Initialize Firestore with the service account
-user_collection = db.collection("users")
-recipe_collection = db.collection("recipes")
-ingredient_collection = db.collection("ingredients")
+ingredient_collection = db.collection("ingredient")
+user_auth_collection = db.collection("user_auth")
+user_data_collection = db.collection("user_data")
+recipe_collection = db.collection("recipe")
 
 print("Firebase initialized successfully!")
 
 
-# Login function
-async def loginOnFirebase(email, password):
-    print("Log in...")
-    try:
-        login = mainAuth.sign_in_with_email_and_password(email, password)
-        print("login")
-        return login
-        # if login:
-        # return "Successfully logged in!"
-    except Exception as e:
-        error_message = str(e)
-        # error = Invalid email or password: {str(e)}
-
-        # Handle other cases if needed
-        return {"error": "UNKNOWN_ERROR", "message": error_message}
-
-
 # Signup function
-async def signupOnFirebase(email, password):
+async def signupOnFirebase(email, password, username):
     try:
         # user = mainAuth.create_user_with_email_and_password(email, password)
         user = auth.create_user(
             email=email,
             password=password,
-            display_name=None,
+            display_name=username,
             photo_url=None,
             disabled=False,
         )
@@ -101,27 +85,51 @@ async def signupOnFirebase(email, password):
         return f"Failed Signup: {str(e)}"
 
 
-async def add_user_to_firestore(
-    user_id, user_email, username, recipes=None, allergies=None, test=[], admin=False
-):
+async def add_user_auth_data(userID, userEmail, username, phoneNumber):
+    try:
+        user_auth = {
+            "uid": userID,
+            "userEmail": userEmail,
+            "userName": username,
+            "phoneNumber": phoneNumber or "",
+            "disabled": False
+        }
+        user_auth_collection.document(userID).set(user_auth)
+        response = {"auth_reponse": f"User auth {userID} added to Firestore!"}
+    except Exception as e:
+        response = {"auth_reponse": f"Error adding user to Firestore: {str(e)}"}
     try:
         user_data = {
-            "userId": user_id,
-            "userEmail": user_email,
+            "userEmail": userEmail,
             "userName": username,
-            "recipes": recipes or [],
-            "allergies": allergies or [],
-            "admin": admin or False,
+            "phoneNumber": phoneNumber or "",
+            "profileImageURL": "",
+            "description": "",
+            "recipes": [],
+            "allergies": []
         }
-        user_collection.document(user_id).set(user_data)
-        return f"User {user_id} added to Firestore!"
+        user_data_collection.document(userID).set(user_data)
+        response.update({"data_response": f"User data {userEmail} added to Firestore!"}) 
     except Exception as e:
-        return f"Error adding user to Firestore: {str(e)}"
+        response.update({"data_response": f"Error adding user to Firestore: {str(e)}"})
+    
+    return response
+
+
+# Login function
+async def loginOnFirebase(email, password):
+    try:
+        login = mainAuth.sign_in_with_email_and_password(email, password)
+        return login
+    except Exception as e:
+        error_message = str(e)
+        return {"error": "UNKNOWN_ERROR", "message": error_message}
 
 
 async def get_document(document, details):
     try:
         item = document.get()
+        print(1)
         if item.exists:
             if details == False:
                 return item.id
@@ -133,59 +141,75 @@ async def get_document(document, details):
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def delete_user_from_firestore(user_email):
-    authUser = auth.get_user_by_email(user_email)
-    # userEmail = user.to_dict().get('userEmail')
+async def delete_user_from_firestore(user_id):
     try:
-        if authUser:
-            user_id = authUser.uid
-            user_collection.document(user_id).delete()
-            auth.delete_user(user_id)
-            return f"deleted user: {user_email}"
-        else:
-            return "User not found"
+        user_data_collection.document(user_id).delete()
+        user_auth_collection.document(user_id).delete()
+        auth.delete_user(user_id)
+        return f"deleted user: {user_id}"
     except Exception as e:
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def update_user_from_firestore(user_id, user_email, user_name, recipes, allergies):
+async def update_user_data(user_id, user_email, username, phone_number, profile_image_url, description):
     try:
-        user = user_collection.document(user_id).get()
+        user = user_data_collection.document(user_id).get()
         user = user.to_dict()
         if not user:
             return f"{user_id} not found"
         user_data = {
             "userId": user_id,
             "userEmail": user_email,
-            "userName": user_name,
-            "recipes": recipes,
-            "allergies": allergies,
+            "userName": username,
+            "phoneNumber": phone_number,
+            "profileImageURL": profile_image_url,
+            "description": description
         }
         for key, value in user_data.items():
             if value is None:
                 user_data[key] = user.get(key, value)
 
-        user_collection.document(user_id).update(user_data)
+        user_data_collection.document(user_id).update(user_data)
         return user_data
     except Exception as e:
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
+async def update_user_r_a(user_email, recipes, allergies):
+    try:
+        user = auth.get_user_by_email(user_email)
+        user_id = user.uid
+        if recipes:
+            print("add recipes")
+            user_data_collection.document(user_id).update({'recipes': firestore.ArrayUnion(recipes)})
+        if allergies:
+            print("add allergies")
+            user_data_collection.document(user_id).update({'allergies': firestore.ArrayUnion(allergies)})
+        return {"message": "User data updated successfully."}
+    
+    except auth.AuthError as e:
+        print(f"Authentication error: {str(e)}")
+        raise HTTPException(status_code=404, detail="User not found.")
+    except firestore.FirebaseError as e:
+        print(f"Firestore error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error updating user data in Firestore.")
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
 async def new_recipe(recipe, recipe_id):
     for ingredient in recipe.ingredients:
-        # print(ingredient)
-        # ingredient.recipe_index.append(recipe_id)
         await check_ingredient_index(ingredient.name, recipe_id)
     ingredient_data = [ingredient.dict() for ingredient in recipe.ingredients]
-    # print(recipe.to_dict())
     recipe_data = {
         "id": recipe_id,
         "name": recipe.name,
         "ingredients": ingredient_data,
         "instructions": recipe.instructions,
-        "duration": recipe.time,
+        "time": recipe.time,
         "img_url": recipe.img_url,
-        "serving": recipe.servings,
+        "servings": recipe.servings,
     }
     recipe_collection.document(str(recipe_id)).set(recipe_data)
     return {"message": "Recipe added successfully"}
@@ -219,23 +243,33 @@ async def get_collection(collection, details):
         return f"Error retrieving {collection} from Firestore: {str(e)}"
 
 
-# async def check_ingredients():
-# Example usage
-# if __name__ == "__main__":
-#     import asyncio
+async def check_recipe(recipe_name):
+    collection = recipe_collection.where("name", "in", [recipe_name]).stream()
+    for doc in collection:
+        print(f"{doc.id} => {doc.to_dict()}")
 
-#     email = "test@example.com"
-#     password = "testpassword"
 
-#     # Sign up
-#     print(asyncio.run(signupOnFirebase(email, password)))
+async def i_to_r(ingredients):
+    if len(ingredients) == 1:
+        document = await get_document(ingredient_collection.document(ingredients[0]), details=True)
+        id_list = document['recipe_id']
+    else:
+        id_list = []
+        for ingredient in ingredients:
+            document = await get_document(ingredient_collection.document(ingredient), details=True)
+            if document == "item not found":
+                return "no match"
+            if not id_list:
+                id_list.extend(document["recipe_id"])
+            else:
+                id_list = list(set(id_list) & set(document["recipe_id"]))
+                if not id_list:
+                    return "no match"
 
-#     # Log in
-#     print(asyncio.run(loginOnFirebase(email, password)))
+    recipe_list = []
+    for recipe_id in id_list:
+        recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+        recipe_list.append(recipe)
+    return recipe_list
 
-#     # Add user to Firestore
-#     user_data = {"name": "John Doe", "age": 30}
-#     print(asyncio.run(add_user_to_firestore("user123", user_data)))
-
-#     # Get user from Firestore
-#     print(asyncio.run(get_user_from_firestore("user123")))
+    

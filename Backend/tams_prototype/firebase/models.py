@@ -12,6 +12,14 @@ class UserInfo(BaseModel):
   email: str
   password: str
 
+class authProfile(BaseModel):
+   uid: str
+   email:str
+   username: str
+   profile_image: Optional[str]
+   phone_number: Optional[str]
+  #  disabled: False
+
 
 class Ingredient(BaseModel):
   name: str

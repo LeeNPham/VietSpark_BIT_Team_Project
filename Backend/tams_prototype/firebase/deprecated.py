@@ -61,6 +61,57 @@ async def get_user_from_firestore(user_id):
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
+@app.get("/user/{user_email}", tags=['Users'])
+async def get_user(user_email: str):
+    try:
+        user_id = auth.get_user_by_email(user_email).uid
+        return await get_document(user_data_collection.document(user_id), details=True)
+    except Exception as e:
+        return f"Error retrieving user: {str(e)}"
+
+
+async def delete_user_from_firestore(user_email):
+    authUser = auth.get_user_by_email(user_email)
+    # userEmail = user.to_dict().get('userEmail')
+    try:
+        if authUser:
+            user_id = authUser.uid
+            user_data_collection.document(user_id).delete()
+            user_auth_collection.document(user_id).delete()
+            auth.delete_user(user_id)
+            return f"deleted user: {user_email}"
+        else:
+            return "User not found"
+    except Exception as e:
+        return f"Error retrieving user from Firestore: {str(e)}"
+
+
+async def update_user_data(user_email, new_email, username, phone_number, profile_image_url, description):
+    try:
+        authUser = auth.get_user_by_email(user_email)
+        user_id = authUser.uid
+        user = user_data_collection.document(user_id).get()
+        user = user.to_dict()
+        if not user:
+            return f"{user_id} not found"
+        user_data = {
+            "userId": user_id,
+            "userEmail": new_email,
+            "userName": username,
+            "phoneNumber": phone_number,
+            "profileImageURL": profile_image_url,
+            "description": description
+        }
+        for key, value in user_data.items():
+            if value is None:
+                user_data[key] = user.get(key, value)
+
+        user_data_collection.document(user_id).update(user_data)
+        return user_data
+    except Exception as e:
+        return f"Error retrieving user from Firestore: {str(e)}"
+
+
 
 
 
