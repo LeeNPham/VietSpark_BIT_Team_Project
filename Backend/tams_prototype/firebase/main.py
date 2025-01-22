@@ -87,13 +87,12 @@ async def update_user(user_data: UserUpdateModel):
     return await update_user_data(user_data)
 
 
-@app.put("/update_user_recipes_allergies/{user_id}", tags=['Users'])
-# async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
-async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel):
+@app.put("/user/{user_id}", tags=['Users'])
+async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
     try:
-        if not user_data.recipes and not user_data.allergies:
+        if not recipes and not allergies:
             raise HTTPException(status_code=400, detail="At least one of 'recipes' or 'allergies' must be provided.")
-        return await update_user_r_a(user_data.user_id, user_data.recipes, user_data.allergies)
+        return await update_user_r_a(user_id, recipes, allergies)
     
     except HTTPException as e:
         print(f"HTTP exception: {str(e.detail)}")
