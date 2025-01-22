@@ -2,3 +2,8 @@
 .venv
 credentials.json
 __pycache__/
+additionalFucntions.cpython-313.pyc
+demo.cpython-313.pyc
+functions.cpython-313.pyc
+main.cpython-313.pyc
+models.cpython-313.pyc
