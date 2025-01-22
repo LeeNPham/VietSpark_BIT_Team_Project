@@ -175,10 +175,8 @@ async def update_user_data(user_id, user_email, username, phone_number, profile_
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def update_user_r_a(user_email, recipes, allergies):
+async def update_user_r_a(user_id, recipes, allergies):
     try:
-        user = auth.get_user_by_email(user_email)
-        user_id = user.uid
         if recipes:
             print("add recipes")
             user_data_collection.document(user_id).update({'recipes': firestore.ArrayUnion(recipes)})

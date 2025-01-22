@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173",  # Add your frontend URL here
+    "http://localhost:5173", "https://vietspark-v1.vercel.app/" # Add your frontend URL here
 ]
 
 app.add_middleware(
@@ -86,12 +86,12 @@ async def update_user(user_id: str, user_email: str = None, username: str = None
     return await update_user_data(user_id, user_email, username, phone_number, profile_image_url, description)
 
 
-@app.put("/user/{user_email}", tags=['Users'])
-async def update_user_recipes_allergies(user_email: str, recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
+@app.put("/user/{user_id}", tags=['Users'])
+async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
     try:
         if not recipes and not allergies:
             raise HTTPException(status_code=400, detail="At least one of 'recipes' or 'allergies' must be provided.")
-        return await update_user_r_a(user_email, recipes, allergies)
+        return await update_user_r_a(user_id, recipes, allergies)
     
     except HTTPException as e:
         print(f"HTTP exception: {str(e.detail)}")
