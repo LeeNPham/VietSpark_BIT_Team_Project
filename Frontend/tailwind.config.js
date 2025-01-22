@@ -5,12 +5,13 @@ import typography from '@tailwindcss/typography';
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./src/**/*.{html,js,svelte,ts}', './node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}'],
-	darkMode: 'selector',
+	darkMode: 'class',
 
 	theme: {
 		extend: {
 			colors: {
 				// flowbite-svelte
+				//Customized Color Template
 				primary: {
 					50: '#E3F2FD', // Lightest blue
 					100: '#BBDEFB',
@@ -21,7 +22,12 @@ export default {
 					600: '#1E88E5',
 					700: '#1976D2',
 					800: '#1565C0',
-					900: '#0D47A1'  // Darkest blue
+					900: '#0D47A1',  // Darkest blue
+					950:'#E7F2AC', // green
+					1000: '#CCE5E3',// blue
+				},
+				background: {
+					'white': '#F3F5F7',
 				}
 			}
 		}
