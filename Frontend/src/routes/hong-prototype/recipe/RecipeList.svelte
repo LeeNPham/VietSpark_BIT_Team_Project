@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
 	import { Button, Input } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import Modal from '../components/Modal.svelte';
+	import type { Recipe } from '../types';
 
 	const API_URL = import.meta.env.VITE_API_URL;
 
-	let recipes = [];
+	let recipes: Recipe[]| [] = [];
 	let showModal = false;
 	let newRecipeName = '';
 	let newIngredients = [];
@@ -20,9 +21,9 @@
 		try {
 			const res = await fetch(`${API_URL}/recipes`);
 			if (!res.ok) throw new Error('Failed to fetch recipes');
-			recipes = await res.json();
+			let recipesRes: string = await res.json();
 			console.log("recipes:", recipes)
-			if (recipes === "No collection") recipes = null;
+			if (recipesRes === "No collection") recipes = [];
 		} catch (e) {
 			console.error(e);
 		}
@@ -37,12 +38,12 @@
 	function addIngredientRow() {
 		ingredientRows = [...ingredientRows, { name: '', amount: '' }];
 	}
-	function removeIngredientRow(index) {
+	function removeIngredientRow(index: number) {
 		ingredientRows.splice(index, 1);
 		ingredientRows = [...ingredientRows];
 	}
 
-	function handleIngredientChange(index, field, value) {
+	function handleIngredientChange(index: number, field: 'name' | 'amount', value: string) {
 		ingredientRows[index][field] = value;
 	}
 
@@ -50,11 +51,11 @@
 	function addInstruction() {
 		newInstructions = [...newInstructions, ''];
 	}
-	function removeInstruction(index) {
+	function removeInstruction(index: number) {
 		newInstructions.splice(index, 1);
 		newInstructions = [...newInstructions];
 	}
-	function handleInstructionChange(index, value) {
+	function handleInstructionChange(index: number, value: string) {
 		newInstructions[index] = value;
 	}
 
@@ -106,15 +107,14 @@
 	{#each recipes as item, i}
 		<a class="mb-4 items-center gap-4 rounded-lg p-4" href={`/hong-prototype/recipe/${item.id}`}>
 			<div class="flex items-center gap-4">
-				<img src={item.image} class="h-20 w-20 rounded-lg object-cover" alt="Recipe image" />
+				<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} />
 				<div>
 					<p>{item.name}</p>
 					<div class="space-x-2 text-sm font-medium text-teal-700">
-						<span>{item.duration} Min.</span>
+						<span>{item.time}</span>
 						<span>*</span>
-						<span>{item.numIngredients} ingredients</span>
+						<span>{item.ingredients.length} ingredients</span>
 					</div>
-					<h3 class="mt-1 font-semibold text-teal-500">{item.description}</h3>
 				</div>
 			</div>
 		</a>
@@ -161,7 +161,7 @@
 						<Input
 							type="text"
 							bind:value={ingredient.name}
-							oninput={(e) => handleIngredientChange(index, 'name', e?.target?.value)}
+							oninput={(e) => handleIngredientChange(index, 'name', (e.currentTarget as HTMLInputElement).value)}
 							placeholder="Ingredient"
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
@@ -169,11 +169,11 @@
 							type="text"
 							bind:value={ingredient.amount}
 							placeholder="Amount (eg 300g)"
-							oninput={(e) => handleIngredientChange(index, 'amount', e?.target?.value)}
+							oninput={(e) => handleIngredientChange(index, 'amount', (e.currentTarget as HTMLInputElement).value)}
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
 						<Button
-							onclick={removeIngredientRow}
+							onclick={() => removeIngredientRow(index)}
 							class="justify-end rounded-full bg-white px-3 py-1 text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
 							>Remove</Button
 						>
@@ -231,11 +231,11 @@
 							type="text"
 							bind:value={instruction}
 							placeholder="Put the instruction here"
-							oninput={(e) => handleInstructionChange(index, e?.target?.value)}
+							oninput={(e) => handleInstructionChange(index, (e.currentTarget as HTMLInputElement).value)}
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
 						<Button
-							onclick={removeInstruction}
+							onclick={() => removeInstruction(index)}
 							class="justify-end rounded-full bg-white px-3 py-1 text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
 							>Remove</Button
 						>

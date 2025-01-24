@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
+	import type { Recipe } from '../../types'; 
 
     const API_URL = import.meta.env.VITE_API_URL;
 	
-    let recipe = null;
+    let recipe: Recipe | null = null;
     $: recipeId = $page.params.id;
 
 	async function fetchRecipe() {
@@ -12,20 +13,20 @@
 			const res = await fetch(`${API_URL}/recipes/${recipeId}`);
 			if (!res.ok) throw new Error("Failed to get recipe detail");
 
-			recipe = res.json();
+			recipe = await res.json();
 			
 		} catch (e) {
-			alert(e.message);
+			alert((e as Error).message);
 		}
 	}
     onMount(async () => {
         try {
 			const res = await fetch(`${API_URL}/recipes/${recipeId}`);
 			if (!res.ok) throw new Error('Failed to fetch recipe details');
-			console.log("recipes", res.json());
-			recipe = res.json();
+			console.log("recipe detail", res.json());
+			recipe = await res.json();
 		} catch (e) {
-			alert(e.message);
+			alert((e as Error).message);
 		}
     });
 </script>
@@ -33,7 +34,7 @@
 {#if recipe}
 	<div class="p-6">
 		<h1 class="text-2xl font-bold">{recipe.name}</h1>
-		<img src={recipe.image} class="mt-4 w-full rounded-lg object-cover" alt="Recipe image" />
+		<img src={recipe.img_url} class="mt-4 w-full rounded-lg object-cover" alt={recipe.name} />
 
 		<h2 class="mt-6 text-lg font-semibold">Description</h2>
 		<div class="flex items-center justify-between">

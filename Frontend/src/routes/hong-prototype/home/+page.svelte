@@ -7,7 +7,7 @@
 
 </script>
 <div>
-	<img src="/home.jpg" class="w-1/4 h-auto mx-auto" alt="Design by stories / Freepik">
+	<img src="/home.jpg" class="h-1/2 w-auto mx-auto" alt="(Adobe stock) Home banner">
 </div>
 <div class="py-4 flex items-center rounded-full justify-between flex-wrap">
 	
