@@ -2,7 +2,7 @@
 	import Category from '../components/Category.svelte';
 	import IngredientInput from '../components/IngredientInput.svelte';
 	import RecipeList from '../recipe/RecipeList.svelte';
-	let name = "Beautiful"
+	let name = "Beautiful";
 
 
 </script>
@@ -14,8 +14,7 @@
 	<div class="font-sans text-3xl font-extrabold text-teal-600">Hello {name}</div>
 	<div>
 		<a href="/hong-prototype/home" class="text-teal-600 font-semibold">Home</a> |
-		<a href="/hong-prototype/user" class="text-teal-600 font-semibold">User</a> |
-		<a href="/hong-prototype/login" class="text-teal-600 font-semibold">Login</a>
+		<a href="/hong-prototype/user" class="text-teal-600 font-semibold">User</a>
 	</div>
 </div>
 <!-- Categories -->

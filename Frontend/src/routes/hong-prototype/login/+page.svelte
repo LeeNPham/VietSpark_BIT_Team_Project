@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { goto } from '$app/navigation';
 
     let email = '';
@@ -22,7 +22,6 @@
 
             const data = await res.json();
             console.log(data)
-            alert('Login successful! Redirecting...');
             document.cookie = `authToken=${data.token}; path=/; Secure; HttpOnly`; // Using Cookies
             localStorage.setItem('authToken', data.idToken); // Using localStorage
             localStorage.setItem('authenticated', 'true'); // Mark user as authenticated
@@ -30,7 +29,7 @@
             goto('/hong-prototype/home'); // Redirect to a dashboard or home page
 
         } catch (error) {
-            errorMessage = error.message;
+            errorMessage = (error as Error).message;
             alert(errorMessage);
         }
     }
