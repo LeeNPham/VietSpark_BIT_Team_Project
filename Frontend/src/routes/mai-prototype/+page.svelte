@@ -1,6 +1,4 @@
-<script>
 
-</script>
 
 <main>
 	<h1 class="mx-6 my-6"> Welcome to Cool Recipe App </h1>

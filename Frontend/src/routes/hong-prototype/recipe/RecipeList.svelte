@@ -95,12 +95,12 @@
 	}
 </script>
 
-<div class="flex items-center justify-between">
-	<h2 class="my-2 font-sans text-xl font-bold">Recipes</h2>
+<div class="flex justify-between items-center p-9">
+	<h2 class="text-2xl">Recipes or History </h2>
 	<Button
-		class="rounded-full text-lg bg-teal-300 px-3 py-1 font-sans font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
-		onclick={toggleModal}>Add recipe</Button
-	>
+		class="text-xl text-black  bg-primary-green hover:bg-secondary-blue rounded-2xl outline outline-secondary-green"
+		onclick={toggleModal}>Add recipe
+	</Button>
 </div>
 <div class="mb-4 gap-2 flex flex-items justify-between">
 	{#each recipes as item, i}
