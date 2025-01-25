@@ -6,24 +6,21 @@
 
 
 </script>
-<div>
-	<img src="/home.jpg" class="w-1/4 h-auto mx-auto" alt="Design by stories / Freepik">
-</div>
-<div class="py-4 flex items-center rounded-full justify-between flex-wrap">
-	
-	<div class="font-sans text-3xl font-extrabold text-teal-600">Hello {name}</div>
-	<div>
-		<a href="/hong-prototype/home" class="text-teal-600 font-semibold">Home</a> |
-		<a href="/hong-prototype/user" class="text-teal-600 font-semibold">User</a> |
-		<a href="/hong-prototype/login" class="text-teal-600 font-semibold">Login</a>
+<nav class="flex justify-between items-center p-9 ">
+	<div class="text-4xl text-secondary-forest">Hello, {name}</div>
+	<div class="flex space-x-4">
+		<a href="/hong-prototype/home" class="px-4 py-2 text-2xl text-background-white rounded-2xl bg-secondary-forest outline outline-secondary-green">Home</a>
+		<a href="/hong-prototype/user" class="px-4 py-2 text-2xl text-background-white rounded-2xl bg-secondary-forest outline outline-secondary-green">User</a>
 	</div>
+</nav>
+<div>
+	<img src="/home.jpg" class="w-1/4 h-auto mx-auto" alt="A cartoon of a Black, woman chef making cupcakes in the kitchen.">
 </div>
 <!-- Categories -->
 <Category />
 
 <!-- Ingredient input -->
 <IngredientInput />
-
 
 <!-- Recipe -->
 <RecipeList />

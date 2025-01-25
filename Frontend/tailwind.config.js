@@ -9,6 +9,9 @@ export default {
 
 	theme: {
 		extend: {
+			fontFamily: {
+				sans: ['Poppins', 'sans-serif']
+			},
 			colors: {
 				// flowbite-svelte
 				//Customized Color Template
@@ -23,8 +26,14 @@ export default {
 					700: '#1976D2',
 					800: '#1565C0',
 					900: '#0D47A1',  // Darkest blue
-					950:'#E7F2AC', // green
-					1000: '#CCE5E3',// blue
+					'green':'#E7F2AC', // green
+					'orange': '#fceacc', //orange
+				},
+				secondary:{
+					'green': '#5ca11a', //Medium Green
+					'blue': '#CCE5E3',// blue
+					'forest':'#263d27'//forest green
+
 				},
 				background: {
 					'white': '#F3F5F7',

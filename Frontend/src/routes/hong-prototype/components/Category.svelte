@@ -3,13 +3,11 @@
 	import { Button } from 'flowbite-svelte';
 </script>
 
-<div>
-	<p class="my-2 font-sans text-xl font-bold">Category</p>
-	<div class="flex flex-wrap justify-center gap-4">
+<div class="flex flex-col p-9">
+	<h1 class="pb-8 font-sans text-5xl font-bold  text-black">Category</h1>
+	<div class="flex flex-wrap gap-3">
 		{#each $categories as category, i}
-			<Button
-				class="my-4 gap-4 text-white bg-blue-500 outline-none outline-white  hover:bg-blue-400 hover:text-white focus:outline-none"
-			>
+			<Button class="text-2xl text-black  bg-primary-green hover:bg-secondary-blue rounded-2xl outline outline-secondary-green">
 				{category}
 			</Button>
 		{/each}
