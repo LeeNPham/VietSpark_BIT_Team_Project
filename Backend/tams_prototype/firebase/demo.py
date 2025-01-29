@@ -272,52 +272,52 @@ async def i_to_r(ingredients):
     
 
 
-async def GPT_response_to_ingredientS(ingredient):
-    OAI_api_key = os.getenv("OAI_API_KEY")
+# async def GPT_response_to_ingredientS(ingredient):
+#     OAI_api_key = os.getenv("OAI_API_KEY")
 
-    client = OpenAI(
-        api_key=OAI_api_key
-    )
-    prompt = f"""
-    You are a Vietnamese recipe expert. You are only allowed to respond in the form of a JSON. Time should be in minutes. The JSON should always take the following shape:
-    {{
-        "name": " ",
-        "ingredients": [{{"ingredientName": "ingredientName", "ingredientAmount": "ingredient amount with unit"}}],
-        "calories": int,
-        "time": " ",
-        "servings": int,
-        "instructions": ["step 1", "step 2"]
-    }}
-    I will provide you a list of ingredients, and you will always respond with your best recommendation for a Vietnamese recipe. Here are the ingredients I have:
-    {{ingredients}}
+#     client = OpenAI(
+#         api_key=OAI_api_key
+#     )
+#     prompt = f"""
+#     You are a Vietnamese recipe expert. You are only allowed to respond in the form of a JSON. Time should be in minutes. The JSON should always take the following shape:
+#     {{
+#         "name": " ",
+#         "ingredients": [{{"ingredientName": "ingredientName", "ingredientAmount": "ingredient amount with unit"}}],
+#         "calories": int,
+#         "time": " ",
+#         "servings": int,
+#         "instructions": ["step 1", "step 2"]
+#     }}
+#     I will provide you a list of ingredients, and you will always respond with your best recommendation for a Vietnamese recipe. Here are the ingredients I have:
+#     {{ingredients}}
 
-    Respond only with the JSON format as described above.
-    """
+#     Respond only with the JSON format as described above.
+#     """
 
-    # Initialize a message history list with the system prompt
-    # This structure is required for the OpenAI chat model to maintain context.
-    messages = [{"role": "system", "content": prompt}]
+#     # Initialize a message history list with the system prompt
+#     # This structure is required for the OpenAI chat model to maintain context.
+#     messages = [{"role": "system", "content": prompt}]
 
-    # Define a function to handle user input and generate a response using OpenAI's API
-    messages.append({"role": "user", "content": ingredient})
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        store=True,  # Specify the model to use
-        messages = messages       # Pass the conversation history
-    )
-    ChatGPT_reply = response.choices[0].message.content
-    recipe_json = json.loads(ChatGPT_reply)
-    recipe_json["author"] = "string"
-    print(recipe_json["author"])
-    recipe_name = recipe_json['name']
-    recipe = RecipeModel.model_validate(recipe_json)
-    # recipe["user_id"] = "string"
-    # print(recipe.user_id)
-    # Add the assistant's reply to the message history to maintain context
-    messages.append({"role": "assistant", "content": response})
-    response_list = [recipe_name, recipe]
+#     # Define a function to handle user input and generate a response using OpenAI's API
+#     messages.append({"role": "user", "content": ingredient})
+#     response = client.chat.completions.create(
+#         model="gpt-4o-mini",
+#         store=True,  # Specify the model to use
+#         messages = messages       # Pass the conversation history
+#     )
+#     ChatGPT_reply = response.choices[0].message.content
+#     recipe_json = json.loads(ChatGPT_reply)
+#     recipe_json["author"] = "string"
+#     print(recipe_json["author"])
+#     recipe_name = recipe_json['name']
+#     recipe = RecipeModel.model_validate(recipe_json)
+#     # recipe["user_id"] = "string"
+#     # print(recipe.user_id)
+#     # Add the assistant's reply to the message history to maintain context
+#     messages.append({"role": "assistant", "content": response})
+#     response_list = [recipe_name, recipe]
 
-    return response_list
+#     return response_list
 
 
 
