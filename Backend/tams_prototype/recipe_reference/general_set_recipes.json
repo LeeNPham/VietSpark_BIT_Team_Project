@@ -1,0 +1,307 @@
+
+{
+"servings": 4,
+"ingredients": [
+{ "ingredientName": "chicken breasts", "ingredientAmount": "500g" },
+{ "ingredientName": "soy sauce", "ingredientAmount": "3 tablespoons" },
+{ "ingredientName": "honey", "ingredientAmount": "2 tablespoons" },
+{ "ingredientName": "garlic", "ingredientAmount": "3 cloves" },
+{ "ingredientName": "ginger", "ingredientAmount": "1 tablespoon" },
+{ "ingredientName": "sesame seeds", "ingredientAmount": "1 tablespoon" },
+{ "ingredientName": "green onions", "ingredientAmount": "2 stalks" }
+],
+"calories": 400,
+"time": "25 minutes",
+"searchable_ingredient": [
+"chicken",
+"soy",
+"honey",
+"garlic",
+"ginger",
+"sesame",
+"onions"
+],
+"img_url": "https://example.com/teriyaki-chicken.jpg",
+"instructions": [
+"Marinate the chicken in soy sauce, honey, garlic, and ginger for 15 minutes.",
+"Cook the chicken in a pan over medium heat until browned and fully cooked.",
+"Garnish with sesame seeds and green onions before serving."
+],
+"searchable_recipe_name": ["teriyaki", "chicken"],
+"name": "Teriyaki Chicken"
+},
+{
+"servings": 2,
+"ingredients": [
+{ "ingredientName": "salmon fillets", "ingredientAmount": "300g" },
+{ "ingredientName": "lemon", "ingredientAmount": "1" },
+{ "ingredientName": "dill", "ingredientAmount": "1 tablespoon" },
+{ "ingredientName": "olive oil", "ingredientAmount": "1 tablespoon" },
+{ "ingredientName": "salt", "ingredientAmount": "to taste" },
+{ "ingredientName": "black pepper", "ingredientAmount": "to taste" }
+],
+"calories": 350,
+"time": "20 minutes",
+"searchable_ingredient": ["salmon", "lemon", "dill", "olive", "salt", "pepper"],
+"img_url": "https://example.com/lemon-dill-salmon.jpg",
+"instructions": [
+"Preheat the oven to 180°C (350°F).",
+"Season the salmon with olive oil, salt, pepper, dill, and lemon juice.",
+"Bake for 15-20 minutes or until fully cooked."
+],
+"searchable_recipe_name": ["lemon", "dill", "salmon"],
+"name": "Lemon Dill Salmon"
+},
+{
+"servings": 6,
+"ingredients": [
+{ "ingredientName": "pasta", "ingredientAmount": "500g" },
+{ "ingredientName": "tomato sauce", "ingredientAmount": "400ml" },
+{ "ingredientName": "ground beef", "ingredientAmount": "300g" },
+{ "ingredientName": "onion", "ingredientAmount": "1 medium" },
+{ "ingredientName": "garlic", "ingredientAmount": "2 cloves" },
+{ "ingredientName": "parmesan cheese", "ingredientAmount": "50g" },
+{ "ingredientName": "basil", "ingredientAmount": "1 tablespoon" }
+],
+"calories": 550,
+"time": "40 minutes",
+"searchable_ingredient": [
+"pasta",
+"tomato",
+"beef",
+"onion",
+"garlic",
+"parmesan",
+"basil"
+],
+"img_url": "https://example.com/spaghetti-bolognese.jpg",
+"instructions": [
+"Cook the pasta according to package instructions.",
+"In a pan, sauté onion and garlic until soft. Add ground beef and cook until browned.",
+"Add tomato sauce and basil, then simmer for 15 minutes.",
+"Combine the sauce with pasta and top with parmesan cheese."
+],
+"searchable_recipe_name": ["spaghetti", "bolognese"],
+"name": "Spaghetti Bolognese"
+},
+{
+"servings": 4,
+"ingredients": [
+{ "ingredientName": "chickpeas", "ingredientAmount": "400g" },
+{ "ingredientName": "cucumber", "ingredientAmount": "1" },
+{ "ingredientName": "tomato", "ingredientAmount": "2" },
+{ "ingredientName": "red onion", "ingredientAmount": "1" },
+{ "ingredientName": "lemon juice", "ingredientAmount": "2 tablespoons" },
+{ "ingredientName": "olive oil", "ingredientAmount": "2 tablespoons" },
+{ "ingredientName": "parsley", "ingredientAmount": "2 tablespoons" }
+],
+"calories": 250,
+"time": "10 minutes",
+"searchable_ingredient": [
+"chickpeas",
+"cucumber",
+"tomato",
+"onion",
+"lemon",
+"olive",
+"parsley"
+],
+"img_url": "https://example.com/chickpea-salad.jpg",
+"instructions": [
+"Combine chickpeas, diced cucumber, tomatoes, and red onion in a bowl.",
+"Drizzle with lemon juice and olive oil.",
+"Sprinkle with parsley and toss before serving."
+],
+"searchable_recipe_name": ["chickpea", "salad"],
+"name": "Chickpea Salad"
+},
+{
+"servings": 2,
+"ingredients": [
+{ "ingredientName": "avocado", "ingredientAmount": "1" },
+{ "ingredientName": "toast bread", "ingredientAmount": "2 slices" },
+{ "ingredientName": "feta cheese", "ingredientAmount": "50g" },
+{ "ingredientName": "cherry tomatoes", "ingredientAmount": "6" },
+{ "ingredientName": "balsamic glaze", "ingredientAmount": "1 tablespoon" }
+],
+"calories": 300,
+"time": "10 minutes",
+"searchable_ingredient": [
+"avocado",
+"bread",
+"feta",
+"tomatoes",
+"balsamic"
+],
+"img_url": "https://example.com/avocado-toast.jpg",
+"instructions": [
+"Toast the bread slices.",
+"Spread mashed avocado on each slice.",
+"Top with crumbled feta and sliced cherry tomatoes.",
+"Drizzle with balsamic glaze before serving."
+],
+"searchable_recipe_name": ["avocado", "toast"],
+"name": "Avocado Toast"
+}
+
+
+
+{
+    "servings": 4,
+    "ingredients": [
+    { "ingredientName": "ground turkey", "ingredientAmount": "500g" },
+    { "ingredientName": "breadcrumbs", "ingredientAmount": "1/2 cup" },
+    { "ingredientName": "egg", "ingredientAmount": "1" },
+    { "ingredientName": "garlic powder", "ingredientAmount": "1 teaspoon" },
+    { "ingredientName": "onion powder", "ingredientAmount": "1 teaspoon" },
+    { "ingredientName": "paprika", "ingredientAmount": "1/2 teaspoon" },
+    { "ingredientName": "salt", "ingredientAmount": "to taste" },
+    { "ingredientName": "black pepper", "ingredientAmount": "to taste" }
+    ],
+    "calories": 350,
+    "time": "30 minutes",
+    "searchable_ingredient": [
+    "turkey",
+    "breadcrumbs",
+    "egg",
+    "garlic",
+    "onion",
+    "paprika",
+    "salt",
+    "pepper"
+    ],
+    "img_url": "https://example.com/turkey-meatballs.jpg",
+    "instructions": [
+    "Preheat oven to 200°C (400°F).",
+    "Mix all ingredients in a large bowl until well combined.",
+    "Form into small meatballs and place on a baking tray.",
+    "Bake for 20-25 minutes or until cooked through."
+    ],
+    "searchable_recipe_name": ["turkey", "meatballs"],
+    "name": "Turkey Meatballs"
+},
+{
+    "servings": 4,
+    "ingredients": [
+    { "ingredientName": "quinoa", "ingredientAmount": "1 cup" },
+    { "ingredientName": "vegetable broth", "ingredientAmount": "2 cups" },
+    { "ingredientName": "black beans", "ingredientAmount": "1 cup" },
+    { "ingredientName": "corn", "ingredientAmount": "1 cup" },
+    { "ingredientName": "bell pepper", "ingredientAmount": "1" },
+    { "ingredientName": "cilantro", "ingredientAmount": "2 tablespoons" },
+    { "ingredientName": "lime juice", "ingredientAmount": "2 tablespoons" }
+    ],
+    "calories": 280,
+    "time": "25 minutes",
+    "searchable_ingredient": [
+    "quinoa",
+    "broth",
+    "beans",
+    "corn",
+    "pepper",
+    "cilantro",
+    "lime"
+    ],
+    "img_url": "https://example.com/southwest-quinoa.jpg",
+    "instructions": [
+    "Cook quinoa in vegetable broth according to package instructions.",
+    "Mix in black beans, corn, and diced bell pepper.",
+    "Stir in lime juice and cilantro before serving."
+    ],
+    "searchable_recipe_name": ["southwest", "quinoa", "bowl"],
+    "name": "Southwest Quinoa Bowl"
+},
+{
+    "servings": 4,
+    "ingredients": [
+    { "ingredientName": "sweet potatoes", "ingredientAmount": "2 large" },
+    { "ingredientName": "olive oil", "ingredientAmount": "2 tablespoons" },
+    { "ingredientName": "smoked paprika", "ingredientAmount": "1 teaspoon" },
+    { "ingredientName": "garlic powder", "ingredientAmount": "1 teaspoon" },
+    { "ingredientName": "salt", "ingredientAmount": "to taste" },
+    { "ingredientName": "black pepper", "ingredientAmount": "to taste" }
+    ],
+    "calories": 200,
+    "time": "35 minutes",
+    "searchable_ingredient": [
+    "sweet",
+    "potatoes",
+    "olive",
+    "paprika",
+    "garlic",
+    "salt",
+    "pepper"
+    ],
+    "img_url": "https://example.com/sweet-potato-fries.jpg",
+    "instructions": [
+    "Preheat oven to 220°C (425°F).",
+    "Cut sweet potatoes into wedges and toss with olive oil, smoked paprika, garlic powder, salt, and pepper.",
+    "Spread on a baking sheet and bake for 25-30 minutes, flipping halfway."
+    ],
+    "searchable_recipe_name": ["baked", "sweet", "potato", "fries"],
+    "name": "Baked Sweet Potato Fries"
+},
+{
+    "servings": 6,
+    "ingredients": [
+    { "ingredientName": "flour", "ingredientAmount": "2 cups" },
+    { "ingredientName": "sugar", "ingredientAmount": "1 cup" },
+    { "ingredientName": "baking powder", "ingredientAmount": "2 teaspoons" },
+    { "ingredientName": "milk", "ingredientAmount": "1 cup" },
+    { "ingredientName": "butter", "ingredientAmount": "1/2 cup" },
+    { "ingredientName": "blueberries", "ingredientAmount": "1 cup" },
+    { "ingredientName": "vanilla extract", "ingredientAmount": "1 teaspoon" }
+    ],
+    "calories": 320,
+    "time": "45 minutes",
+    "searchable_ingredient": [
+    "flour",
+    "sugar",
+    "baking",
+    "milk",
+    "butter",
+    "blueberries",
+    "vanilla"
+    ],
+    "img_url": "https://example.com/blueberry-muffins.jpg",
+    "instructions": [
+    "Preheat oven to 180°C (350°F).",
+    "In a bowl, mix flour, sugar, and baking powder.",
+    "Add milk, melted butter, and vanilla extract, stirring until smooth.",
+    "Fold in blueberries and divide into a muffin tray.",
+    "Bake for 20-25 minutes or until golden brown."
+    ],
+    "searchable_recipe_name": ["blueberry", "muffins"],
+    "name": "Blueberry Muffins"
+},
+{
+    "servings": 4,
+    "ingredients": [
+    { "ingredientName": "tofu", "ingredientAmount": "400g" },
+    { "ingredientName": "soy sauce", "ingredientAmount": "2 tablespoons" },
+    { "ingredientName": "cornstarch", "ingredientAmount": "1 tablespoon" },
+    { "ingredientName": "vegetable oil", "ingredientAmount": "2 tablespoons" },
+    { "ingredientName": "broccoli", "ingredientAmount": "2 cups" },
+    { "ingredientName": "sesame seeds", "ingredientAmount": "1 tablespoon" }
+    ],
+    "calories": 300,
+    "time": "20 minutes",
+    "searchable_ingredient": [
+    "tofu",
+    "soy",
+    "cornstarch",
+    "broccoli",
+    "oil",
+    "sesame"
+    ],
+    "img_url": "https://example.com/tofu-stirfry.jpg",
+    "instructions": [
+    "Cut tofu into cubes and coat with soy sauce and cornstarch.",
+    "Heat oil in a pan and fry tofu until crispy.",
+    "Add broccoli and cook for 5-7 minutes.",
+    "Sprinkle with sesame seeds before serving."
+    ],
+    "searchable_recipe_name": ["tofu", "broccoli", "stir-fry"],
+    "name": "Tofu and Broccoli Stir-Fry"
+}
+

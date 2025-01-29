@@ -28,17 +28,12 @@ app.add_middleware(
 
 
 @app.post("/authentication", tags=['Authentication'])
-async def signup(email: str, username: str, password: str, phone_number: str = None):
+async def signup(signup_data: UserSignUpModel):
     try:
-        signup_response = await signupOnFirebase(email, password, username)
+        signup_response = await signupOnFirebase(signup_data)
         user_id = signup_response[0]
         if "successfully signed up" in signup_response[1]:
-            response = await add_user_auth_data(
-                userID=user_id,
-                userEmail=email,
-                username=username,
-                phoneNumber=phone_number
-            )
+            response = await add_user_data(user_id, signup_data)
             return response
         else:
             raise HTTPException(status_code=400, detail=signup_response)
@@ -47,13 +42,14 @@ async def signup(email: str, username: str, password: str, phone_number: str = N
 
 
 @app.post("/login", tags=['Authentication'])
-async def sign_in(user_info: UserInfo):
-    print(user_info)
-    user_info = user_info.model_dump()  # Convert the Pydantic model to a dictionary
-    print(user_info)
+async def sign_in(user_info: UserLoginModel):
+    # print(user_info)
+    # user_info = user_info.model_dump()  # Convert the Pydantic model to a dictionary
+    # print(user_info)
     try:
         # Call the login function and check for successful login
-        response = await loginOnFirebase(user_info["email"], user_info["password"])
+        # response = await loginOnFirebase(user_info["email"], user_info["password"])
+        response = await loginOnFirebase(user_info.email, user_info.password)
         if 'error' in response:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response['error'])
         return JSONResponse(content=response)  # Directly return the response from Firebase
@@ -63,35 +59,41 @@ async def sign_in(user_info: UserInfo):
 
 
 
-@app.get("/user/{user_id}", tags=['Users'])
+@app.get("/get_user/{user_id}", tags=['Users'])
 async def get_user(user_id: str):
     try:
-        return await get_document(user_data_collection.document(user_id), details=True)
+        return await get_document(user_collection.document(user_id), details=True)
     except Exception as e:
         return f"Error retrieving user: {str(e)}"
 
 
-@app.get("/user", tags=['Users'])
+@app.get("/get_all_users", tags=['Users'])
 async def get_all_users():
-    return await get_collection(user_auth_collection.stream(), details=True)
+    try:
+        return await get_collection(user_collection.stream(), details=True)
+    except Exception as e:
+        return f"Error retrieving user: {str(e)}"
 
 
-@app.delete("/user/{user_id}", tags=['Users'])
+@app.delete("/delete_user/{user_id}", tags=['Users'])
 async def delete_user(user_id: str):
     return await delete_user_from_firestore(user_id)
 
 
-@app.put("/users/{user_id}", tags=['Users'])
-async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
-    return await update_user_data(user_id, user_email, username, phone_number, profile_image_url, description)
+@app.put("/update_user/{user_id}", tags=['Users'])
+# async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
+async def update_user(user_data: UserUpdateModel):
+    print(user_data)
+    return await update_user_data(user_data)
 
 
-@app.put("/user/{user_id}", tags=['Users'])
-async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
+@app.put("/update_user_recipes_allergies/{user_id}", tags=['Users'])
+# async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
+async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel):
     try:
-        if not recipes and not allergies:
+        if not user_data.recipes and not user_data.allergies:
             raise HTTPException(status_code=400, detail="At least one of 'recipes' or 'allergies' must be provided.")
-        return await update_user_r_a(user_id, recipes, allergies)
+        return await update_user_r_a(user_data.user_id, user_data.recipes, user_data.allergies)
     
     except HTTPException as e:
         print(f"HTTP exception: {str(e.detail)}")
@@ -103,34 +105,58 @@ async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optiona
 
 
 
-@app.get("/recipes", tags=['Recipes'])
+@app.get("/get_all_recipes", tags=['Recipes'])
 async def get_all_recipes():
-    return await get_collection(recipe_collection.stream(), details=True)
+    collection = await get_collection(recipe_collection.stream(), details=True)
+    # p_c = json.dumps(collection, indent=4)
+    return collection
 
 
-@app.get("/check_recipe/{recipe_name}", tags=['Recipes'])
-async def check_recipes(recipe_name: str):
+@app.get("/get_recipe_by_name/{recipe_name}", tags=['Recipes'])
+async def get_recipe_by_name(recipe_name: str):
+    
     return await check_recipe(recipe_name)
 
 
-@app.post("/add_recipe", tags=['Recipes'])
-async def add_recipe(recipe: Recipe):
-    t = await get_collection(recipe_collection.stream(), details=False)
-    recipe_id = check_missing_index(t)
-    return await new_recipe(recipe, recipe_id)
+@app.post("/add_new_recipe", tags=['Recipes'])
+async def add_recipe(recipe: RecipeModel):
+    check = await check_recipe(recipe.name)
+    if check == "Recipe not in database":
+        return await new_recipe(recipe)
+    return check
 
-@app.get("/check_recipe/{recipe_id}", tags=['Recipes'])
-async def get_recipe_id(recipe_id: str):
+
+@app.get("/get_recipe_by_id/{recipe_id}", tags=['Recipes'])
+async def get_recipe_by_id(recipe_id: str):
     return await get_document(recipe_collection.document(recipe_id), details=True)
 
 
 
-@app.post("/ingredients", tags=['Ingredients'])
-async def add_ingredients(ingredient: str, recipe_id: str):
-    return await check_ingredient_index(ingredient, recipe_id)
 
-
-@app.post("/ingredients/search", tags=['Ingredients'])
-async def ingredients_to_recipes(ingredients: List[str]):
+@app.get("/ingredients_to_recipes", tags=['Ingredients'])
+async def ingredients_to_recipes(ingredients: str):
     return await i_to_r(ingredients)
+
+
+
+
+@app.post("/GPT_to_recipe", tags=['GPT'])
+async def send_ingredients_to_GPT(ingredient: str):
+    response_list =  await GPT_response_to_ingredientS(ingredient)
+    check = await check_recipe(response_list[0])
+    if check == "Recipe not in database":
+        return await new_recipe(response_list[1])
+    return check
+
+    return await GPT_response_to_ingredientS(ingredient)
+
+
+
+
+
+
+
+
+
+
 
