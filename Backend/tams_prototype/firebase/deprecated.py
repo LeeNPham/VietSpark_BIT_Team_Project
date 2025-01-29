@@ -112,6 +112,183 @@ async def update_user_data(user_email, new_email, username, phone_number, profil
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
+async def get_collection(collection, details):
+    try:
+        collection_list = []
+        if details == False:
+            for item in collection:
+                collection_list.append(item.id)
+        else:
+            for item in collection:
+                collection_list.append({item.id: item.to_dict()})
+        if collection_list:
+            return collection_list
+        else:
+            return "No collection"
+    except Exception as e:
+        return f"Error retrieving {collection} from Firestore: {str(e)}"
+
+
+async def i_to_r(ingredients):
+    if len(ingredients) == 1:
+        document = await get_document(ingredient_collection.document(ingredients[0]), details=True)
+        id_list = document['recipe_id']
+    else:
+        id_list = []
+        for ingredient in ingredients:
+            document = await get_document(ingredient_collection.document(ingredient), details=True)
+            if document == "item not found":
+                return "no match"
+            if not id_list:
+                id_list.extend(document["recipe_id"])
+            else:
+                id_list = list(set(id_list) & set(document["recipe_id"]))
+                if not id_list:
+                    return "no match"
+
+    recipe_list = []
+    for recipe_id in id_list:
+        recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+        recipe_list.append(recipe)
+    return recipe_list
+    
+
+
+async def check_ingredient_index(ingredientName, recipe_id):
+    ingredient_index = await get_collection(ingredient_collection.stream(), details=False)
+    if ingredientName in ingredient_index:
+        ingredient_collection.document(ingredientName).update({'recipe_id': firestore.ArrayUnion([recipe_id])})
+        return f"new recipe added to {ingredientName}"
+    else:
+        ingredient_data = {'recipe_id': [recipe_id]}
+        ingredient_collection.document(ingredientName).set(ingredient_data)
+        return f"new ingredient '{ingredientName}' added to index"
+
+
+@app.post("/add_ingredients", tags=['Ingredients'])
+async def add_ingredients(ingredient: AddIngredientModel):
+    return await check_ingredient_index(ingredient)
+
+
+try:
+    user_auth = {
+        "uid": user_id,
+        "userEmail": signup_data.email,
+        "userName": signup_data.username,
+        "phoneNumber": signup_data.phone_number or "",
+        "disabled": False
+    }
+    user_auth_collection.document(user_id).set(user_auth)
+    response = {"auth_reponse": f"User auth {user_id} added to Firestore!"}
+except Exception as e:
+    response = {"auth_reponse": f"Error adding user to Firestore: {str(e)}"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

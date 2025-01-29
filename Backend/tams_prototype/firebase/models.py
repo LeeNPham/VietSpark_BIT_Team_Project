@@ -8,9 +8,30 @@ class publicProfile(BaseModel):
     recipes: Optional[list[str]] = (None,)  # Initialize empty lists
     allergies: Optional[List[str]] = None
 
-class UserInfo(BaseModel):
+
+class UserLoginModel(BaseModel):
   email: str
   password: str
+
+class UserSignUpModel(BaseModel):
+  email: str
+  username: str
+  password: str
+  phone_number: str
+
+class UserUpdateModel(BaseModel):
+  user_id: str
+  email: str
+  username: str
+  password: str
+  phone_number: str
+  profile_image_url: str
+  description: str
+
+class UserUpdateRecipeAllergiesModel(BaseModel):
+  user_id: str
+  recipes: List[str]
+  allergies: List[str]
 
 class authProfile(BaseModel):
    uid: str
@@ -21,20 +42,26 @@ class authProfile(BaseModel):
   #  disabled: False
 
 
-class Ingredient(BaseModel):
-  name: str
-  amount: str
-  # recipe_index: List[str] = []
+class IngredientModel(BaseModel):
+  ingredientName: str
+  ingredientAmount: str
 
+class SearchIngredientsModel(BaseModel):
+   ingredients: List[str]
 
-class Recipe (BaseModel):
+class AddIngredientModel(BaseModel):
+   ingredient: str
+   recipe_id: str
+
+class RecipeModel (BaseModel):
   name: str
-  ingredients: List[Ingredient]
+  ingredients: List[IngredientModel]
   instructions: List[str]
   time: str
   img_url: str = ""
-  servings: str
-  calories: str
+  servings: int
+  calories: int
+  author: str
 
 
 
