@@ -140,15 +140,15 @@ async def ingredients_to_recipes(ingredients: str):
 
 
 
-# @app.post("/GPT_to_recipe", tags=['GPT'])
-# async def send_ingredients_to_GPT(ingredient: str):
-#     response_list =  await GPT_response_to_ingredientS(ingredient)
-#     check = await check_recipe(response_list[0])
-#     if check == "Recipe not in database":
-#         return await new_recipe(response_list[1])
-#     return check
+@app.post("/GPT_to_recipe", tags=['GPT'])
+async def send_ingredients_to_GPT(ingredient: str):
+    response_list =  await GPT_response_to_ingredientS(ingredient)
+    check = await check_recipe(response_list[0])
+    if check == "Recipe not in database":
+        return await new_recipe(response_list[1])
+    return check
 
-#     return await GPT_response_to_ingredientS(ingredient)
+    return await GPT_response_to_ingredientS(ingredient)
 
 
 
