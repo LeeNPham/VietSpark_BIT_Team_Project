@@ -95,10 +95,10 @@
 	}
 </script>
 
-<div class="flex justify-between items-center p-9">
-	<h2 class="text-2xl">Recipes or History </h2>
+<div class="flex justify-between items-center p-1 sm:p-1 s md:p-5 lg:p-9">
+	<h2 class="text-base sm:text-base md:text-xl lg:text-2xl">Recipes or History </h2>
 	<Button
-		class="text-xl text-black  bg-primary-green hover:bg-secondary-blue rounded-2xl outline outline-secondary-green"
+		class="text-sm sm:text-sm md:text-lg lg:text-xl text-black  bg-primary-green hover:bg-secondary-blue rounded-2xl outline outline-secondary-green"
 		onclick={toggleModal}>Add recipe
 	</Button>
 </div>

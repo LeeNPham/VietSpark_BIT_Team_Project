@@ -18,8 +18,8 @@
 
 </script>
 
-<div class="flex flex-col justify-normal p-9">
-    <h1 class="mb-4 text-2xl ">What do you want to cook today?</h1>
+<div class="flex flex-col justify-normal p-2 sm:p-2 md:p-5 lg:p-9 ">
+    <h1 class="mb-4 text-lg sm:text-xl md:text-2xl lg:text-3xl">What do you want to cook today?</h1>
     <div class="flex gap-3">
         <Input
             aria-label="ingredients-input-box"
@@ -31,17 +31,17 @@
                     newIngredient = ""
                 }
             }}
-            placeholder="Add ingredients here: Chicken, Mint, Carrots (max. 5)"
+            placeholder="Add 5 ingredients"
             class="text-lg rounded-2xl outline outline-secondary-green"
         />
         <Button on:click={findRecipe} class="text-lg  text-black bg-primary-orange rounded-2xl outline outline-secondary-green">Search</Button>
     </div>
-    <div class="flex flex-wrap gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 py-2">
         {#each $ingredients as ingredient, i}
-            <div class="flex items-center justify-between bg-yellow-300 text-yellow-900 px-3 py-1 rounded-full h-10 font-semibold font-sans">
+            <div class="flex items-center justify-between bg-secondary-blue text-secondary-forest px-3 py-4 rounded-full h-10 font-semibold font-sans">
                 {ingredient}
                 <Button on:click={() => ingredientHandler.removeIngredient(i)}
-                    class="ml-2 bg-yellow-300 text-yellow-900 hover:text-yellow-900 hover:bg-yellow-300 focus:outline-none">
+                    class="ml-2 bg-secondary-blue text-black focus:outline-none">
                     x
                 </Button>
             </div>
