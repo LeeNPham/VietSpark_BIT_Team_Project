@@ -1,4 +1,6 @@
 from fastapi import Depends, Query, FastAPI, HTTPException, status
+# from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -62,7 +64,7 @@ async def sign_in(user_info: UserLoginModel):
 @app.get("/get_user/{user_id}", tags=['Users'])
 async def get_user(user_id: str):
     try:
-        return await get_document(user_collection.document(user_id), details=True)
+        return await get_document(user_collection.document(user_id.strip()), details=True)
     except Exception as e:
         return f"Error retrieving user: {str(e)}"
 
@@ -108,6 +110,11 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 @app.get("/get_all_recipes", tags=['Recipes'])
 async def get_all_recipes():
     collection = await get_collection(recipe_collection.stream(), details=True)
+    for recipe in collection:
+        recipe.pop("instructions", None)
+        recipe.pop("searchable_ingredient", None)
+        recipe.pop("searchable_recipe_name", None)
+        recipe["ingredients"] = len(recipe['ingredients'])
     # p_c = json.dumps(collection, indent=4)
     return collection
 
@@ -115,7 +122,7 @@ async def get_all_recipes():
 @app.get("/get_recipe_by_name/{recipe_name}", tags=['Recipes'])
 async def get_recipe_by_name(recipe_name: str):
     
-    return await check_recipe(recipe_name)
+    return await check_recipe(recipe_name.strip())
 
 
 @app.post("/add_new_recipe", tags=['Recipes'])
@@ -128,7 +135,10 @@ async def add_recipe(recipe: RecipeModel):
 
 @app.get("/get_recipe_by_id/{recipe_id}", tags=['Recipes'])
 async def get_recipe_by_id(recipe_id: str):
-    return await get_document(recipe_collection.document(recipe_id), details=True)
+    recipe = await get_document(recipe_collection.document(recipe_id.strip()), details=True)
+    recipe.pop("searchable_ingredient", None)
+    recipe.pop("searchable_recipe_name", None)
+    return recipe
 
 
 
@@ -147,12 +157,22 @@ async def send_ingredients_to_GPT(ingredient: str):
     if check == "Recipe not in database":
         return await new_recipe(response_list[1])
     return check
-
-    return await GPT_response_to_ingredientS(ingredient)
-
+    # return await GPT_response_to_ingredientS(ingredient)
 
 
 
+
+# @app.get("/get_image", tags=['Experimental'])
+# async def get_image():
+#     image_path = Path(r"C:\Users\t\Desktop\1683115847268.jpg")
+#     if not image_path.is_file():
+#         return {"error": "Image not found on the server"}
+#     return FileResponse(image_path)
+
+
+# @app.post("/upload-image/", tags=['Experimental'])
+# async def upload_image(file: UploadFile = File(...)):
+#     return await image_to_storage(file)
 
 
 
