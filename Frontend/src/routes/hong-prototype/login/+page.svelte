@@ -36,15 +36,15 @@
 </script>
 
 <main class="flex flex-col items-center justify-normal p-9">
-	<h1 class="py-8 text-center text-6xl font-semibold text-secondary-forest">User Sign-In</h1>
+	<h1 class="py-4 sm:py-4 md:py-6 lg:py-8 text-center text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-semibold text-secondary-forest">User Sign-In</h1>
 	<img
 		src="/home.jpg"
-		class="py-8 mx-auto h-auto w-1/4"
+		class="py-4 sm:py-4 md:py-6 lg:py-8 w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4"
 		alt="A cartoon of a Black, woman chef making cupcakes in the kitchen."
 	/>
 
-	<div class="py-8 w-full max-w-md rounded-lg bg-primary-orange p-8 shadow-md outline outline-secondary-green">
-		<h2 class=" text-secondary-forest mb-4 text-center text-2xl font-semibold">Login</h2>
+	<div class="p-8 py-4 sm:py-4 md:py-6 lg:py-8 w-full max-w-md rounded-lg bg-primary-orange shadow-md outline outline-secondary-green">
+		<h2 class=" mb-4 text-center text-2xl text-secondary-forest font-semibold">Login</h2>
 
 		{#if errorMessage}
 			<p class="mb-2 text-sm text-red-500">{errorMessage}</p>
@@ -67,7 +67,7 @@
 			Login
 		</button>
 
-		<p class="mt-3 text-center text-sm">
+		<p class="mt-3 text-center text-xs sm:text-xs md:text-sm lg:text-sm">
 			Don't have an account? <a
 				href="/hong-prototype/authentication"
 				class="text-secondary-forest font-semibold hover:underline">Sign Up</a
