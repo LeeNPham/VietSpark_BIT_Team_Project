@@ -1,54 +1,40 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { userHandler } from '../stores/userStore';
 
 	let email = '';
 	let password = '';
 	let errorMessage = '';
 
-	const API_URL = import.meta.env.VITE_API_URL;
-
 	async function handleLogin() {
 		errorMessage = '';
+		if (!email || !password) alert('Please fill in login credentials');
 		try {
-			const res = await fetch(`${API_URL}/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password })
-			});
-
-			if (!res.ok) {
-				throw new Error('Invalid credentials. Please try again.');
-			}
-
-            const data = await res.json();
-            console.log(data)
-            document.cookie = `authToken=${data.token}; path=/; Secure; HttpOnly`; // Using Cookies
-            localStorage.setItem('authToken', data.idToken); // Using localStorage
-            localStorage.setItem('authenticated', 'true'); // Mark user as authenticated
-            localStorage.setItem('userId', data.localId); // Mark user as authenticated
-            localStorage.setItem('refreshToken', data.refreshToken);
-
-            const expiresAt = new Date().getTime() + data.expiresIn * 1000;
-            localStorage.setItem('expiresAt', expiresAt.toString());
-            goto('/hong-prototype/home'); // Redirect to a dashboard or home page
-
-        } catch (error) {
-            errorMessage = (error as Error).message;
-            alert(errorMessage);
-        }
-    }
+			await userHandler.login({ email: email, password: password });
+			goto('/hong-prototype/home'); // Redirect to a dashboard or home page
+		} catch (error) {
+			errorMessage = (error as Error).message;
+			alert(errorMessage);
+		}
+	}
 </script>
 
 <main class="flex flex-col items-center justify-normal p-9">
-	<h1 class="py-4 sm:py-4 md:py-6 lg:py-8 text-center text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-semibold text-secondary-forest">User Sign-In</h1>
+	<h1
+		class="text-secondary-forest py-4 text-center text-3xl font-semibold sm:py-4 sm:text-3xl md:py-6 md:text-4xl lg:py-8 lg:text-6xl"
+	>
+		User Sign-In
+	</h1>
 	<img
 		src="/home.jpg"
-		class="py-4 sm:py-4 md:py-6 lg:py-8 w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4"
+		class="w-1/2 py-4 sm:w-1/2 sm:py-4 md:w-1/3 md:py-6 lg:w-1/4 lg:py-8"
 		alt="A cartoon of a Black, woman chef making cupcakes in the kitchen."
 	/>
 
-	<div class="p-8 py-4 sm:py-4 md:py-6 lg:py-8 w-full max-w-md rounded-lg bg-primary-orange shadow-md outline outline-secondary-green">
-		<h2 class=" mb-4 text-center text-2xl text-secondary-forest font-semibold">Login</h2>
+	<div
+		class="bg-primary-orange outline-secondary-green w-full max-w-md rounded-lg p-8 py-4 shadow-md outline sm:py-4 md:py-6 lg:py-8"
+	>
+		<h2 class=" text-secondary-forest mb-4 text-center text-2xl font-semibold">Login</h2>
 
 		{#if errorMessage}
 			<p class="mb-2 text-sm text-red-500">{errorMessage}</p>
@@ -59,15 +45,17 @@
 			bind:value={email}
 			placeholder="Email"
 			class="mb-3 w-full rounded-full border p-2"
+			required
 		/>
 		<input
 			type="password"
 			bind:value={password}
 			placeholder="Password"
 			class="mb-3 w-full rounded-full border p-2"
+			required
 		/>
 
-		<button on:click={handleLogin} class="w-full rounded-full bg-secondary-green py-2 text-white">
+		<button on:click={handleLogin} class="bg-secondary-green w-full rounded-full py-2 text-white">
 			Login
 		</button>
 

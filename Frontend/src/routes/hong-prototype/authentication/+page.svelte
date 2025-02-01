@@ -1,31 +1,25 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { userHandler } from '../stores/userStore';
 
 	let email = '';
 	let username = '';
 	let password = '';
+	let phone_number = '';
 	let errorMessage = '';
-
-	const API_URL = import.meta.env.VITE_API_URL;
 
 	async function handleRegister() {
 		errorMessage = '';
 		try {
-			const res = await fetch(`${API_URL}/authentication`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, username, password })
+			await userHandler.signup({
+				email: email,
+				username: username,
+				password: password,
+				phone_number: phone_number
 			});
-
-			if (!res.ok) {
-				throw new Error('Failed to create account. Please try again.');
-			}
-
-			const data = await res.json();
-			alert('Account created successfully! Redirecting to login...');
 			goto('/hong-prototype/login');
 		} catch (error) {
-			alert((error as Error).message);
+			errorMessage = (error as Error).message;
 		}
 	}
 </script>
@@ -49,6 +43,7 @@
 			bind:value={email}
 			placeholder="Email"
 			class="mb-3 w-full rounded-full border p-2"
+			required
 		/>
 		<input
 			type="text"
@@ -61,8 +56,15 @@
 			bind:value={password}
 			placeholder="Password"
 			class="mb-3 w-full rounded-full border p-2"
+			required
 		/>
-
+		<input
+			type="tel"
+			bind:value={phone_number}
+			placeholder="Phone number"
+			class="mb-3 w-full rounded-full border p-2"
+		
+		/>
         <button on:click={handleRegister} class="w-full bg-secondary-green text-white py-2 rounded-full hover:bg-yellow-500 font-bold">
             Register
         </button>
