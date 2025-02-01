@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import type { RecipeAddDTO, RecipeDTO } from "../types";
+import type { RecipeAddDTO } from "../types";
 const API_URL = import.meta.env.VITE_API_URL;
 
 

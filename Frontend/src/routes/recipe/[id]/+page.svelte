@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { RecipeDTO } from '../../types';
-	import { recipeHandler, recipeStore } from '../../stores/recipeStore';
+	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 
 
 	let recipe: RecipeDTO | null = null;
@@ -25,8 +25,8 @@
 <div class="py-4 flex rounded-full justify-end flex-wrap">
 	
 	<div>
-		<a href="/hong-prototype/home" class="text-teal-600 font-semibold">Home</a> |
-		<a href="/hong-prototype/user" class="text-teal-600 font-semibold">User</a>
+		<a href="/home" class="text-teal-600 font-semibold">Home</a> |
+		<a href="/user" class="text-teal-600 font-semibold">User</a>
 	</div>
 </div>
 {#if recipe}

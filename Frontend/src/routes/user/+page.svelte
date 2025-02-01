@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import type { UserDTO } from '../types';
-	import { userHandler, userStore } from '../stores/userStore';
+	import { userHandler, userStore } from '$lib/stores/userStore';
 
 	let userId: string | null = null;
 	let user: UserDTO | null = null;
@@ -29,21 +29,18 @@
 			}
 
 			await userHandler.getUser(userId);
-
-			userStore.subscribe((store) => {
-				user = store.currentUser;
-				if (user && user.allergies) {
-					allergies = user.allergies;
-				} else {
-					allergies = [];
-				}
-			});
-			allergies = user?.allergies || [];
 		} catch (e) {
 			clearCredentials();
 			alert((e as Error).message);
 		}
 	}
+
+	userStore.subscribe((store) => {
+		user = store?.currentUser;
+		allergies = store?.currentUser?.allergies ?? [];
+
+		console.log("User store has been updated");
+	});
 
 	function clearCredentials() {
 		localStorage.removeItem('authToken');
@@ -81,7 +78,7 @@
 				...user,
 				allergies: allergies,
 				user_id: userId
-			}
+			};
 			await userHandler.updateUserRecipes(updatedUser);
 			fetchUserInfo();
 		} catch (e) {
@@ -96,8 +93,8 @@
 			Hello {user.username}!
 		</div>
 		<div>
-			<a href="/hong-prototype" class="text-teal-400">Home</a> |
-			<a href="/hong-prototype/user" class="text-teal-400">User</a>
+			<a href="/" class="text-teal-400">Home</a> |
+			<a href="/user" class="text-teal-400">User</a>
 		</div>
 	</div>
 
@@ -143,7 +140,7 @@
 	<div class="flex h-screen flex-col items-center justify-center">
 		<p class="text-xl font-semibold text-teal-600">Please login first</p>
 		<Button
-			on:click={() => goto('/hong-prototype/login')}
+			on:click={() => goto('/login')}
 			class="mt-4 rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-400"
 		>
 			Go to Login
