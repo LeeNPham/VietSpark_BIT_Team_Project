@@ -1,7 +1,6 @@
 <script>
 	import { Button } from "flowbite-svelte";
     export let onclose;
-
 </script>
 
 <div class="modal-overlay fixed inset-0 bg-teal-900 flex items-center justify-center z-100">
@@ -19,5 +18,11 @@
 <style>
     .modal-overlay {
         backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        height: auto; /* Height adjusts to content */
+        max-height: 90vh; /* Maximum height to prevent modal from being too tall */
+        overflow-y: auto; /* Enable scrolling if content exceeds max height */
     }
 </style>

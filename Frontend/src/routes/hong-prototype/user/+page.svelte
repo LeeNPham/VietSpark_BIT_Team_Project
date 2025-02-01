@@ -1,28 +1,94 @@
-<script>
+<script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import RecipeList from '../recipe/RecipeList.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import type { User } from '../types';
 
 	const API_URL = import.meta.env.VITE_API_URL;
 
-	let name = 'Beautiful';
-	let allergies = ['Peanuts', 'Shellfish', 'Sumthing else', 'Bad ppl'];
-	let myRecipe = [];
+	let userId: string | null = null;
+	let user: User | null = null;
+	let allergies: string[] = ['Test'];
 	let authenticated = false;
+	let newAllergy = '';
 
-	onMount(() => {
-		authenticated = localStorage.getItem('authenticated') === 'true';
-	});
+	onMount(fetchUserInfo);
 
-	function goToLogin() {
-		goto('/hong-prototype/login');
+	async function fetchUserInfo() {
+		try {
+			authenticated = localStorage.getItem('authenticated') === 'true';
+			if (!authenticated) throw new Error('User is not authenticated');
+
+			userId = localStorage.getItem('userId');
+			const expiresAt = localStorage.getItem('expiresAt');
+			if (!userId || !expiresAt) throw new Error(`Login session expires`);
+			const currentTime = new Date().getTime();
+			if (currentTime > parseInt(expiresAt)) {
+				console.log('expiresAt', expiresAt);
+			}
+
+			const res = await fetch(`${API_URL}/user/${userId}`);
+			if (!res.ok) throw new Error('Failed to fetch user information');
+			user = await res.json();
+			allergies = user?.allergies || [];
+		} catch (e) {
+			clearCredentials();
+			alert((e as Error).message);
+		}
+	}
+
+	function clearCredentials() {
+		localStorage.removeItem('authToken');
+		localStorage.removeItem('authenticated');
+		localStorage.removeItem('userId');
+		localStorage.removeItem('refreshToken');
+		localStorage.removeItem('expiresIn');
+		document.cookie = 'authToken=; path=/; Secure; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+	}
+
+	async function handleAddAllergy() {
+		if (newAllergy.trim() === '') {
+			alert('Please enter a valid allergy');
+			return;
+		}
+
+		allergies = [...allergies, newAllergy.trim()];
+		newAllergy = '';
+
+		await updateUser();
+	}
+
+	async function handleRemoveAllergy(allergy: string) {
+		allergies = allergies.filter((a) => a != allergy);
+		await updateUser();
+	}
+
+	async function updateUser() {
+		try {
+			if (!userId) throw new Error('UserId not found');
+			if (!user) throw new Error('User data not found');
+			user.allergies = allergies;
+			// TODO: 
+			const res = await fetch(`${API_URL}/users/${userId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(user)
+			});
+
+			if (!res.ok) throw new Error("Failed to update user allergies");
+			fetchUserInfo()
+		} catch (e) {
+			alert((e as Error).message);
+		}
 	}
 </script>
 
-{#if authenticated}
+{#if authenticated && user}
 	<div class="flex flex-wrap items-center justify-between rounded-full py-4">
-		<div class="font-sans text-3xl font-bold text-teal-400">Hello {name}! Edit yourself!</div>
+		<div class="font-sans text-3xl font-bold text-teal-400">
+			Hello {user.userName}!
+		</div>
 		<div>
 			<a href="/hong-prototype" class="text-teal-400">Home</a> |
 			<a href="/hong-prototype/user" class="text-teal-400">User</a>
@@ -30,28 +96,46 @@
 	</div>
 
 	<!-- Allergies -->
-	<p class="my-2 font-sans text-xl font-semibold text-teal-400">Allergies</p>
-	<div class="flex flex-wrap justify-between gap-4">
-		{#each allergies as allergy, i}
+	<div class="flex items-center justify-between">
+		<h2 class="my-2 font-sans text-xl font-semibold text-teal-400">Allergies</h2>
+		<div class="flex items-center gap-2">
+			<input
+				type="text"
+				bind:value={newAllergy}
+				class="rounded-2xl border border-teal-300 px-2 py-1"
+				placeholder="Enter new allergy"
+			/>
 			<Button
-				class="my-4 gap-4 bg-white text-teal-600 outline outline-teal-300 hover:bg-teal-300 hover:text-white focus:outline-none"
+				class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
+				onclick={handleAddAllergy}
+			>
+				Add allergy
+			</Button>
+		</div>
+	</div>
+	<div class="flex flex-wrap justify-between gap-4">
+		{#each user.allergies as allergy, i}
+			<div
+				class="my-4 gap-4 p-2 rounded-2xl bg-white text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
 			>
 				{allergy}
-			</Button>
+				<Button on:click={async() => await handleRemoveAllergy(allergy)} 
+                    class="ml-2 p-0 bg-white  text-teal-600 hover:bg-white hover:text-teal-600 focus:outline-none">
+                    x
+                </Button>
+	</div>
 		{/each}
 	</div>
 
 	<!-- Favorite Recipes -->
 	<p class="my-2 font-sans text-xl font-semibold text-teal-400">Favorite recipes</p>
-	<div class="flex flex-wrap justify-center gap-4">
-		<RecipeList />
-	</div>
+	<RecipeList />
 {:else}
 	<!-- Show login prompt if not authenticated -->
 	<div class="flex h-screen flex-col items-center justify-center">
 		<p class="text-xl font-semibold text-teal-600">Please login first</p>
 		<Button
-			on:click={goToLogin}
+			on:click={() => goto('/hong-prototype/login')}
 			class="mt-4 rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-400"
 		>
 			Go to Login

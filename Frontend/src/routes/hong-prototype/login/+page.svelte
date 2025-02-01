@@ -26,6 +26,10 @@
             localStorage.setItem('authToken', data.idToken); // Using localStorage
             localStorage.setItem('authenticated', 'true'); // Mark user as authenticated
             localStorage.setItem('userId', data.localId); // Mark user as authenticated
+            localStorage.setItem('refreshToken', data.refreshToken);
+
+            const expiresAt = new Date().getTime() + data.expiresIn * 1000;
+            localStorage.setItem('expiresAt', expiresAt.toString());
             goto('/hong-prototype/home'); // Redirect to a dashboard or home page
 
         } catch (error) {
