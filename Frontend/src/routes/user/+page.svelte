@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
-	import RecipeList from '../recipe/RecipeList.svelte';
+	import RecipeList from '$lib/components/RecipeList.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import type { UserDTO } from '../types';
+	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 
 	let userId: string | null = null;

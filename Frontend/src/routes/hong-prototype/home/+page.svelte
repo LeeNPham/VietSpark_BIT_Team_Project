@@ -1,7 +1,7 @@
 <script>
-	import Category from '../components/Category.svelte';
-	import IngredientInput from '../components/IngredientInput.svelte';
-	import RecipeList from '../recipe/RecipeList.svelte';
+	import Category from '$lib/components/Category.svelte';
+	import IngredientInput from '$lib/components/IngredientInput.svelte';
+	import RecipeList from '$lib/components/RecipeList.svelte';
 	import {AccordionItem, Accordion} from 'flowbite-svelte';
 	let name = "Beautiful"
 
