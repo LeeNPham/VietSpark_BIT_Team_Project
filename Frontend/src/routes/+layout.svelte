@@ -1,9 +1,19 @@
 <script>
 	import Header from '../lib/components/Header.svelte';
 	import '../app.css';
+	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
+	import { onMount } from 'svelte';
+
+	
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
+
+	onMount(async() => {
+		await recipeHandler.getRecipes();
+	
+	})
+	
 </script>
 
 <div class="app">

@@ -1,6 +1,5 @@
 import { writable } from "svelte/store";
-import type { UserDTO, UserLoginDTO, UserSignUpDTO } from "../types";
-
+import type { UserDTO, UserLoginDTO, UserSignUpDTO } from "$lib/types";
 const API_URL = import.meta.env.VITE_API_URL;
 
 
@@ -118,5 +117,4 @@ export const userHandler = {
         }
     },
     deleteuser: () => {},
-
 }

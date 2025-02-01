@@ -1,5 +1,5 @@
 <script>
-	import { categories } from '../stores/ingredientStore';
+	import { categories } from '$lib/stores/ingredientStore';
 	import { Button } from 'flowbite-svelte';
 </script>
 

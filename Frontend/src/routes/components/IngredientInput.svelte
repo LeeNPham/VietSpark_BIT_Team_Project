@@ -1,6 +1,6 @@
 <script>
     import { Button, Input } from "flowbite-svelte";
-	import { ingredients, ingredientHandler } from "../stores/ingredientStore";
+    import { ingredients, ingredientHandler } from "$lib/stores/ingredientStore";
 	let newIngredient = "";
     function findRecipe() {
         console.log("Finding recipe");

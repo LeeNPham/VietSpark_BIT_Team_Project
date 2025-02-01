@@ -1,7 +1,8 @@
 <script>
-	import Counter from '$lib/components/Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcomeFallback from '$lib/images/svelte-welcome.png';
+	import Category from './components/Category.svelte';
+	import IngredientInput from './components/IngredientInput.svelte';
+	import RecipeList from './recipe/RecipeList.svelte';
+	let name = 'Beautiful';
 </script>
 
 <svelte:head>
@@ -9,53 +10,21 @@
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcomeFallback} alt="Welcome" />
-			</picture>
-		</span>
+<div>
+	<img src="/home.jpg" class="mx-auto h-1/2 w-auto" alt="(Adobe stock) Home banner" />
+</div>
+<div class="flex flex-wrap items-center justify-between rounded-full py-4">
+	<div class="font-sans text-3xl font-extrabold text-teal-600">Hello {name}</div>
+	<div>
+		<a href="/" class="font-semibold text-teal-600">Home</a> |
+		<a href="/user" class="font-semibold text-teal-600">User</a>
+	</div>
+</div>
+<!-- Categories -->
+<Category />
 
-		to our new<br />SvelteKit app
-	</h1>
+<!-- Ingredient input -->
+<IngredientInput />
 
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<div class="text-lg text-red-300">Lee Pham was here!!!!</div>
-
-	<p>Below is a counter component for those interested in developing their own component</p>
-</section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
+<!-- Recipe -->
+<RecipeList />

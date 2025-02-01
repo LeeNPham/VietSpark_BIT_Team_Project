@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { Button, Input } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
+	import { Button, Input } from 'flowbite-svelte';
 	import Modal from '../components/Modal.svelte';
-	import type { RecipeDTO } from '../types';
-	import { recipeHandler, recipeStore } from '../stores/recipeStore';
+	import type { RecipeDTO } from '$lib/types';
+	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
+	import { browser } from '$app/environment';
 
 	let recipes: RecipeDTO[] | [] = [];
-	const authenticated = localStorage.getItem('authenticated') === 'true';
-	let userId = localStorage.getItem('userId');
+	let userId: string | null = null;
+	let authenticated: boolean = false;
 	let showModal = false;
 	let newRecipeName = '';
 	let newIngredients = [];
@@ -18,14 +19,10 @@
 	let newDuration = 0;
 	let newImageLink = '';
 
-	async function fetchRecipes() {
-		await recipeHandler.getRecipes();
-		recipeStore.subscribe((store) => {
-			recipes = store.recipes;
-		});
-	}
-
-	onMount(fetchRecipes);
+	recipeStore.subscribe((store) => {
+		recipes = store.recipes;
+		console.log('Recipes', recipes);
+	})
 
 	function toggleModal() {
 		showModal = !showModal;
@@ -85,7 +82,7 @@
 			console.log('Add new recipe', newRecipe);
 			try {
 				await recipeHandler.addRecipe(newRecipe);
-				await fetchRecipes();
+				// await fetchRecipes();
 				toggleModal();
 			} catch (error) {
 				alert((error as Error).message);
@@ -94,26 +91,36 @@
 			alert('Please enter recipe detail');
 		}
 	}
+
+	onMount(async () => {
+		if (browser) {
+			authenticated = localStorage.getItem('authenticated') === 'true';
+			userId = localStorage.getItem('userId');
+		}	
+	});
 </script>
 
-<div class="flex justify-between items-center p-1 sm:p-1 s md:p-5 lg:p-9">
-	<h2 class="text-base sm:text-base md:text-xl lg:text-2xl">Recipes or History </h2>
-	{#if authenticated}
+<div>hello world</div>
+
+<div class="flex items-center justify-between">
+	<h2 class="my-2 font-sans text-xl font-bold">Recipes</h2>
+	{#if authenticated !== null && authenticated}
 		<Button
 			class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
 			onclick={toggleModal}>Add recipe</Button
 		>
 	{/if}
 </div>
+{#if recipes}
 <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 	{#each recipes as item}
 		<a
 			class="mb-4 flex w-full items-center gap-4 rounded-lg p-4"
-			href={`/hong-prototype/recipe/${item.id}`}
+			href={`/recipe/${item.id}`}
 		>
-			<div class="flex w-full items-center gap-4">
-				<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} />
-				<div class="flex-1">
+			<div class="flex w-full items-center gap-4"> 
+				<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} /> 
+			<div class="flex-1">
 					<p>{item.name}</p>
 					<div class="space-x-2 text-sm font-medium text-teal-700">
 						<span>{item.time}</span>
@@ -125,10 +132,11 @@
 		</a>
 	{/each}
 </div>
+{/if}
 
 {#if showModal}
 	<Modal onclose={toggleModal}>
-		<!-- Title -->
+	
 		<div class="mb-10 space-y-4">
 			<label for="recipe-name" class="mb-1 block font-semibold">Recipe name</label>
 			<Input
@@ -139,7 +147,7 @@
 				class="flex-grow rounded-full border px-3 py-1 font-sans"
 			/>
 		</div>
-		<!-- Image -->
+
 		<div class="mb-10 space-y-4">
 			<label for="recipe-image" class="mb-1 block font-semibold">Recipe image</label>
 			<Input
@@ -150,7 +158,7 @@
 				class="flex-grow rounded-full border px-3 py-1 font-sans"
 			/>
 		</div>
-		<!-- Ingredients -->
+	
 		<div class="mb-10 space-y-4">
 			<div class="flex items-center justify-between gap-4">
 				<label for="recipe-ingredients" class="mb-1 block font-semibold">Recipe ingredients</label>
@@ -196,7 +204,7 @@
 				{/each}
 			</div>
 		</div>
-		<!-- Calories, duration, servings -->
+	
 		<div class="mb-10 flex items-center gap-4">
 			<div>
 				<label for="duration" class="mb-1 block font-semibold">Duration (minutes)</label>
@@ -229,7 +237,7 @@
 				/>
 			</div>
 		</div>
-		<!-- Instruction -->
+		
 		<div class="mb-10 space-y-4">
 			<div class="flex items-center justify-between gap-4">
 				<label for="instructions" class="mb-1 block font-semibold">Instructions</label>
