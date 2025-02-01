@@ -6,7 +6,7 @@
 
 	const API_URL = import.meta.env.VITE_API_URL;
 
-	let recipes: Recipe[]| [] = [];
+	let recipes: Recipe[] | [] = [];
 	let showModal = false;
 	let newRecipeName = '';
 	let newIngredients = [];
@@ -21,9 +21,7 @@
 		try {
 			const res = await fetch(`${API_URL}/recipes`);
 			if (!res.ok) throw new Error('Failed to fetch recipes');
-			let recipesRes: string = await res.json();
-			console.log("recipes:", recipes)
-			if (recipesRes === "No collection") recipes = [];
+			recipes = await res.json();
 		} catch (e) {
 			console.error(e);
 		}
@@ -72,18 +70,18 @@
 					calories: newCalories,
 					duration: newDuration,
 					img_url: newImageLink
-					? newImageLink
-					: 'https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg',
+						? newImageLink
+						: 'https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg',
 					ingredients: newIngredients,
 					numIngredients: newIngredients.length
-				},
+				}
 			};
 			console.log('Add new recipe');
 			try {
 				await fetch(`${API_URL}/recipes`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json'},
-					body: JSON.stringify(newRecipe),
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(newRecipe)
 				});
 				await fetchRecipes();
 				toggleModal();
@@ -103,12 +101,15 @@
 		onclick={toggleModal}>Add recipe
 	</Button>
 </div>
-<div class="mb-4 gap-2 flex flex-items justify-between">
+<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 	{#each recipes as item, i}
-		<a class="mb-4 items-center gap-4 rounded-lg p-4" href={`/hong-prototype/recipe/${item.id}`}>
-			<div class="flex items-center gap-4">
+		<a
+			class="mb-4 flex w-full items-center gap-4 rounded-lg p-4"
+			href={`/hong-prototype/recipe/${item.id}`}
+		>
+			<div class="flex w-full items-center gap-4">
 				<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} />
-				<div>
+				<div class="flex-1">
 					<p>{item.name}</p>
 					<div class="space-x-2 text-sm font-medium text-teal-700">
 						<span>{item.time}</span>
@@ -161,7 +162,8 @@
 						<Input
 							type="text"
 							bind:value={ingredient.name}
-							oninput={(e) => handleIngredientChange(index, 'name', (e.currentTarget as HTMLInputElement).value)}
+							oninput={(e) =>
+								handleIngredientChange(index, 'name', (e.currentTarget as HTMLInputElement).value)}
 							placeholder="Ingredient"
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
@@ -169,7 +171,12 @@
 							type="text"
 							bind:value={ingredient.amount}
 							placeholder="Amount (eg 300g)"
-							oninput={(e) => handleIngredientChange(index, 'amount', (e.currentTarget as HTMLInputElement).value)}
+							oninput={(e) =>
+								handleIngredientChange(
+									index,
+									'amount',
+									(e.currentTarget as HTMLInputElement).value
+								)}
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
 						<Button
@@ -231,7 +238,8 @@
 							type="text"
 							bind:value={instruction}
 							placeholder="Put the instruction here"
-							oninput={(e) => handleInstructionChange(index, (e.currentTarget as HTMLInputElement).value)}
+							oninput={(e) =>
+								handleInstructionChange(index, (e.currentTarget as HTMLInputElement).value)}
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
 						<Button
