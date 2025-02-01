@@ -28,7 +28,6 @@
 	<div class="text-lg text-red-300">Lee Pham was here!!!!</div>
 
 	<p>Below is a counter component for those interested in developing their own component</p>
-	<Counter />
 </section>
 
 <style>

@@ -3,12 +3,11 @@
 	import RecipeList from '../recipe/RecipeList.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import type { User } from '../types';
-
-	const API_URL = import.meta.env.VITE_API_URL;
+	import type { UserDTO } from '../types';
+	import { userHandler, userStore } from '../stores/userStore';
 
 	let userId: string | null = null;
-	let user: User | null = null;
+	let user: UserDTO | null = null;
 	let allergies: string[] = ['Test'];
 	let authenticated = false;
 	let newAllergy = '';
@@ -23,14 +22,22 @@
 			userId = localStorage.getItem('userId');
 			const expiresAt = localStorage.getItem('expiresAt');
 			if (!userId || !expiresAt) throw new Error(`Login session expires`);
+
 			const currentTime = new Date().getTime();
 			if (currentTime > parseInt(expiresAt)) {
 				console.log('expiresAt', expiresAt);
 			}
 
-			const res = await fetch(`${API_URL}/user/${userId}`);
-			if (!res.ok) throw new Error('Failed to fetch user information');
-			user = await res.json();
+			await userHandler.getUser(userId);
+
+			userStore.subscribe((store) => {
+				user = store.currentUser;
+				if (user && user.allergies) {
+					allergies = user.allergies;
+				} else {
+					allergies = [];
+				}
+			});
 			allergies = user?.allergies || [];
 		} catch (e) {
 			clearCredentials();
@@ -69,15 +76,14 @@
 			if (!userId) throw new Error('UserId not found');
 			if (!user) throw new Error('User data not found');
 			user.allergies = allergies;
-			// TODO: 
-			const res = await fetch(`${API_URL}/users/${userId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(user)
-			});
-
-			if (!res.ok) throw new Error("Failed to update user allergies");
-			fetchUserInfo()
+			// TODO:
+			const updatedUser = {
+				...user,
+				allergies: allergies,
+				user_id: userId
+			}
+			await userHandler.updateUserRecipes(updatedUser);
+			fetchUserInfo();
 		} catch (e) {
 			alert((e as Error).message);
 		}
@@ -87,7 +93,7 @@
 {#if authenticated && user}
 	<div class="flex flex-wrap items-center justify-between rounded-full py-4">
 		<div class="font-sans text-3xl font-bold text-teal-400">
-			Hello {user.userName}!
+			Hello {user.username}!
 		</div>
 		<div>
 			<a href="/hong-prototype" class="text-teal-400">Home</a> |
@@ -116,14 +122,16 @@
 	<div class="flex flex-wrap justify-between gap-4">
 		{#each user.allergies as allergy, i}
 			<div
-				class="my-4 gap-4 p-2 rounded-2xl bg-white text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
+				class="my-4 gap-4 rounded-2xl bg-white p-2 text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
 			>
 				{allergy}
-				<Button on:click={async() => await handleRemoveAllergy(allergy)} 
-                    class="ml-2 p-0 bg-white  text-teal-600 hover:bg-white hover:text-teal-600 focus:outline-none">
-                    x
-                </Button>
-	</div>
+				<Button
+					on:click={async () => await handleRemoveAllergy(allergy)}
+					class="ml-2 bg-white p-0  text-teal-600 hover:bg-white hover:text-teal-600 focus:outline-none"
+				>
+					x
+				</Button>
+			</div>
 		{/each}
 	</div>
 

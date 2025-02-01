@@ -2,18 +2,16 @@
 	import { Button, Input } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import Modal from '../components/Modal.svelte';
-	import type { Recipe, User } from '../types';
+	import type { RecipeDTO } from '../types';
+	import { recipeHandler, recipeStore } from '../stores/recipeStore';
 
-	const API_URL = import.meta.env.VITE_API_URL;
-
-	let recipes: Recipe[] | [] = [];
+	let recipes: RecipeDTO[] | [] = [];
 	const authenticated = localStorage.getItem('authenticated') === 'true';
 	let userId = localStorage.getItem('userId');
-	let user: User|null = null;
 	let showModal = false;
 	let newRecipeName = '';
 	let newIngredients = [];
-	let ingredientRows = [{ name: '', amount: '' }];
+	let ingredientRows = [{ ingredientName: '', ingredientAmount: '' }];
 	let newInstructions = [''];
 	let newServings = 0;
 	let newCalories = 0;
@@ -21,13 +19,10 @@
 	let newImageLink = '';
 
 	async function fetchRecipes() {
-		try {
-			const res = await fetch(`${API_URL}/recipes`);
-			if (!res.ok) throw new Error('Failed to fetch recipes');
-			recipes = await res.json();
-		} catch (e) {
-			console.error(e);
-		}
+		await recipeHandler.getRecipes();
+		recipeStore.subscribe((store) => {
+			recipes = store.recipes;
+		});
 	}
 
 	onMount(fetchRecipes);
@@ -37,14 +32,18 @@
 	}
 	// Ingredients
 	function addIngredientRow() {
-		ingredientRows = [...ingredientRows, { name: '', amount: '' }];
+		ingredientRows = [...ingredientRows, { ingredientName: '', ingredientAmount: '' }];
 	}
 	function removeIngredientRow(index: number) {
 		ingredientRows.splice(index, 1);
 		ingredientRows = [...ingredientRows];
 	}
 
-	function handleIngredientChange(index: number, field: 'name' | 'amount', value: string) {
+	function handleIngredientChange(
+		index: number,
+		field: 'ingredientName' | 'ingredientAmount',
+		value: string
+	) {
 		ingredientRows[index][field] = value;
 	}
 
@@ -63,10 +62,10 @@
 	// Final submission
 	async function handleSubmit() {
 		if (!authenticated || !userId) {
-			console.log("User is not authenticated");
+			console.log('User is not authenticated');
 			return;
 		}
-		newIngredients = ingredientRows.filter((row) => row.name && row.amount);
+		newIngredients = ingredientRows.filter((row) => row.ingredientName && row.ingredientAmount);
 		console.log('Ingredients', newIngredients);
 
 		if (newRecipeName && newIngredients.length > 0 && newInstructions.length > 0) {
@@ -80,20 +79,16 @@
 					? newImageLink
 					: 'https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg',
 				ingredients: newIngredients,
-				createdBy: userId,
-				createdAt: new Date().getTime(),
+				author: userId,
+				createdAt: new Date().getTime()
 			};
-			console.log('Add new recipe');
+			console.log('Add new recipe', newRecipe);
 			try {
-				await fetch(`${API_URL}/add_recipe`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(newRecipe)
-				});
+				await recipeHandler.addRecipe(newRecipe);
 				await fetchRecipes();
 				toggleModal();
 			} catch (error) {
-				alert('Failed to create the recipe');
+				alert((error as Error).message);
 			}
 		} else {
 			alert('Please enter recipe detail');
@@ -104,13 +99,14 @@
 <div class="flex justify-between items-center p-1 sm:p-1 s md:p-5 lg:p-9">
 	<h2 class="text-base sm:text-base md:text-xl lg:text-2xl">Recipes or History </h2>
 	{#if authenticated}
-	<Button
-		class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
-		onclick={toggleModal}>Add recipe</Button>
+		<Button
+			class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
+			onclick={toggleModal}>Add recipe</Button
+		>
 	{/if}
 </div>
 <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-	{#each recipes as item, i}
+	{#each recipes as item}
 		<a
 			class="mb-4 flex w-full items-center gap-4 rounded-lg p-4"
 			href={`/hong-prototype/recipe/${item.id}`}
@@ -169,20 +165,24 @@
 					<div class="intems-center flex gap-2">
 						<Input
 							type="text"
-							bind:value={ingredient.name}
+							bind:value={ingredient.ingredientName}
 							oninput={(e) =>
-								handleIngredientChange(index, 'name', (e.currentTarget as HTMLInputElement).value)}
+								handleIngredientChange(
+									index,
+									'ingredientName',
+									(e.currentTarget as HTMLInputElement).value
+								)}
 							placeholder="Ingredient"
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
 						/>
 						<Input
 							type="text"
-							bind:value={ingredient.amount}
+							bind:value={ingredient.ingredientAmount}
 							placeholder="Amount (eg 300g)"
 							oninput={(e) =>
 								handleIngredientChange(
 									index,
-									'amount',
+									'ingredientAmount',
 									(e.currentTarget as HTMLInputElement).value
 								)}
 							class="flex-grow rounded-full border px-3 py-1 font-sans"
@@ -199,7 +199,7 @@
 		<!-- Calories, duration, servings -->
 		<div class="mb-10 flex items-center gap-4">
 			<div>
-				<label for="duration" class="mb-1 block font-semibold">Duration</label>
+				<label for="duration" class="mb-1 block font-semibold">Duration (minutes)</label>
 				<Input
 					id="duration"
 					type="text"

@@ -1,34 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import type { Recipe } from '../../types';
+	import type { RecipeDTO } from '../../types';
+	import { recipeHandler, recipeStore } from '../../stores/recipeStore';
 
-	const API_URL = import.meta.env.VITE_API_URL;
 
-	let recipe: Recipe | null = null;
+	let recipe: RecipeDTO | null = null;
 	$: recipeId = $page.params.id;
 
 	async function fetchRecipe() {
 		try {
-			const res = await fetch(`${API_URL}/check_recipe/${recipeId}`);
-			if (!res.ok) throw new Error('Failed to get recipe detail');
+			await recipeHandler.getRecipe(recipeId);
+			recipeStore.subscribe(store => {
+				recipe = store.currentRecipe;
+			});
 
-			recipe = await res.json();
 		} catch (e) {
 			alert((e as Error).message);
 		}
 	}
-	onMount(async () => {
-		try {
-			const res = await fetch(`${API_URL}/check_recipe/${recipeId}`);
-			if (!res.ok) throw new Error('Failed to fetch recipe details');
-			const recipeData = await res.json();
-			console.log('recipe detail', recipeData); // Log the data
-			recipe = recipeData;
-		} catch (e) {
-			alert((e as Error).message);
-		}
-	});
+	onMount(fetchRecipe);
+
 </script>
 <div class="py-4 flex rounded-full justify-end flex-wrap">
 	
@@ -50,7 +42,7 @@
 		<h2 class="mt-6 text-lg font-semibold text-blue-500">Ingredients</h2>
 		<ul class="list-disc pl-6">
 			{#each recipe.ingredients as ingredient}
-				<li>{ingredient.quantity} {ingredient.name}</li>
+				<li>{ingredient.ingredientName} {ingredient.ingredientAmount}</li>
 			{/each}
 		</ul>
 
