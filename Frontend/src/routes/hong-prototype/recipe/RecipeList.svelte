@@ -2,11 +2,14 @@
 	import { Button, Input } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import Modal from '../components/Modal.svelte';
-	import type { Recipe } from '../types';
+	import type { Recipe, User } from '../types';
 
 	const API_URL = import.meta.env.VITE_API_URL;
 
 	let recipes: Recipe[] | [] = [];
+	const authenticated = localStorage.getItem('authenticated') === 'true';
+	let userId = localStorage.getItem('userId');
+	let user: User|null = null;
 	let showModal = false;
 	let newRecipeName = '';
 	let newIngredients = [];
@@ -59,26 +62,30 @@
 
 	// Final submission
 	async function handleSubmit() {
+		if (!authenticated || !userId) {
+			console.log("User is not authenticated");
+			return;
+		}
 		newIngredients = ingredientRows.filter((row) => row.name && row.amount);
+		console.log('Ingredients', newIngredients);
 
 		if (newRecipeName && newIngredients.length > 0 && newInstructions.length > 0) {
 			const newRecipe = {
-				recipe: {
-					name: newRecipeName,
-					instructions: newInstructions,
-					servings: newServings,
-					calories: newCalories,
-					duration: newDuration,
-					img_url: newImageLink
-						? newImageLink
-						: 'https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg',
-					ingredients: newIngredients,
-					numIngredients: newIngredients.length
-				}
+				name: newRecipeName,
+				instructions: newInstructions,
+				servings: newServings.toString(),
+				calories: newCalories.toString(),
+				time: newDuration.toString(),
+				img_url: newImageLink
+					? newImageLink
+					: 'https://cdn.britannica.com/36/123536-050-95CB0C6E/Variety-fruits-vegetables.jpg',
+				ingredients: newIngredients,
+				createdBy: userId,
+				createdAt: new Date().getTime(),
 			};
 			console.log('Add new recipe');
 			try {
-				await fetch(`${API_URL}/recipes`, {
+				await fetch(`${API_URL}/add_recipe`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(newRecipe)
@@ -96,10 +103,11 @@
 
 <div class="flex justify-between items-center p-1 sm:p-1 s md:p-5 lg:p-9">
 	<h2 class="text-base sm:text-base md:text-xl lg:text-2xl">Recipes or History </h2>
+	{#if authenticated}
 	<Button
-		class="text-sm sm:text-sm md:text-lg lg:text-xl text-black  bg-primary-green hover:bg-secondary-blue rounded-2xl outline outline-secondary-green"
-		onclick={toggleModal}>Add recipe
-	</Button>
+		class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
+		onclick={toggleModal}>Add recipe</Button>
+	{/if}
 </div>
 <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 	{#each recipes as item, i}
@@ -191,7 +199,7 @@
 		<!-- Calories, duration, servings -->
 		<div class="mb-10 flex items-center gap-4">
 			<div>
-				<label for="duration" class="mb-1 block font-semibold">Duration (minutes)</label>
+				<label for="duration" class="mb-1 block font-semibold">Duration</label>
 				<Input
 					id="duration"
 					type="text"
