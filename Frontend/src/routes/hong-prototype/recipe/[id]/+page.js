@@ -1,1 +1,0 @@
-// look up load funtion, slug pages, 
