@@ -185,8 +185,74 @@ except Exception as e:
 
 
 
+@app.get("/ingredients_to_recipes", tags=['Ingredients'])
+async def ingredients_to_recipes(ingredients: str):
+    return await search_by_ingredients(ingredients)
 
 
+    
+
+@app.get("/recipes", tags=['Recipes'])
+async def get_all_recipes():
+    collection = await get_collection(recipe_collection.stream(), details=True)
+    for recipe in collection:
+        recipe.pop("instructions", None)
+        recipe.pop("searchable_ingredient", None)
+        recipe.pop("searchable_recipe_name", None)
+        recipe["ingredients"] = len(recipe['ingredients'])
+    # p_c = json.dumps(collection, indent=4)
+    return collection
+
+
+@app.get("/recipes/name/{recipe_name}", tags=['Recipes'])
+async def get_recipe_by_name(recipe_name: str):
+    return await check_recipe(recipe_name.strip())
+
+
+@app.get("/recipes/id/{recipe_id}", tags=['Recipes'])
+async def get_recipe_by_id(recipe_id: str):
+    recipe = await get_document(recipe_collection.document(recipe_id.strip()), details=True)
+    recipe.pop("searchable_ingredient", None)
+    recipe.pop("searchable_recipe_name", None)
+    return recipe
+
+    
+async def check_recipe(recipe_name):
+    recipe_name = recipe_name.split()
+    print(recipe_name)
+    try:
+        collection = recipe_collection.where("name", "in", [recipe_name]).stream()
+        # collection = ingredient_collection.where("searchable_recipe_name", "array_contains_any", recipe_name).stream()
+        for doc in collection:
+            return doc.to_dict()
+        return "Recipe not in database"
+
+    except Exception as e:
+        return f"An unexpected error occurred: {e}"
+
+
+        
+async def search_by_ingredients(ingredients):
+    ingredients = ingredients.split()
+    recipe_list = []
+    for ingredient in ingredients:
+        collection = recipe_collection.where("searchable_ingredient", "array_contains", ingredient).stream()
+        recipe_id = await get_collection(collection, details=False)
+        if recipe_id == "No collection":
+            recipe_id = "no match"
+            return recipe_id
+        if not recipe_list:
+            recipe_list.extend(recipe_id)
+        else:
+            recipe_list = list(set(recipe_list) & set(recipe_id))
+            if not recipe_list:
+                return "no match"
+    
+    match_recipe = []
+    for recipe_id in recipe_list:
+        recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+        match_recipe.append(recipe)
+    return match_recipe
 
 
 

@@ -33,6 +33,10 @@ class UserUpdateRecipeAllergiesModel(BaseModel):
   recipes: List[str]
   allergies: List[str]
 
+class UserSearchModel(BaseModel):
+  id: str
+  name: str
+
 class authProfile(BaseModel):
    uid: str
    email:str
@@ -57,7 +61,7 @@ class RecipeModel (BaseModel):
   name: str
   ingredients: List[IngredientModel]
   instructions: List[str]
-  time: str
+  time: int
   img_url: str = ""
   servings: int
   calories: int

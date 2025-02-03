@@ -1,5 +1,5 @@
-from fastapi import Depends, Query, FastAPI, HTTPException, status
-# from fastapi.responses import FileResponse
+from fastapi import Depends, Query, FastAPI, HTTPException, status, File, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +9,7 @@ from demo import *
 from models import *
 from additionalFucntions import *
 from fastapi.responses import JSONResponse
+from pathlib import Path
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
 #import json
@@ -61,7 +62,7 @@ async def sign_in(user_info: UserLoginModel):
 
 
 
-@app.get("/get_user/{user_id}", tags=['Users'])
+@app.get("/users/{user_id}", tags=['Users'])
 async def get_user(user_id: str):
     try:
         return await get_document(user_collection.document(user_id.strip()), details=True)
@@ -69,7 +70,7 @@ async def get_user(user_id: str):
         return f"Error retrieving user: {str(e)}"
 
 
-@app.get("/get_all_users", tags=['Users'])
+@app.get("/users", tags=['Users'])
 async def get_all_users():
     try:
         return await get_collection(user_collection.stream(), details=True)
@@ -77,19 +78,19 @@ async def get_all_users():
         return f"Error retrieving user: {str(e)}"
 
 
-@app.delete("/delete_user/{user_id}", tags=['Users'])
+@app.delete("/users/{user_id}", tags=['Users'])
 async def delete_user(user_id: str):
     return await delete_user_from_firestore(user_id)
 
 
-@app.put("/update_user/{user_id}", tags=['Users'])
+@app.put("/users/{user_id}", tags=['Users'])
 # async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
 async def update_user(user_data: UserUpdateModel):
     print(user_data)
     return await update_user_data(user_data)
 
 
-@app.put("/update_user_recipes_allergies/{user_id}", tags=['Users'])
+@app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
 # async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
 async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel):
     try:
@@ -106,76 +107,75 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 
 
-
-@app.get("/get_all_recipes", tags=['Recipes'])
-async def get_all_recipes():
-    collection = await get_collection(recipe_collection.stream(), details=True)
-    for recipe in collection:
-        recipe.pop("instructions", None)
-        recipe.pop("searchable_ingredient", None)
-        recipe.pop("searchable_recipe_name", None)
-        recipe["ingredients"] = len(recipe['ingredients'])
-    # p_c = json.dumps(collection, indent=4)
-    return collection
+#GET cannot pass a body, only parameters
+@app.post("/recipes", tags=['Recipes'])
+async def get_recipes(search: Optional[UserSearchModel] = None):
+    return await recipe_database_search(search)
 
 
-@app.get("/get_recipe_by_name/{recipe_name}", tags=['Recipes'])
-async def get_recipe_by_name(recipe_name: str):
-    
-    return await check_recipe(recipe_name.strip())
-
-
-@app.post("/add_new_recipe", tags=['Recipes'])
+@app.post("/recipes/add", tags=['Recipes'])
+# async def add_recipe(recipe: RecipeModel, file: Optional[UploadFile] = None):
 async def add_recipe(recipe: RecipeModel):
-    check = await check_recipe(recipe.name)
+    check = await search_recipe_by(recipe.name, "searchable_recipe_name")
     if check == "Recipe not in database":
-        return await new_recipe(recipe)
+        return await new_recipe(recipe, None)
     return check
 
 
-@app.get("/get_recipe_by_id/{recipe_id}", tags=['Recipes'])
-async def get_recipe_by_id(recipe_id: str):
-    recipe = await get_document(recipe_collection.document(recipe_id.strip()), details=True)
-    recipe.pop("searchable_ingredient", None)
-    recipe.pop("searchable_recipe_name", None)
-    return recipe
+
+
+@app.post("/GPT_ingredients_to_recipe", tags=['GPT'])
+async def ingredients_to_GPT(ingredients: str):
+    try:
+        # check_ingredients = await search_by_ingredients(ingredients)
+        check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
+        if check_ingredients != "no match":
+            return check_ingredients
+        response_list = await GPT_to_recipe(ingredients)
+
+        # check_name = await check_recipe(response_list[0])
+        check_name = await search_recipe_by(response_list[0])
+        if check_name != "Recipe not in database":
+            return check_name
+        return await new_recipe(response_list[1], user_added = False)
+    
+    except Exception as e:
+        print(f"Error in ingredients_to_GPT: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
 
 
 
 
-@app.get("/ingredients_to_recipes", tags=['Ingredients'])
-async def ingredients_to_recipes(ingredients: str):
-    return await i_to_r(ingredients)
-
-
-
-
-@app.post("/GPT_to_recipe", tags=['GPT'])
-async def send_ingredients_to_GPT(ingredient: str):
-    response_list =  await GPT_response_to_ingredientS(ingredient)
-    check = await check_recipe(response_list[0])
-    if check == "Recipe not in database":
-        return await new_recipe(response_list[1])
-    return check
-    # return await GPT_response_to_ingredientS(ingredient)
-
-
-
-
-# @app.get("/get_image", tags=['Experimental'])
+@app.get("/get_image_url/{file_name}", tags=['Experimental'])
+async def get_image(file_name: str):
 # async def get_image():
-#     image_path = Path(r"C:\Users\t\Desktop\1683115847268.jpg")
-#     if not image_path.is_file():
-#         return {"error": "Image not found on the server"}
-#     return FileResponse(image_path)
+    img_url = await get_image_from_firebase(file_name)
+    return img_url
+    # return StreamingResponse(img, media_type="image/jpeg", filename=file_name)
+    
+    # image_path = Path(r"C:\Users\t\Desktop\1683115847268.jpg")
+    # if not image_path.is_file():
+    #     return {"error": "Image not found on the server"}
+    # return FileResponse(image_path)
 
 
-# @app.post("/upload-image/", tags=['Experimental'])
-# async def upload_image(file: UploadFile = File(...)):
-#     return await image_to_storage(file)
+@app.post("/upload-image/file", tags=['Experimental'])
+async def upload_image(file: UploadFile = File(...)):
+    return await image_to_storage(file)
 
 
+@app.post("/upload-image/{url}", tags=['Experimental'])
+async def upload_image_by_url(url: str):
+    return await image_url_to_storage(url)
 
+
+@app.get("/generate-image/", tags=['Experimental'])
+async def generate_image(item: str):
+    return await GPT_image(item, item)
+
+    # image_data = requests.get(image_url).content
+    # img_byte_arr = io.BytesIO(image_data)
+    # StreamingResponse(img_byte_arr, media_type="image/png")
 
 
 

@@ -4,9 +4,12 @@ import pyrebase
 import firebase_admin
 import json
 import base64
+import io
+import requests
+from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
-# from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from google.cloud import firestore
 from dotenv import load_dotenv
 from firebase_admin import credentials, auth, storage
@@ -36,14 +39,15 @@ with tempfile.NamedTemporaryFile(mode="w+", delete=False) as temp_file:
     temp_file.flush()  # Ensure all data is written
     service_account_path = temp_file.name  # Path to the temporary file
 cred = credentials.Certificate(service_account_path)
-firebase_admin.initialize_app(cred)
+# firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'chat-app-react-and-firebase.appspot.com'  # Replace with your actual Firebase Storage bucket name
+})
 db = firestore.Client.from_service_account_json(service_account_path)
 os.remove(service_account_path)
-# do not touch 24-37
+# do not touch 31-45
 
-# firebase_admin.initialize_app(cred, {
-#     'storageBucket': 'chat-app-react-and-firebase.appspot.com'  # Replace with your actual Firebase Storage bucket name
-# })
+
 firebaseConfig = {
     "apiKey": apiKey,
     "authDomain": authDomain,
@@ -66,6 +70,41 @@ user_collection = db.collection("user")
 recipe_collection = db.collection("recipe")
 
 print("Firebase initialized successfully!")
+
+
+
+
+async def get_document(document, details):
+    try:
+        item = document.get()
+        if item.exists:
+            if details == False:
+                return item.id
+            else:
+                return item.to_dict()
+        else:
+            return f"item not found"
+    except Exception as e:
+        return f"Error retrieving user from Firestore: {str(e)}"
+
+
+async def get_collection(collection, details):
+    try:
+        collection_list = []
+        if details == False:
+            for item in collection:
+                collection_list.append(item.id)
+        else:
+            for item in collection:
+                collection_list.append(item.to_dict())
+        if collection_list:
+            return collection_list
+        else:
+            return "No collection"
+    except Exception as e:
+        return f"Error retrieving {collection} from Firestore: {str(e)}"
+
+
 
 
 # Signup function
@@ -120,20 +159,6 @@ async def loginOnFirebase(email, password):
         return {"error": "UNKNOWN_ERROR", "message": error_message}
 
 
-async def get_document(document, details):
-    try:
-        item = document.get()
-        if item.exists:
-            if details == False:
-                return item.id
-            else:
-                return item.to_dict()
-        else:
-            return f"item not found"
-    except Exception as e:
-        return f"Error retrieving user from Firestore: {str(e)}"
-
-
 async def delete_user_from_firestore(user_id):
     try:
         user_collection.document(user_id).delete()
@@ -169,10 +194,8 @@ async def update_user_data(user_data):
 async def update_user_r_a(user_id, recipes, allergies):
     try:
         if recipes:
-            print(1)
             user_collection.document(user_id).update({'recipes': firestore.ArrayUnion(recipes)})
         if allergies:
-            print(2)
             user_collection.document(user_id).update({'allergies': firestore.ArrayUnion(allergies)})
         return {"message": "User data updated successfully."}
     
@@ -181,26 +204,61 @@ async def update_user_r_a(user_id, recipes, allergies):
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
-async def new_recipe(recipe):
+
+
+async def recipe_database_search(search):
+    if search != None and search.id != "string":
+        recipe = await get_document(recipe_collection.document(search.id.strip()), details=True)
+        recipe.pop("searchable_ingredient", None)
+        recipe.pop("searchable_recipe_name", None)
+        return recipe
+    elif search != None and search.name != "string":
+        return await search_recipe_by((search.name).strip(), "searchable_recipe_name")
+    else:
+        collection = await get_collection(recipe_collection.stream(), details=True)
+        for recipe in collection:
+            recipe.pop("instructions", None)
+            recipe.pop("searchable_ingredient", None)
+            recipe.pop("searchable_recipe_name", None)
+            recipe["ingredients"] = len(recipe['ingredients'])
+        # p_c = json.dumps(collection, indent=4)
+        return collection
+
+
+async def new_recipe(recipe, user_added):
     ingredient_data = []
     searchable_ingredient = [] 
     for ingredient in recipe.ingredients:
         ingredient_data.append(ingredient.dict())
         searchable_ingredient = list(set(searchable_ingredient + ingredient.ingredientName.split())) 
+    
     lower_searchable_ingredient = [item.lower() for item in searchable_ingredient]
+    lower_searchable_ingredient = clean_words(remove_accents(lower_searchable_ingredient))
     lower_searchable_name = [item.lower() for item in recipe.name.split()]
+    lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
+    
+    if user_added == False:
+        img_prompt = ", ".join(lower_searchable_name)
+        GPT_img_url = await GPT_image(img_prompt, recipe.name)
+        GPT_img_url = (GPT_img_url[GPT_img_url.find('http'):])
+        url_list = [GPT_img_url, ""]
+    else:
+        # img_url = await image_to_storage(user_added)
+        # url_list = [img_url, '']
+        url_list = ""
 
     recipe_data = {
         "name": recipe.name,
         "ingredients": ingredient_data,
         "instructions": recipe.instructions,
         "time": recipe.time,
-        "img_url": recipe.img_url,
+        "img_url": url_list,
         "servings": recipe.servings,
         "calories": recipe.calories,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
     }
+
 
     if recipe.author != 'string':
         recipe_data['user_id'] = recipe.author
@@ -212,50 +270,15 @@ async def new_recipe(recipe):
     return {"message": f"Recipe: {recipe.name} - ID: {recipe_doc.id} added successfully"}
 
 
-async def get_collection(collection, details):
-    try:
-        collection_list = []
-        if details == False:
-            for item in collection:
-                collection_list.append(item.id)
-        else:
-            for item in collection:
-                collection_list.append(item.to_dict())
-        if collection_list:
-            return collection_list
-        else:
-            return "No collection"
-    except Exception as e:
-        return f"Error retrieving {collection} from Firestore: {str(e)}"
-
-
-async def check_recipe(recipe_name):
-    # recipe_name = recipe_name.split()
-    # print(recipe_name)
-    try:
-        collection = recipe_collection.where("name", "in", [recipe_name]).stream()
-        # collection = ingredient_collection.where("searchable_recipe_name", "array_contains_any", recipe_name).stream()
-        for doc in collection:
-            return doc.to_dict()
-        return "Recipe not in database"
-
-    except Exception as e:
-        return f"An unexpected error occurred: {e}"
-    
-
-async def i_to_r(ingredients):
-    ingredients = ingredients.split()
-    # if len(ingredients) == 1:
-    #     search = str(ingredients[0])
-    #     collection = recipe_collection.where("searchable_ingredient", "array_contains", search).stream()
-    #     return await get_collection(collection, details=True)
-
-    # else:
+async def search_recipe_by(data, search_type):
+    data = data.lower().split()
+    clean_data = clean_words(remove_accents(data))
     recipe_list = []
-    for ingredient in ingredients:
-        collection = recipe_collection.where("searchable_ingredient", "array_contains", ingredient).stream()
+    for word in clean_data:
+        collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
         if recipe_id == "No collection":
+            recipe_id = "no match"
             return recipe_id
         if not recipe_list:
             recipe_list.extend(recipe_id)
@@ -263,22 +286,22 @@ async def i_to_r(ingredients):
             recipe_list = list(set(recipe_list) & set(recipe_id))
             if not recipe_list:
                 return "no match"
-        # print(recipe_list)
     
     match_recipe = []
     for recipe_id in recipe_list:
         recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+        recipe.pop("searchable_ingredient", None)
+        recipe.pop("searchable_recipe_name", None)
         match_recipe.append(recipe)
     return match_recipe
 
-    
 
 
-async def GPT_response_to_ingredientS(ingredient):
+async def GPT_to_recipe(ingredient):
     OAI_api_key = os.getenv("OAI_API_KEY")
-    client = OpenAI(
-        api_key=OAI_api_key
-    )
+    client = OpenAI(api_key=OAI_api_key)
+    if not OAI_api_key:
+        raise ValueError("API Key is missing!")
 
     prompt = f"""
     You are a Vietnamese recipe expert. You are only allowed to respond in the form of a JSON. Time should be in minutes. The JSON should always take the following shape:
@@ -286,7 +309,7 @@ async def GPT_response_to_ingredientS(ingredient):
         "name": " ",
         "ingredients": [{{"ingredientName": "ingredientName", "ingredientAmount": "ingredient amount with unit"}}],
         "calories": int,
-        "time": "minutes",
+        "time": int, # minutes
         "servings": int,
         "instructions": ["step 1", "step 2"]
     }}
@@ -297,7 +320,6 @@ async def GPT_response_to_ingredientS(ingredient):
     """
 
     messages = [{"role": "system", "content": prompt}]
-
     # Define a function to handle user input and generate a response using OpenAI's API
     messages.append({"role": "user", "content": ingredient})
     response = client.chat.completions.create(
@@ -305,54 +327,112 @@ async def GPT_response_to_ingredientS(ingredient):
         store=True,  # Specify the model to use
         messages = messages       # Pass the conversation history
     )
+
+    if not response.choices or not response.choices[0].message.content:
+        raise ValueError("Received empty or invalid response from OpenAI.")
+    
     ChatGPT_reply = response.choices[0].message.content
-    recipe_json = json.loads(ChatGPT_reply)
+    ChatGPT_reply = ChatGPT_reply.replace('```', '')
+    ChatGPT_reply = ChatGPT_reply.replace('json', '')
+    try:
+        recipe_json = json.loads(ChatGPT_reply)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to decode JSON from the response: {e}")
+    
     recipe_json["author"] = "string"
-    # print(recipe_json["author"])
     recipe_name = recipe_json['name']
     recipe = RecipeModel.model_validate(recipe_json)
-    # recipe["user_id"] = "string"
-    # print(recipe.user_id)
-    # Add the assistant's reply to the message history to maintain context
     messages.append({"role": "assistant", "content": response})
     response_list = [recipe_name, recipe]
 
     return response_list
 
 
+async def GPT_image(item, recipe_name):
+    OAI_api_key = os.getenv("OAI_API_KEY")
+    client = OpenAI(api_key=OAI_api_key)
+
+    prompt = f"""Generate a image of a presented dish of food: {{item}}"""
+    messages = [{"role": "system", "content": prompt}]
+    messages.append({"role": "user", "content": item})
+    response = client.images.generate(
+        prompt=item,
+        n=1,
+        # size="256x256"
+        # size="512x512"
+        size="1024x1024"
+    )
+
+    image_url = response.data[0].url
+    image_data = requests.get(image_url).content
+    img_byte_arr = io.BytesIO(image_data)
+
+    return await image_url_to_storage(image_url, recipe_name)
+    # return StreamingResponse(img_byte_arr, media_type="image/png")
 
 
-# async def GPT_image(ingredient):
-#     OAI_api_key = os.getenv("OAI_API_KEY")
 
 
-# async def image_to_storage(file):
-#     bucket = storage.bucket()
-#     # Create a temporary file to store the image
-#     temp_file_path = f"temp_{file.filename}"
-#     # Save the uploaded image to the temporary file
-#     with open(temp_file_path, "wb") as temp_file:
-#         temp_file.write(await file.read())
+async def image_url_to_storage(url, recipe_name):
+    recipe_name = remove_accents(recipe_name)
+    recipe_name = recipe_name +'_1'
+    # name = (url[url.rfind('/') + 1:]) # select name after the last '/'
+    response = requests.get(url)
+    if response.status_code == 200:
+        image_data = img_compression(response.content)
+        bucket = storage.bucket()
+        blob = bucket.blob(f"images/{recipe_name}")
+        blob.upload_from_file(image_data, content_type='image/jpeg')
+        blob.make_public()
+        image_url = blob.public_url
+        return f"Image uploaded to Firebase Storage as {image_url}"
+
+    return f"Failed to fetch image from URL: {response.status_code}"
     
-#     try:
-#         # Upload the image to Firebase Storage
-#         blob = bucket.blob(f"images/{file.filename}")
-#         blob.upload_from_filename(temp_file_path)
 
-#         # Make the file publicly accessible (optional)
-#         blob.make_public()
+async def image_to_storage(file):
+    # temp_file_path = f"temp_{file.filename}"
+    # with open(temp_file_path, "wb") as temp_file:
+    #     temp_file.write(await file.read())
+    image_data = await file.read()
+    image_data = img_compression(image_data)
+    try:
+        bucket = storage.bucket()
+        # Upload the image to Firebase Storage
+        blob = bucket.blob(f"images/{file.filename}")
+        blob.upload_from_file(image_data, content_type='image/jpeg')
+        # Make the file publicly accessible (optional)
+        blob.make_public()
+        # Get the public URL of the uploaded image
+        image_url = blob.public_url
+        # Clean up the temporary file
+        # os.remove(temp_file_path)
 
-#         # Get the public URL of the uploaded image
-#         image_url = blob.public_url
+        return image_url
+
+    # except Exception as e:
+    #     os.remove(temp_file_path)
+    #     return JSONResponse(content={"error": str(e)}, status_code=500)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+async def get_image_from_firebase(file_name):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob(file_name)
+        img_url = blob.public_url
+        return(img_url)
         
-#         # Clean up the temporary file
-#         os.remove(temp_file_path)
+    except Exception as e:
+        print(f"Error downloading file: {e}")
 
-#         return {"message": "Image uploaded successfully", "image_url": image_url}
 
-#     except Exception as e:
-#         os.remove(temp_file_path)
-#         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+
+
+
 
 
 
