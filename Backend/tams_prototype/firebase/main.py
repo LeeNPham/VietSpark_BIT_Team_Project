@@ -123,18 +123,16 @@ async def add_recipe(recipe: RecipeModel):
 
 
 
-
+#Need a string of ingredients
 @app.post("/GPT_ingredients_to_recipe", tags=['GPT'])
 async def ingredients_to_GPT(ingredients: str):
     try:
-        # check_ingredients = await search_by_ingredients(ingredients)
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != "no match":
             return check_ingredients
         response_list = await GPT_to_recipe(ingredients)
 
-        # check_name = await check_recipe(response_list[0])
-        check_name = await search_recipe_by(response_list[0])
+        check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
         if check_name != "Recipe not in database":
             return check_name
         return await new_recipe(response_list[1], user_added = False)

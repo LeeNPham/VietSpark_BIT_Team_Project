@@ -298,6 +298,7 @@ async def search_recipe_by(data, search_type):
 
 
 async def GPT_to_recipe(ingredient):
+    print("GPT working...")
     OAI_api_key = os.getenv("OAI_API_KEY")
     client = OpenAI(api_key=OAI_api_key)
     if not OAI_api_key:
