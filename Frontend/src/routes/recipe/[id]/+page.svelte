@@ -1,31 +1,31 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import type { RecipeDTO } from '../../types';
+	import type { RecipeDetailDTO } from '$lib/types';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 
 
-	let recipe: RecipeDTO | null = null;
+	let recipe: RecipeDetailDTO | null = null;
+	let recipeId : string;
 	$: recipeId = $page.params.id;
 
 	async function fetchRecipe() {
 		try {
 			await recipeHandler.getRecipe(recipeId);
-			recipeStore.subscribe(store => {
-				recipe = store.currentRecipe;
-			});
-
+			recipe = $recipeStore.currentRecipe;
 		} catch (e) {
 			alert((e as Error).message);
 		}
 	}
+	
 	onMount(fetchRecipe);
+
 
 </script>
 <div class="py-4 flex rounded-full justify-end flex-wrap">
 	
 	<div>
-		<a href="/home" class="text-teal-600 font-semibold">Home</a> |
+		<a href="/" class="text-teal-600 font-semibold">Home</a> |
 		<a href="/user" class="text-teal-600 font-semibold">User</a>
 	</div>
 </div>
@@ -38,6 +38,7 @@
 		<div class="flex items-center justify-center">
 			<div class="rounded-full bg-teal-300 p-2 mx-2">Time {recipe.time}</div>
 			<div class="rounded-full bg-yellow-300 p-2 mx-2">Calories: {recipe.calories ? recipe.calories : "Unknown"}</div>
+			<div class="rounded-full bg-green-300 p-2 mx-2">Servings: {recipe.servings}</div>
 		</div>
 		<h2 class="mt-6 text-lg font-semibold text-blue-500">Ingredients</h2>
 		<ul class="list-disc pl-6">

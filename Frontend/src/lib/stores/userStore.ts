@@ -22,14 +22,18 @@ export const userHandler = {
             if (!res.ok) throw new Error("Failed to login");
 
             const newUser = await res.json();
-            document.cookie = `authToken=${newUser.token}; path=/; Secure; HttpOnly`; // Using Cookies
-            localStorage.setItem('authToken', newUser.idToken); // Using localStorage
-            localStorage.setItem('authenticated', 'true'); // Mark user as authenticated
-            localStorage.setItem('userId', newUser.localId); // Mark user as authenticated
-            localStorage.setItem('refreshToken', newUser.refreshToken);
 
+            // Store token in HttpOnly cookie for security
+            document.cookie = `authToken=${newUser.token}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`; 
+
+            // Store non-sensitive data in localStorage
+            localStorage.setItem('authenticated', 'true');
+            localStorage.setItem('userId', newUser.localId);
+
+            // Store expiration timestamp
             const expiresAt = new Date().getTime() + newUser.expiresIn * 1000;
             localStorage.setItem('expiresAt', expiresAt.toString());
+
             userStore.update((state) => ({
                 ...state,
                 isLoading: false,
@@ -41,6 +45,29 @@ export const userHandler = {
             throw error;
         }
     },
+
+    checkSessionExpiration: () => {
+        const expiresAt = localStorage.getItem('expiresAt');
+        if (expiresAt && new Date().getTime() > parseInt(expiresAt)) {
+            // clear local storage
+            localStorage.clear();
+            
+            // clear cookie
+            document.cookie = "authToken=; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"; 
+        }
+    }, 
+
+    // TODO: add refresh token api on backend and then add function on frontend
+    // refreshToken: async(refreshToken: string) => {
+    //     try {
+
+    //     } catch (e) {
+    //         console.error("Failed to refresh token", (e as Error).message);
+    //         localStorage.clear();
+
+    //     }
+    // }, 
+
     signup: async (userData: UserSignUpDTO) => {
         try {
             const res = await fetch(`${API_URL}/authentication`, {
@@ -61,10 +88,20 @@ export const userHandler = {
             throw error;
         }
     },
-    getUsers: () => {},
+    getUsers: async () => {
+        try {
+            const res = await fetch(`${API_URL}/users`);
+            if (!res.ok) throw new Error("Failed to fetch users");
+
+            const users = await res.json();
+        } catch (e) {
+            console.error((e as Error).message);
+            throw e;
+        }
+    },
     getUser: async (userId: string) => {
         try {
-            const res = await fetch(`${API_URL}/get_user/${userId}`)
+            const res = await fetch(`${API_URL}/users/${userId}`)
             if (!res.ok) throw new Error(`Failed to fetch user ${userId} information`);
             const user = await res.json();
             userStore.update((state) => ({
@@ -79,7 +116,7 @@ export const userHandler = {
     },
     updateUserRecipes: async (userData: UserDTO) => {
         try {
-            const res = await fetch(`${API_URL}/update_user_recipes_allergies/${userData.user_id}`, {
+            const res = await fetch(`${API_URL}/users/recipes_allergies/${userData.user_id}`, {
                 method: 'PUT',
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(userData),
@@ -99,7 +136,7 @@ export const userHandler = {
     },
     updateUserDetail: async (userData: UserDTO) => {
         try {
-            const res = await fetch(`${API_URL}/update_user`, {
+            const res = await fetch(`${API_URL}/users`, {
                 method: 'PUT',
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(userData),
