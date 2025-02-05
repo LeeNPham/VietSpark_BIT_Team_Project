@@ -108,24 +108,28 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 
 #GET cannot pass a body, only parameters
+@app.get("/recipes", tags=['Recipes'])
+async def get_recipes(name: Optional[str] = None):
+    return await recipe_database_search(name)
+
+@app.get("/recipes/{recipe_id}", tags=["Recipes"])
+async def get_recipe_by_id(recipe_id: str):
+    return await search_recipe_by_id(recipe_id)
+
 @app.post("/recipes", tags=['Recipes'])
-async def get_recipes(search: Optional[UserSearchModel] = None):
-    return await recipe_database_search(search)
-
-
-@app.post("/recipes/add", tags=['Recipes'])
 # async def add_recipe(recipe: RecipeModel, file: Optional[UploadFile] = None):
 async def add_recipe(recipe: RecipeModel):
-    check = await search_recipe_by(recipe.name, "searchable_recipe_name")
-    if check == "Recipe not in database":
-        return await new_recipe(recipe, None)
-    return check
+    # check = await search_recipe_by(recipe.name, "searchable_recipe_name")
+    # if check == "Recipe not in database":
+    #     return await new_recipe(recipe, None)
+    # return check
+    recipe =  await new_recipe(recipe, None)
+    return recipe
 
 
 
-#Need a string of ingredients
-@app.post("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str):
+@app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
+async def ingredients_to_GPT(ingredients: str = Query(..., description="Space-separated list of ingredients")):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != "no match":
@@ -167,7 +171,7 @@ async def upload_image_by_url(url: str):
     return await image_url_to_storage(url)
 
 
-@app.get("/generate-image/", tags=['Experimental'])
+@app.get("/generate-image", tags=['Experimental'])
 async def generate_image(item: str):
     return await GPT_image(item, item)
 

@@ -204,23 +204,26 @@ async def update_user_r_a(user_id, recipes, allergies):
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
-
-
-async def recipe_database_search(search):
-    if search != None and search.id != "string":
-        recipe = await get_document(recipe_collection.document(search.id.strip()), details=True)
+async def search_recipe_by_id(id: str):
+    if id.strip():
+        recipe = await get_document(recipe_collection.document(id.strip()), details=True)
         recipe.pop("searchable_ingredient", None)
         recipe.pop("searchable_recipe_name", None)
         return recipe
-    elif search != None and search.name != "string":
-        return await search_recipe_by((search.name).strip(), "searchable_recipe_name")
+    else:
+        raise HTTPException(status_code=422, detail="Recipe ID is required!")
+
+
+async def recipe_database_search(name: Optional[str] = None):
+    if name and name.strip():
+        return await search_recipe_by(name.strip(), "searchable_recipe_name")
     else:
         collection = await get_collection(recipe_collection.stream(), details=True)
         for recipe in collection:
             recipe.pop("instructions", None)
             recipe.pop("searchable_ingredient", None)
             recipe.pop("searchable_recipe_name", None)
-            recipe["ingredients"] = len(recipe['ingredients'])
+            recipe["numIngredients"] = len(recipe['ingredients'])
         # p_c = json.dumps(collection, indent=4)
         return collection
 
@@ -237,22 +240,22 @@ async def new_recipe(recipe, user_added):
     lower_searchable_name = [item.lower() for item in recipe.name.split()]
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
     
-    if user_added == False:
-        img_prompt = ", ".join(lower_searchable_name)
-        GPT_img_url = await GPT_image(img_prompt, recipe.name)
-        GPT_img_url = (GPT_img_url[GPT_img_url.find('http'):])
-        url_list = [GPT_img_url, ""]
-    else:
-        # img_url = await image_to_storage(user_added)
-        # url_list = [img_url, '']
-        url_list = ""
+    # if user_added == False:
+    #     img_prompt = ", ".join(lower_searchable_name)
+    #     GPT_img_url = await GPT_image(img_prompt, recipe.name)
+    #     GPT_img_url = (GPT_img_url[GPT_img_url.find('http'):])
+    #     url_list = [GPT_img_url, ""]
+    # else:
+    #     # img_url = await image_to_storage(user_added)
+    #     # url_list = [img_url, '']
+    #     url_list = ""
 
     recipe_data = {
         "name": recipe.name,
         "ingredients": ingredient_data,
         "instructions": recipe.instructions,
         "time": recipe.time,
-        "img_url": url_list,
+        "img_url": recipe.img_url,
         "servings": recipe.servings,
         "calories": recipe.calories,
         "searchable_recipe_name": lower_searchable_name,
@@ -277,23 +280,27 @@ async def search_recipe_by(data, search_type):
     for word in clean_data:
         collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
+
         if recipe_id == "No collection":
-            recipe_id = "no match"
-            return recipe_id
-        if not recipe_list:
-            recipe_list.extend(recipe_id)
+            return []  # Exit early if no match is found
+
+        if recipe_list is None:
+            recipe_list.extend(recipe_id)  # First valid set of IDs
         else:
-            recipe_list = list(set(recipe_list) & set(recipe_id))
-            if not recipe_list:
-                return "no match"
+            recipe_list = list(set(recipe_list) & set(recipe_id))  # Intersection to keep common IDs
+
+        if not recipe_list:  # If no common IDs remain, exit early
+            return []
+
+    return list(recipe_list) if recipe_list else []
     
-    match_recipe = []
-    for recipe_id in recipe_list:
-        recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
-        recipe.pop("searchable_ingredient", None)
-        recipe.pop("searchable_recipe_name", None)
-        match_recipe.append(recipe)
-    return match_recipe
+    # match_recipe = []
+    # for recipe_id in recipe_list:
+    #     recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+    #     recipe.pop("searchable_ingredient", None)
+    #     recipe.pop("searchable_recipe_name", None)
+    #     match_recipe.append(recipe)
+    # return match_recipe
 
 
 
@@ -386,7 +393,7 @@ async def image_url_to_storage(url, recipe_name):
         blob.upload_from_file(image_data, content_type='image/jpeg')
         blob.make_public()
         image_url = blob.public_url
-        return f"Image uploaded to Firebase Storage as {image_url}"
+        return image_url
 
     return f"Failed to fetch image from URL: {response.status_code}"
     
