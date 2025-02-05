@@ -1,16 +1,18 @@
 <script>
 	import Header from '../lib/components/Header.svelte';
 	import '../app.css';
-	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { onMount } from 'svelte';
+	import { recipeHandler } from '$lib/stores/recipeStore';
+	import { userHandler } from "$lib/stores/userStore";
 
-	
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
 
 	onMount(async() => {
-		await recipeHandler.getRecipes();
+		userHandler.checkSessionExpiration();
+		console.log("Preloading recipes");
+		await recipeHandler.getRecipes(null);
 	
 	})
 	

@@ -1,22 +1,34 @@
 export interface RecipeDTO {
+    recipe_id: string,
+    name: string,
+    img_url: string,
+    time: number,
+    calories: number,
+    servings: number,
+    numIngredients: number,
+    
+};
+
+export interface RecipeDetailDTO {
     id: string,
     name: string,
     img_url: string,
-    time: string,
-    calories: string,
+    time: number,
+    calories: number,
+    servings: number,
     ingredients: { ingredientAmount: string, ingredientName: string }[];
     instructions: string[],
     author: string,
-};
-
+}
 export interface RecipeAddDTO {
     name: string,
     img_url: string,
-    time: string,
-    calories: string,
+    time: number,
+    calories: number,
     ingredients: { ingredientAmount: string, ingredientName: string }[];
     instructions: string[],
     author: string,
+    servings: number,
 };
 
 

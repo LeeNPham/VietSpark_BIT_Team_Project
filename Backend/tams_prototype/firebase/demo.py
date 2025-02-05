@@ -7,8 +7,12 @@ import base64
 import io
 import requests
 from io import BytesIO
+import io
+import requests
+from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from google.cloud import firestore
 from dotenv import load_dotenv
@@ -43,8 +47,14 @@ cred = credentials.Certificate(service_account_path)
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'chat-app-react-and-firebase.appspot.com'  # Replace with your actual Firebase Storage bucket name
 })
+# firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'chat-app-react-and-firebase.appspot.com'  # Replace with your actual Firebase Storage bucket name
+})
 db = firestore.Client.from_service_account_json(service_account_path)
 os.remove(service_account_path)
+# do not touch 31-45
+
 # do not touch 31-45
 
 
@@ -70,6 +80,41 @@ user_collection = db.collection("user")
 recipe_collection = db.collection("recipe")
 
 print("Firebase initialized successfully!")
+
+
+
+
+async def get_document(document, details):
+    try:
+        item = document.get()
+        if item.exists:
+            if details == False:
+                return item.id
+            else:
+                return item.to_dict()
+        else:
+            return f"item not found"
+    except Exception as e:
+        return f"Error retrieving user from Firestore: {str(e)}"
+
+
+async def get_collection(collection, details):
+    try:
+        collection_list = []
+        if details == False:
+            for item in collection:
+                collection_list.append(item.id)
+        else:
+            for item in collection:
+                collection_list.append(item.to_dict())
+        if collection_list:
+            return collection_list
+        else:
+            return "No collection"
+    except Exception as e:
+        return f"Error retrieving {collection} from Firestore: {str(e)}"
+
+
 
 
 
@@ -234,6 +279,7 @@ async def new_recipe(recipe, user_added):
     
     lower_searchable_ingredient = [item.lower() for item in searchable_ingredient]
     lower_searchable_ingredient = clean_words(remove_accents(lower_searchable_ingredient))
+    lower_searchable_ingredient = clean_words(remove_accents(lower_searchable_ingredient))
     lower_searchable_name = [item.lower() for item in recipe.name.split()]
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
     
@@ -260,6 +306,7 @@ async def new_recipe(recipe, user_added):
     }
 
 
+
     if recipe.author != 'string':
         recipe_data['user_id'] = recipe.author
         recipe_data["searchable_recipe_name"].append(recipe.author)
@@ -273,10 +320,16 @@ async def new_recipe(recipe, user_added):
 async def search_recipe_by(data, search_type):
     data = data.lower().split()
     clean_data = clean_words(remove_accents(data))
+async def search_recipe_by(data, search_type):
+    data = data.lower().split()
+    clean_data = clean_words(remove_accents(data))
     recipe_list = []
     for word in clean_data:
         collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
+    for word in clean_data:
+        collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
+
         if recipe_id == "No collection":
             recipe_id = "no match"
             return recipe_id
@@ -303,6 +356,9 @@ async def GPT_to_recipe(ingredient):
     client = OpenAI(api_key=OAI_api_key)
     if not OAI_api_key:
         raise ValueError("API Key is missing!")
+    client = OpenAI(api_key=OAI_api_key)
+    if not OAI_api_key:
+        raise ValueError("API Key is missing!")
 
     prompt = f"""
     You are a Vietnamese recipe expert. You are only allowed to respond in the form of a JSON. Time should be in minutes. The JSON should always take the following shape:
@@ -310,6 +366,7 @@ async def GPT_to_recipe(ingredient):
         "name": " ",
         "ingredients": [{{"ingredientName": "ingredientName", "ingredientAmount": "ingredient amount with unit"}}],
         "calories": int,
+        "time": int, # minutes
         "time": int, # minutes
         "servings": int,
         "instructions": ["step 1", "step 2"]
@@ -332,7 +389,18 @@ async def GPT_to_recipe(ingredient):
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
     
+
+    if not response.choices or not response.choices[0].message.content:
+        raise ValueError("Received empty or invalid response from OpenAI.")
+    
     ChatGPT_reply = response.choices[0].message.content
+    ChatGPT_reply = ChatGPT_reply.replace('```', '')
+    ChatGPT_reply = ChatGPT_reply.replace('json', '')
+    try:
+        recipe_json = json.loads(ChatGPT_reply)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to decode JSON from the response: {e}")
+    
     ChatGPT_reply = ChatGPT_reply.replace('```', '')
     ChatGPT_reply = ChatGPT_reply.replace('json', '')
     try:
@@ -408,6 +476,31 @@ async def image_to_storage(file):
         image_url = blob.public_url
         # Clean up the temporary file
         # os.remove(temp_file_path)
+
+        return image_url
+
+    # except Exception as e:
+    #     os.remove(temp_file_path)
+    #     return JSONResponse(content={"error": str(e)}, status_code=500)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+async def get_image_from_firebase(file_name):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob(file_name)
+        img_url = blob.public_url
+        return(img_url)
+        
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+
+
+
+
+
+
 
         return image_url
 

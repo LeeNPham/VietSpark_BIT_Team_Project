@@ -12,7 +12,7 @@
         if (!email || !password) alert("Please fill in login credentials");
         try {
             await userHandler.login({email: email, password: password});
-            goto('/home'); // Redirect to a dashboard or home page
+            goto('/'); // Redirect to a dashboard or home page
 
         } catch (error) {
             errorMessage = (error as Error).message;

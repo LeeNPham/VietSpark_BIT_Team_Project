@@ -31,7 +31,7 @@
 			await userHandler.getUser(userId);
 		} catch (e) {
 			clearCredentials();
-			alert((e as Error).message);
+			console.error((e as Error).message);
 		}
 	}
 
@@ -73,7 +73,6 @@
 			if (!userId) throw new Error('UserId not found');
 			if (!user) throw new Error('User data not found');
 			user.allergies = allergies;
-			// TODO:
 			const updatedUser = {
 				...user,
 				allergies: allergies,
