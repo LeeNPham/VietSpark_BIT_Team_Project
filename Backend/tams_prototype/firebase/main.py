@@ -64,7 +64,6 @@ async def sign_in(user_info: UserLoginModel):
 
 
 @app.get("/users/{user_id}", tags=['Users'])
-@app.get("/users/{user_id}", tags=['Users'])
 async def get_user(user_id: str):
     try:
         return await get_document(user_collection.document(user_id.strip()), details=True)
@@ -72,7 +71,6 @@ async def get_user(user_id: str):
         return f"Error retrieving user: {str(e)}"
 
 
-@app.get("/users", tags=['Users'])
 @app.get("/users", tags=['Users'])
 async def get_all_users():
     try:
@@ -82,12 +80,10 @@ async def get_all_users():
 
 
 @app.delete("/users/{user_id}", tags=['Users'])
-@app.delete("/users/{user_id}", tags=['Users'])
 async def delete_user(user_id: str):
     return await delete_user_from_firestore(user_id)
 
 
-@app.put("/users/{user_id}", tags=['Users'])
 @app.put("/users/{user_id}", tags=['Users'])
 # async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
 async def update_user(user_data: UserUpdateModel):
@@ -95,7 +91,6 @@ async def update_user(user_data: UserUpdateModel):
     return await update_user_data(user_data)
 
 
-@app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
 @app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
 # async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
 async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel):
@@ -115,20 +110,25 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 #GET cannot pass a body, only parameters
 @app.get("/recipes", tags=['Recipes'])
-async def get_recipes(name: Optional[str] = None):
-    return await recipe_database_search(name)
+async def get_recipes(
+    name: Optional[str] = None, 
+    author: Optional[str] = None, 
+    calories: Optional[int] = None, 
+    time: Optional[int] = None
+    ):
+
+    return await recipe_database_search2(name, author, calories, time)
+
 
 @app.get("/recipes/{recipe_id}", tags=["Recipes"])
 async def get_recipe_by_id(recipe_id: str):
     return await search_recipe_by_id(recipe_id)
 
+
 @app.post("/recipes", tags=['Recipes'])
-# async def add_recipe(recipe: RecipeModel, file: Optional[UploadFile] = None):
-async def add_recipe(recipe: RecipeModel):
-    check = await search_recipe_by(recipe.name, "searchable_recipe_name")
-    if check == "Recipe not in database":
-        return await new_recipe(recipe, None)
-    return check
+async def user_added_recipe(recipe: RecipeModel):
+    return await new_recipe(recipe, None)
+
 
 
 
@@ -141,10 +141,11 @@ async def ingredients_to_GPT(ingredients: str):
             return check_ingredients
         response_list = await GPT_to_recipe(ingredients)
 
-        check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
-        if check_name != "Recipe not in database":
-            return check_name
-        return await new_recipe(response_list[1], user_added = False)
+        # check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
+        # if check_name != "no match":
+        #     return check_name
+        if await new_recipe(response_list[1], user_added = False):
+            return [response_list[1]]
     
     except Exception as e:
         print(f"Error in ingredients_to_GPT: {str(e)}")
@@ -153,8 +154,6 @@ async def ingredients_to_GPT(ingredients: str):
 
 
 
-@app.get("/get_image_url/{file_name}", tags=['Experimental'])
-async def get_image(file_name: str):
 @app.get("/get_image_url/{file_name}", tags=['Experimental'])
 async def get_image(file_name: str):
 # async def get_image():
@@ -168,9 +167,6 @@ async def get_image(file_name: str):
     # return FileResponse(image_path)
 
 
-@app.post("/upload-image/file", tags=['Experimental'])
-async def upload_image(file: UploadFile = File(...)):
-    return await image_to_storage(file)
 @app.post("/upload-image/file", tags=['Experimental'])
 async def upload_image(file: UploadFile = File(...)):
     return await image_to_storage(file)
