@@ -18,7 +18,7 @@
 				<div class="flex w-full items-center gap-4">
 					<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} />
 					<div class="flex-1">
-						<p>{item.name}</p>
+						<p class="line-clamp-1">{item.name}</p>
 						<div class="space-x-2 text-sm font-medium text-teal-700">
 							<span>{item.time} minutes</span>
 							<span>*</span>

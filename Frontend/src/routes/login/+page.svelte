@@ -5,13 +5,19 @@
     let email = '';
     let password = '';
     let errorMessage = '';
+    let isEmailValid = true;
 
+    function validateEmail() {
+        isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!isEmailValid) errorMessage = "Please enter a valid email address";
+        else errorMessage = "";
+    }
 
     async function handleLogin() {
-        errorMessage = '';
-        if (!email || !password) alert("Please fill in login credentials");
+        validateEmail()
+        if (!isEmailValid || !password) alert("Please fill in login credentials");
         try {
-            await userHandler.login({email: email, password: password});
+            await userHandler.login({email: email.toLowerCase(), password: password});
             goto('/'); // Redirect to a dashboard or home page
 
         } catch (error) {
