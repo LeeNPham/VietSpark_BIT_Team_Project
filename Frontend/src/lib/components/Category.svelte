@@ -6,8 +6,7 @@
 
 	async function handleCategoryClick(category: string) {
 		try {
-			const userId = localStorage.getItem("userId");
-			const res = await recipeHandler.searchRecipesGPT(category, userId);
+			const res = await recipeHandler.searchRecipesGPT(category);
 		} catch (e) {
 			console.error((e as Error).message);
 		}

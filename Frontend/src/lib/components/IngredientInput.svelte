@@ -4,7 +4,7 @@
 	import { derived } from 'svelte/store';
 
 	// For searching
-	let searchType = 'ingredients'; // default: search by name, other: by ingredients
+	let searchType = 'name'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
 	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
@@ -24,8 +24,7 @@
 			if (searchType === 'name') {
 				await recipeHandler.getRecipes(searchQuery.trim());
 			} else if (searchType === 'ingredients') {
-				const userId = localStorage.getItem('userId');
-				await recipeHandler.searchRecipesGPT(searchQuery.trim(), userId);
+				await recipeHandler.searchRecipesGPT(searchQuery.trim());
 			}
 		} catch (e) {
 			console.error(e);
@@ -41,10 +40,10 @@
 
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
-		<!-- <label class="flex cursor-pointer items-center space-x-2">
+		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
-		</label> -->
+		</label>
 		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="ingredients" />
 			<span>Search by ingredients (space-separated)</span>
