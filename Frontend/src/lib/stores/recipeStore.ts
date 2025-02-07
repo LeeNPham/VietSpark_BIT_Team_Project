@@ -78,12 +78,13 @@ export const recipeHandler = {
     updateRecipe: () => { },
     deleteRecipe: () => { },
 
-    searchRecipesGPT: async (ingredients: string) => {
+    searchRecipesGPT: async (ingredients: string, user_id: string | null) => {
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
         try {
             const queryParams = new URLSearchParams();
             if (ingredients) queryParams.append("ingredients", ingredients);
+            if (user_id) queryParams.append("user_id", user_id);
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}`);
 

@@ -243,6 +243,10 @@ async def new_recipe(recipe, user_added):
     recipe_doc = recipe_collection.document()
     recipe_doc.set(recipe_data)
     recipe_doc.update({"recipe_id": recipe_doc.id})
+
+    if user_added == False:
+        recipe_data["recipe_id"] = recipe_doc.id
+        return recipe_data
     return recipe_doc.id
 
 

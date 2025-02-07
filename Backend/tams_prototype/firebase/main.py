@@ -137,7 +137,7 @@ async def user_added_recipe(recipe: RecipeModel):
 
 #Need a string of ingredients
 @app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str):
+async def ingredients_to_GPT(ingredients: str, user_id: str):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != "no match":
@@ -147,8 +147,8 @@ async def ingredients_to_GPT(ingredients: str):
         # check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
         # if check_name != "no match":
         #     return check_name
-        if await new_recipe(response_list[1], user_added = False):
-            return [response_list[1]]
+        response = await new_recipe(response_list[1], user_added = False)
+        return [response]
     
     except Exception as e:
         print(f"Error in ingredients_to_GPT: {str(e)}")
