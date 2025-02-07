@@ -109,35 +109,43 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 
 #GET cannot pass a body, only parameters
+@app.get("/recipes", tags=['Recipes'])
+async def get_recipes(
+    name: Optional[str] = None, 
+    author: Optional[str] = None, 
+    calories: Optional[int] = None, 
+    time: Optional[int] = None
+    ):
+
+    return await recipe_database_search2(name, author, calories, time)
+
+
+@app.get("/recipes/{recipe_id}", tags=["Recipes"])
+async def get_recipe_by_id(recipe_id: str):
+    return await search_recipe_by_id(recipe_id)
+
+
 @app.post("/recipes", tags=['Recipes'])
-async def get_recipes(search: Optional[UserSearchModel] = None):
-    return await recipe_database_search(search)
-
-
-@app.post("/recipes/add", tags=['Recipes'])
-# async def add_recipe(recipe: RecipeModel, file: Optional[UploadFile] = None):
-async def add_recipe(recipe: RecipeModel):
-    # check = await search_recipe_by(recipe.name, "searchable_recipe_name")
-    # if check == "Recipe not in database":
-    #     return await new_recipe(recipe, None)
-    # return check
-    recipe =  await new_recipe(recipe, None)
-    return recipe
+async def user_added_recipe(recipe: RecipeModel):
+    return await new_recipe(recipe, None)
 
 
 
-@app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str = Query(..., description="Space-separated list of ingredients")):
+
+#Need a string of ingredients
+@app.post("/GPT_ingredients_to_recipe", tags=['GPT'])
+async def ingredients_to_GPT(ingredients: str):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != "no match":
             return check_ingredients
         response_list = await GPT_to_recipe(ingredients)
 
-        check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
-        if check_name != "Recipe not in database":
-            return check_name
-        return await new_recipe(response_list[1], user_added = False)
+        # check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
+        # if check_name != "no match":
+        #     return check_name
+        if await new_recipe(response_list[1], user_added = False):
+            return [response_list[1]]
     
     except Exception as e:
         print(f"Error in ingredients_to_GPT: {str(e)}")

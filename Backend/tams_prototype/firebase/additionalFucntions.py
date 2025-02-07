@@ -58,3 +58,80 @@ def remove_accents(input):
             new_list.append(unidecode(i))
         return new_list
 
+
+def data_fill(data):
+    new_data = {}
+    for key in data.items():
+        if data[key] == "string":
+            new_data[key] = ""
+        elif data[key] == int:
+            new_data[key] = 0
+    return new_data
+
+
+def format_recipe(recipe, length = None):
+    
+    recipe.pop("searchable_ingredient", None)
+    recipe.pop("searchable_recipe_name", None)
+    if length == "short":
+        recipe.pop("instructions", None)
+        recipe["numIngredients"] = len(recipe['ingredients'])
+        recipe.pop("ingredients", None)
+    return recipe
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
