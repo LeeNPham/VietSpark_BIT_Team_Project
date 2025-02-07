@@ -7,6 +7,9 @@ import base64
 import io
 import requests
 from io import BytesIO
+import io
+import requests
+from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
@@ -240,22 +243,22 @@ async def new_recipe(recipe, user_added):
     lower_searchable_name = [item.lower() for item in recipe.name.split()]
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
     
-    # if user_added == False:
-    #     img_prompt = ", ".join(lower_searchable_name)
-    #     GPT_img_url = await GPT_image(img_prompt, recipe.name)
-    #     GPT_img_url = (GPT_img_url[GPT_img_url.find('http'):])
-    #     url_list = [GPT_img_url, ""]
-    # else:
-    #     # img_url = await image_to_storage(user_added)
-    #     # url_list = [img_url, '']
-    #     url_list = ""
+    if user_added == False:
+        img_prompt = ", ".join(lower_searchable_name)
+        GPT_img_url = await GPT_image(img_prompt, recipe.name)
+        GPT_img_url = (GPT_img_url[GPT_img_url.find('http'):])
+        url_list = [GPT_img_url, ""]
+    else:
+        # img_url = await image_to_storage(user_added)
+        # url_list = [img_url, '']
+        url_list = ""
 
     recipe_data = {
         "name": recipe.name,
         "ingredients": ingredient_data,
         "instructions": recipe.instructions,
         "time": recipe.time,
-        "img_url": recipe.img_url,
+        "img_url": url_list,
         "servings": recipe.servings,
         "calories": recipe.calories,
         "searchable_recipe_name": lower_searchable_name,
