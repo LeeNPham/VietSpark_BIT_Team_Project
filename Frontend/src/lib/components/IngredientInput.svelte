@@ -12,7 +12,8 @@
 		if (searchType === 'name') {
 			await recipeHandler.getRecipes(searchQuery.trim());
 		} else if (searchType === 'ingredients') {
-			await recipeHandler.searchRecipesGPT(searchQuery.trim());
+			const userId = localStorage.getItem('userId');
+			await recipeHandler.searchRecipesGPT(searchQuery.trim(), userId);
 		}
 
 		// Reset search query
