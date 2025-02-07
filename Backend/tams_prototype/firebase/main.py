@@ -10,6 +10,7 @@ from models import *
 from additionalFucntions import *
 from fastapi.responses import JSONResponse
 from pathlib import Path
+from pathlib import Path
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
 #import json
@@ -108,15 +109,12 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 
 #GET cannot pass a body, only parameters
-@app.get("/recipes", tags=['Recipes'])
-async def get_recipes(name: Optional[str] = None):
-    return await recipe_database_search(name)
-
-@app.get("/recipes/{recipe_id}", tags=["Recipes"])
-async def get_recipe_by_id(recipe_id: str):
-    return await search_recipe_by_id(recipe_id)
-
 @app.post("/recipes", tags=['Recipes'])
+async def get_recipes(search: Optional[UserSearchModel] = None):
+    return await recipe_database_search(search)
+
+
+@app.post("/recipes/add", tags=['Recipes'])
 # async def add_recipe(recipe: RecipeModel, file: Optional[UploadFile] = None):
 async def add_recipe(recipe: RecipeModel):
     # check = await search_recipe_by(recipe.name, "searchable_recipe_name")
@@ -172,6 +170,17 @@ async def upload_image_by_url(url: str):
 
 
 @app.get("/generate-image", tags=['Experimental'])
+async def generate_image(item: str):
+    return await GPT_image(item, item)
+
+    # image_data = requests.get(image_url).content
+    # img_byte_arr = io.BytesIO(image_data)
+    # StreamingResponse(img_byte_arr, media_type="image/png")@app.post("/upload-image/{url}", tags=['Experimental'])
+async def upload_image_by_url(url: str):
+    return await image_url_to_storage(url)
+
+
+@app.get("/generate-image/", tags=['Experimental'])
 async def generate_image(item: str):
     return await GPT_image(item, item)
 
