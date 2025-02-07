@@ -140,7 +140,7 @@ async def user_added_recipe(recipe: RecipeModel):
 async def ingredients_to_GPT(ingredients: str, user_id: Optional[str] = None):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        if check_ingredients != "no match":
+        if check_ingredients != []:
             return check_ingredients
         response_list = await GPT_to_recipe(ingredients)
 

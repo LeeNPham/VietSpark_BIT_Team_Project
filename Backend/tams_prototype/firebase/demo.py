@@ -303,6 +303,7 @@ async def search_recipe_by(data, search_type):
         recipe.pop("searchable_recipe_name", None)
         match_recipe.append(recipe)
     return match_recipe
+    
 
 async def GPT_to_recipe(ingredient):
     print("GPT working...")
