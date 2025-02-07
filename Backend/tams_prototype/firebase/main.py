@@ -23,7 +23,7 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:5173", "https://vietspark-v1.vercel.app" # Add your frontend URL here
+    "http://localhost:5173", "https://vietspark-v1.vercel.app", "https://vietsparkv1.vercel.app" # Add your frontend URL here
 ]
 
 app.add_middleware(
