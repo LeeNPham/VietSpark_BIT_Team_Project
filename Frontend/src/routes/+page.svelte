@@ -44,14 +44,14 @@
 <!-- Ingredient input -->
 <IngredientInput />
 
-<div class="flex items-center justify-between">
-	<h2 class="my-2 text-xl font-bold">Recipes</h2>
+<div class="flex items-center justify-between p-2 sm:p-2 md:p-5 lg:p-9">
+	<h2 class="pb-4 sm:pb-4 md:pb-9 lg:pb-9 font-sans text-lg sm:text-lg md:text-2xl lg:text-5xl font-bold  text-black">Recipes</h2>
 	{#if authenticated}
-		<Button class="bg-teal-300 px-3 py-1 text-teal-900 hover:bg-teal-400" on:click={toggleModal}>
+		<Button class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
 			Add Recipe
 		</Button>
 	{/if}
 </div>
 <!-- Recipe -->
 <RecipeList />
-<AddRecipeModal showModal={showModal} toggleModal={toggleModal} userId={userId} authenticated={authenticated} />
+<AddRecipeModal {showModal} {toggleModal} {userId} {authenticated} />

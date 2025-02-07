@@ -55,6 +55,10 @@ export const recipeHandler = {
             return foundRecipe;
         } catch (error) {
             console.error("Error finding recipe", recipeId);
+            recipeStore.update((state) => ({
+                ...state,
+                isLoading: false,
+            }))
             throw error;
         }
     },
@@ -69,29 +73,38 @@ export const recipeHandler = {
             if (!res.ok) throw new Error('Failed to fetch recipes');
             const recipes = await res.json();
             console.log("Fetched recipes", recipes);
-            recipeStore.set({ isLoading: false, recipes, currentRecipe: null, currentIndex: -1 });
+            recipeStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                recipes
+            }));
         } catch (e) {
-            console.error((e as Error).message);
+            recipeStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                recipes: []
+            }))
             throw e;
         }
     },
     updateRecipe: () => { },
     deleteRecipe: () => { },
 
-    searchRecipesGPT: async (ingredients: string, user_id: string | null) => {
+    searchRecipesGPT: async (ingredients: string, userId: string | null) => {
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
         try {
             const queryParams = new URLSearchParams();
             if (ingredients) queryParams.append("ingredients", ingredients);
-            if (user_id) queryParams.append("user_id", user_id);
+            if (userId) queryParams.append("user_id", userId);
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}`);
 
             if (!res.ok) throw new Error("Failed to search for recipes with ingredients " + ingredients);
 
             const recipes = await res.json();
-            if (recipes) {
+            console.log("Found recipes from GPT", recipes)
+            if (recipes.length > 0) {
                 recipeStore.update((state) => ({
                     ...state,
                     recipes,
@@ -102,7 +115,11 @@ export const recipeHandler = {
             } else throw new Error(`No recipes with ingredients ${ingredients} found`)
             
         } catch (e) {
-            console.error((e as Error));
+            recipeStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                recipes: []
+            }))
             throw e;
         }
     }
