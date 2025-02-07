@@ -16,7 +16,11 @@ from pathlib import Path
 #import json
 
 
-app = FastAPI()
+app = FastAPI(
+    title="Project VietSpark",
+    version="1.0.13",
+    openapi_version="3.1.0"
+)
 
 origins = [
     "http://localhost:5173", "https://vietspark-v1.vercel.app" # Add your frontend URL here
@@ -87,7 +91,6 @@ async def delete_user(user_id: str):
 @app.put("/users/{user_id}", tags=['Users'])
 # async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
 async def update_user(user_data: UserUpdateModel):
-    print(user_data)
     return await update_user_data(user_data)
 
 
@@ -117,7 +120,7 @@ async def get_recipes(
     time: Optional[int] = None
     ):
 
-    return await recipe_database_search2(name, author, calories, time)
+    return await recipe_database_search(name, author, calories, time)
 
 
 @app.get("/recipes/{recipe_id}", tags=["Recipes"])
@@ -133,7 +136,7 @@ async def user_added_recipe(recipe: RecipeModel):
 
 
 #Need a string of ingredients
-@app.post("/GPT_ingredients_to_recipe", tags=['GPT'])
+@app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
 async def ingredients_to_GPT(ingredients: str):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")

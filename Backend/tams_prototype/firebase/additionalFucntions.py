@@ -70,7 +70,6 @@ def data_fill(data):
 
 
 def format_recipe(recipe, length = None):
-    
     recipe.pop("searchable_ingredient", None)
     recipe.pop("searchable_recipe_name", None)
     if length == "short":

@@ -246,31 +246,7 @@ async def new_recipe(recipe, user_added):
     return recipe_doc.id
 
 
-async def recipe_database_search(search):
-    if search != None and search.id != "string":
-        recipe = await get_document(recipe_collection.document(search.id.strip()), details=True)
-        recipe.pop("searchable_ingredient", None)
-        recipe.pop("searchable_recipe_name", None)
-        return recipe
-    else:
-        raise HTTPException(status_code=422, detail="Recipe ID is required!")
-
-
-async def recipe_database_search(name: Optional[str] = None):
-    if name and name.strip():
-        return await search_recipe_by(name.strip(), "searchable_recipe_name")
-    else:
-        collection = await get_collection(recipe_collection.stream(), details=True)
-        for recipe in collection:
-            recipe.pop("instructions", None)
-            recipe.pop("searchable_ingredient", None)
-            recipe.pop("searchable_recipe_name", None)
-            recipe["numIngredients"] = len(recipe['ingredients'])
-        # p_c = json.dumps(collection, indent=4)
-        return collection
-
-
-async def recipe_database_search2(name, author, calories, time):
+async def recipe_database_search(name, author, calories, time):
     if name:
         return await search_recipe_by(name, "searchable_recipe_name")
     elif author:
@@ -293,8 +269,9 @@ async def recipe_database_search2(name, author, calories, time):
 
 async def search_recipe_by_id(id: str):
     if id.strip():
+        print(id)
         recipe = await get_document(recipe_collection.document(id.strip()), details=True)
-        recipe = format_recipe(recipe)
+        # recipe = format_recipe(recipe)
         return recipe
     else:
         raise HTTPException(status_code=422, detail="Recipe ID is required!")
