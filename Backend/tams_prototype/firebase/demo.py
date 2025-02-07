@@ -371,8 +371,8 @@ async def GPT_image(item, recipe_name):
         prompt=item,
         n=1,
         # size="256x256"
-        # size="512x512"
-        size="1024x1024"
+        size="512x512"
+        # size="1024x1024"
     )
 
     image_url = response.data[0].url
