@@ -96,7 +96,7 @@ export const recipeHandler = {
                     ...state,
                     recipes,
                     isLoading: false,
-                    currentRecipe: recipes[0].id,
+                    currentRecipe: recipes[0].recipe_id,
                     currentIndex: 0
                 }))
             } else throw new Error(`No recipes with ingredients ${ingredients} found`)
