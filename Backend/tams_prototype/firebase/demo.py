@@ -273,7 +273,6 @@ async def recipe_database_search(name, author, calories, time):
 
 async def search_recipe_by_id(id: str):
     if id.strip():
-        print(id)
         recipe = await get_document(recipe_collection.document(id.strip()), details=True)
         # recipe = format_recipe(recipe)
         return recipe

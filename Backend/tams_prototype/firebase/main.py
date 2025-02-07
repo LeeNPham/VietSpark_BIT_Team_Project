@@ -23,12 +23,18 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:5173", "https://vietspark-v1.vercel.app", "https://vietsparkv1.vercel.app" # Add your frontend URL here
+    "http://localhost:5173",
+    "https://vietspark-v1.vercel.app",
+    "https://vietsparkv1.vercel.app",
+    # "https://api.openai.com",
+    # "https://chat.openai.com",
+    # "https://platform.openai.com" # Add your frontend URL here
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allows all origins from the list above
+    allow_origins=["*"], 
+    # allow_origins=origins,  # Allows all origins from the list above
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
