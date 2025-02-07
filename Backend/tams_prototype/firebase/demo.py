@@ -289,27 +289,20 @@ async def search_recipe_by(data, search_type):
         collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
         if recipe_id == "No collection":
-            return []  # Exit early if no match is found
-
-        if recipe_list is None:
-            recipe_list.extend(recipe_id)  # First valid set of IDs
-        else:
-            recipe_list = list(set(recipe_list) & set(recipe_id))  # Intersection to keep common IDs
-
-        if not recipe_list:  # If no common IDs remain, exit early
             return []
-
-    return list(recipe_list) if recipe_list else []
-    
-    # match_recipe = []
-    # for recipe_id in recipe_list:
-    #     recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
-    #     recipe.pop("searchable_ingredient", None)
-    #     recipe.pop("searchable_recipe_name", None)
-    #     match_recipe.append(recipe)
-    # return match_recipe
-
-
+        if not recipe_list:
+            recipe_list.extend(recipe_id)
+        else:
+            recipe_list = list(set(recipe_list) & set(recipe_id))
+            if not recipe_list:
+                return []
+    match_recipe = []
+    for recipe_id in recipe_list:
+        recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
+        recipe.pop("searchable_ingredient", None)
+        recipe.pop("searchable_recipe_name", None)
+        match_recipe.append(recipe)
+    return match_recipe
 
 async def GPT_to_recipe(ingredient):
     print("GPT working...")
