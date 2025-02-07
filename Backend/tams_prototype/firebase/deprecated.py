@@ -255,7 +255,12 @@ async def search_by_ingredients(ingredients):
     return match_recipe
 
 
-
+@app.post("/recipes", tags=['Recipes'])
+async def user_added_recipe(recipe: RecipeModel):
+    check = await search_recipe_by(recipe.name, "searchable_recipe_name")
+    if check == "no match":
+        return await new_recipe(recipe, None)
+    return check
 
 
 

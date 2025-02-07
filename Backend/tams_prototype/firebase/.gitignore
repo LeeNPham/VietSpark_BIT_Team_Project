@@ -1,4 +1,5 @@
 .env
 .venv
 credentials.json
+deprecated.py
 __pycache__/
