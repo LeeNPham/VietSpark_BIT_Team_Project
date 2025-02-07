@@ -96,7 +96,10 @@ export const recipeHandler = {
         try {
             const queryParams = new URLSearchParams();
             if (ingredients) queryParams.append("ingredients", ingredients);
-            if (userId) queryParams.append("user_id", userId);
+            else return recipeHandler.getRecipes(null);
+
+            queryParams.append("user_id", userId || "");
+            
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}`);
 
