@@ -98,8 +98,8 @@
 	</div>
 
 	<!-- Allergies -->
-	<div class="flex items-center justify-between">
-		<h2 class="my-2 font-sans text-xl font-semibold text-teal-400">Allergies</h2>
+	<div class="flex flex-col space-y-3 mt-6">
+		<h2 class="my-2 font-sans text-xl font-semibold text-teal-400 ">Allergies</h2>
 		<div class="flex items-center gap-2">
 			<input
 				type="text"
@@ -108,7 +108,7 @@
 				placeholder="Enter new allergy"
 			/>
 			<Button
-				class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400"
+				class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400 whitespace-nowrap"
 				onclick={handleAddAllergy}
 			>
 				Add allergy

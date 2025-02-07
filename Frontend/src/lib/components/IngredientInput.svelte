@@ -1,13 +1,18 @@
 <script>
-	import { Button, Input } from 'flowbite-svelte';
-	import { recipeHandler } from '$lib/stores/recipeStore';
+	import { Button, Input, Spinner } from 'flowbite-svelte';
+	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
+	import { derived } from 'svelte/store';
+
 	// For searching
 	let searchType = 'name'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
+	const isLoading = derived(recipeStore, $recipeStore => $recipeStore.isLoading);
 
 	async function handleSearchSubmit() {
 		if (!searchQuery.trim()) return;
+
+		recipeStore.update(state => ({...state, isLoading: true}));
 
 		if (searchType === 'name') {
 			await recipeHandler.getRecipes(searchQuery.trim());
@@ -56,4 +61,10 @@
 			>Search</Button
 		>
 	</div>
+
+	{#if $isLoading}
+		<div class="flex justify-center mt-4">
+			<Spinner size="lg" class="text-primary-orang"/>
+		</div>
+	{/if}
 </div>
