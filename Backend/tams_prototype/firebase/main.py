@@ -137,7 +137,7 @@ async def user_added_recipe(recipe: RecipeModel):
 
 #Need a string of ingredients
 @app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str, user_id: str):
+async def ingredients_to_GPT(ingredients: str, user_id: Optional[str] = None):
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != "no match":

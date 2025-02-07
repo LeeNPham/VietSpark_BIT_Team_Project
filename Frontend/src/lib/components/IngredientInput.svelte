@@ -1,24 +1,34 @@
-<script>
+<script lang="ts">
 	import { Button, Input, Spinner } from 'flowbite-svelte';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { derived } from 'svelte/store';
 
 	// For searching
-	let searchType = 'name'; // default: search by name, other: by ingredients
+	let searchType = 'ingredients'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
-	const isLoading = derived(recipeStore, $recipeStore => $recipeStore.isLoading);
+	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
 
 	async function handleSearchSubmit() {
-		if (!searchQuery.trim()) return;
+		recipeStore.update((state) => ({ ...state, isLoading: true }));
+		if (!searchQuery.trim()) {
+			try {
+				await recipeHandler.getRecipes(null);
+				return;
+			} catch (e) {
+				console.error((e as Error).message)
+			}
+		}
 
-		recipeStore.update(state => ({...state, isLoading: true}));
-
-		if (searchType === 'name') {
-			await recipeHandler.getRecipes(searchQuery.trim());
-		} else if (searchType === 'ingredients') {
-			const userId = localStorage.getItem('userId');
-			await recipeHandler.searchRecipesGPT(searchQuery.trim(), userId);
+		try {
+			if (searchType === 'name') {
+				await recipeHandler.getRecipes(searchQuery.trim());
+			} else if (searchType === 'ingredients') {
+				const userId = localStorage.getItem('userId');
+				await recipeHandler.searchRecipesGPT(searchQuery.trim(), userId);
+			}
+		} catch (e) {
+			console.error(e);
 		}
 
 		// Reset search query
@@ -31,10 +41,10 @@
 
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
-		<label class="flex cursor-pointer items-center space-x-2">
+		<!-- <label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
-		</label>
+		</label> -->
 		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="ingredients" />
 			<span>Search by ingredients (space-separated)</span>
@@ -63,8 +73,8 @@
 	</div>
 
 	{#if $isLoading}
-		<div class="flex justify-center mt-4">
-			<Spinner size="lg" class="text-primary-orang"/>
+		<div class="mt-4 flex justify-center">
+			<Spinner size={10} color="green" />
 		</div>
 	{/if}
 </div>

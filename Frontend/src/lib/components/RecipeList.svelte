@@ -8,7 +8,7 @@
 	});
 </script>
 
-<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:p-5">
 	{#if recipes.length > 0}
 		{#each recipes as item}
 			<a
@@ -29,6 +29,8 @@
 			</a>
 		{/each}
 	{:else}
-		<p class="text-center text-teal-600">No recipes found. Please try again later.</p>
+		<div class="flex items-center justify-center h-full">
+			<p class="text-center text-teal-600">No recipes found. Please try again later.</p>
+		</div>
 	{/if}
 </div>

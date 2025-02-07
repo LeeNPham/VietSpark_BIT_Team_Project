@@ -1,21 +1,23 @@
-<script>
+<script lang="ts">
 	import Header from '../lib/components/Header.svelte';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
-	import { userHandler } from "$lib/stores/userStore";
-
+	import { userHandler } from '$lib/stores/userStore';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
 
-	onMount(async() => {
+	onMount(async () => {
 		userHandler.checkSessionExpiration();
-		console.log("Preloading recipes");
-		await recipeHandler.getRecipes(null);
-	
-	})
-	
+		console.log('Preloading recipes');
+
+		try {
+			await recipeHandler.getRecipes(null);
+		} catch (e) {
+			console.error((e as Error));
+		}
+	});
 </script>
 
 <div class="app">
@@ -24,7 +26,6 @@
 	<main>
 		{@render children()}
 	</main>
-
 </div>
 
 <style>

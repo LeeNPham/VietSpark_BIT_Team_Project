@@ -6,8 +6,8 @@
 	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 
-	let userId: string | null = null;
-	let user: UserDTO | null = null;
+	export let userId: string | null;
+	export let user: UserDTO | null;
 	let allergies: string[] = ['Test'];
 	let authenticated = false;
 	let newAllergy = '';
@@ -17,21 +17,30 @@
 	async function fetchUserInfo() {
 		try {
 			authenticated = localStorage.getItem('authenticated') === 'true';
-			if (!authenticated) throw new Error('User is not authenticated');
+			if (!authenticated) {
+				goto('/login');
+				throw new Error("User is not authentiated");
+			}
 
 			userId = localStorage.getItem('userId');
 			const expiresAt = localStorage.getItem('expiresAt');
-			if (!userId || !expiresAt) throw new Error(`Login session expires`);
+			if (!userId || !expiresAt) {
+				goto("/login");
+				throw new Error(`Login session expires`);
+			}
 
 			const currentTime = new Date().getTime();
 			if (currentTime > parseInt(expiresAt)) {
-				console.log('expiresAt', expiresAt);
+				goto("/login");
+				throw new Error(`Login session expires`);
 			}
 
 			await userHandler.getUser(userId);
+			user = $userStore.currentUser;
 		} catch (e) {
 			clearCredentials();
 			console.error((e as Error).message);
+			goto("/login");
 		}
 	}
 
@@ -60,18 +69,27 @@
 		allergies = [...allergies, newAllergy.trim()];
 		newAllergy = '';
 
-		await updateUser();
+		try {
+			await updateUser();
+		} catch (e) {
+			console.error((e as Error).message);
+		}
 	}
 
 	async function handleRemoveAllergy(allergy: string) {
 		allergies = allergies.filter((a) => a != allergy);
-		await updateUser();
+		try {
+			await updateUser();
+		} catch (e) {
+			console.error((e as Error));
+		}
 	}
 
 	async function updateUser() {
 		try {
 			if (!userId) throw new Error('UserId not found');
 			if (!user) throw new Error('User data not found');
+			
 			user.allergies = allergies;
 			const updatedUser = {
 				...user,
