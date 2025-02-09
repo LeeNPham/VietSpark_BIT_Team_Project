@@ -26,24 +26,23 @@
         }
     }
 </script>
-
-<div class="flex h-screen items-center justify-center">
+<main class="flex flex-col items-center justify-normal p-9">
     <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold text-teal-600 mb-4 text-center">Login</h2>
+        <h1 class="py-4 sm:py-4 md:py-6 lg:py-8 text-center text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-semibold text-secondary-forest">User Sign-In</h1>
 
         {#if errorMessage}
             <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
         {/if}
 
-        <input type="email" bind:value={email} placeholder="Email" class="w-full p-2 mb-3 border rounded-full" required/>
-        <input type="password" bind:value={password} placeholder="Password" class="w-full p-2 mb-3 border rounded-full" required/>
+        <input type="email" bind:value={email} placeholder="Email" class="mb-3 w-full rounded-full border p-2" required/>
+        <input type="password" bind:value={password} placeholder="Password" class="mb-3 w-full rounded-full border p-2" required/>
 
-        <button on:click={handleLogin} class="w-full bg-teal-600 text-white py-2 rounded-full hover:bg-teal-700">
+        <button on:click={handleLogin} class="w-full rounded-full bg-secondary-green py-2 text-white">
             Login
         </button>
 
-        <p class="mt-3 text-center text-sm">
+        <p class="mt-3 text-center text-xs sm:text-xs md:text-sm lg:text-sm">
             Don't have an account? <a href="/authentication" class="text-teal-600 hover:underline">Sign Up</a>
         </p>
     </div>
-</div>
+</main>
