@@ -1,11 +1,11 @@
 <script lang="ts">
+	import {customStyles} from '../custom'
 	import Category from '$lib/components/Category.svelte';
 	import IngredientInput from '$lib/components/IngredientInput.svelte';
 	import RecipeList from '$lib/components/RecipeList.svelte';
 	import AddRecipeModal from '$lib/components/AddRecipeModal.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { Button } from 'flowbite-svelte';
 
 	let name = 'Beautiful';
 	let showModal = false;
@@ -16,7 +16,11 @@
 		showModal = !showModal;
 	}
 	onMount(() => {
+
 		if (browser) {
+			const styleElement = document.createElement('style');
+			styleElement.innerHTML = customStyles;
+			document.head.appendChild(styleElement);
 			authenticated = localStorage.getItem('authenticated') === 'true';
 			userId = localStorage.getItem('userId');
 		}
@@ -28,30 +32,33 @@
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<div>
-	<img src="/home.jpg" class="mx-auto h-1/2 w-auto" alt="(Adobe stock) Home banner" />
-</div>
-<div class="flex flex-wrap items-center justify-between rounded-full py-4">
-	<div class="font-sans text-3xl font-extrabold text-teal-600">Hello {name}</div>
+<main>
 	<div>
-		<a href="/" class="font-semibold text-teal-600">Home</a> |
-		<a href="/user" class="font-semibold text-teal-600">User</a>
+		<img src="/home.jpg" class="mx-auto h-1/2 w-auto" alt="(Adobe stock) Home banner" />
 	</div>
-</div>
-<!-- Categories -->
-<Category />
+	<nav-bar class={customStyles.navBar}>
+		<div class="font-sans text-3xl  text-teal-600">Hello, {name}! </div>
+		<div>
+			<a href="/" class={customStyles.aTag}>Home</a> |
+			<a href="/user" class={customStyles.aTag}>User</a>
+		</div>
+	</nav-bar>
+	<!-- Categories -->
+	<Category />
 
-<!-- Ingredient input -->
-<IngredientInput />
+	<!-- Ingredient input -->
+	<IngredientInput />
 
-<div class="flex items-center justify-between p-2 sm:p-2 md:p-5 lg:p-9">
-	<h2 class="pb-4 sm:pb-4 md:pb-9 lg:pb-9 font-sans text-lg sm:text-lg md:text-2xl lg:text-5xl font-bold  text-black">Recipes</h2>
-	{#if authenticated}
-		<Button class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
-			Add Recipe
-		</Button>
-	{/if}
-</div>
-<!-- Recipe -->
-<RecipeList />
-<AddRecipeModal {showModal} {toggleModal} {userId} {authenticated} />
+	<div class="flex items-center justify-between p-2 sm:p-2 md:p-5 lg:p-9">
+		<h2 class={customStyles.heading}>Recipes</h2>
+		{#if authenticated}
+			<button class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
+				Add Recipe
+			</button>
+		{/if}
+	</div>
+	<!-- Recipe -->
+	<RecipeList />
+	<AddRecipeModal {showModal} {toggleModal} {userId} {authenticated} />
+
+</main>

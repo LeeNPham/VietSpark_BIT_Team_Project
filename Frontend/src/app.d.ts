@@ -8,6 +8,13 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+	// Define custom elements to prevent TypeScript errors
+	interface HTMLElementTagNameMap {
+		'nav-bar': HTMLElement;
+		'nav-home': HTMLElement;
+		'category-btn': HTMLElement;
+		'category': HTMLElement;
+	}
 }
 
 export {};
