@@ -19,7 +19,7 @@
 	</category>
 	<div class="flex flex-wrap justify-center gap-3">
 		{#each $categories as category, i}
-			<category-btn	class={customStyles.categoryBtn} onclick={() => handleCategoryClick(category)}>
+			<category-btn	type="button" class={customStyles.categoryBtn} onclick={() => handleCategoryClick(category)} aria-label="selection button">
 				{category}
 			</category-btn>
 		{/each}

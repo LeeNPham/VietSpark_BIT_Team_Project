@@ -21,7 +21,6 @@
 </script>
 
 <div class="app">
-	<Header />
 
 	<main>
 		{@render children()}

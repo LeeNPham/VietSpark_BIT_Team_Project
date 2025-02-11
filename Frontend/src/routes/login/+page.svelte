@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { userHandler } from '$lib/stores/userStore';
+    import { customStyles } from '$src/custom';
 
     let email = '';
     let password = '';
@@ -26,16 +27,16 @@
         }
     }
 </script>
-<main class="flex flex-col items-center justify-normal p-9">
-    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h1 class="py-4 sm:py-4 md:py-6 lg:py-8 text-center text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-semibold text-secondary-forest">User Sign-In</h1>
+<main class={customStyles.authMain}>
+    <div class={customStyles.authDiv}>
+        <h1 class={customStyles.userH1}>User Sign-In</h1>
 
         {#if errorMessage}
-            <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
+            <p class={customStyles.error}>{errorMessage}</p>
         {/if}
 
-        <input type="email" bind:value={email} placeholder="Email" class="mb-3 w-full rounded-full border p-2" required/>
-        <input type="password" bind:value={password} placeholder="Password" class="mb-3 w-full rounded-full border p-2" required/>
+        <input type="email" bind:value={email} placeholder="Email" class={customStyles.input} required/>
+        <input type="password" bind:value={password} placeholder="Password" class={customStyles.input} required/>
 
         <button on:click={handleLogin} class="w-full rounded-full bg-secondary-green py-2 text-white">
             Login
