@@ -6,6 +6,7 @@
 	import AddRecipeModal from '$lib/components/AddRecipeModal.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
 
 	let name = 'Beautiful';
 	let showModal = false;
@@ -18,9 +19,6 @@
 	onMount(() => {
 
 		if (browser) {
-			const styleElement = document.createElement('style');
-			styleElement.innerHTML = customStyles;
-			document.head.appendChild(styleElement);
 			authenticated = localStorage.getItem('authenticated') === 'true';
 			userId = localStorage.getItem('userId');
 		}
@@ -33,16 +31,22 @@
 </svelte:head>
 
 <main>
-	<div>
-		<img src="/home.jpg" class="mx-auto h-1/2 w-auto" alt="(Adobe stock) Home banner" />
-	</div>
-	<nav-bar class={customStyles.navBar}>
-		<div class="font-sans text-3xl  text-teal-600">Hello, {name}! </div>
-		<div>
-			<a href="/" class={customStyles.aTag}>Home</a> |
-			<a href="/user" class={customStyles.aTag}>User</a>
-		</div>
-	</nav-bar>
+	<img src="/home.jpg" alt="(Adobe stock) Home banner" />
+	<Navbar class={customStyles.navBar}>
+		<NavBrand  class="font-sans text-3xl  text-secondary-green">
+			Hello, {name}!
+		</NavBrand>
+		<NavHamburger/>
+		<NavUl>
+			<NavLi href="/" class={customStyles.aTag}>
+				Home
+			</NavLi>
+			<NavLi href="/user" class={customStyles.aTag}>
+				User
+			</NavLi>
+		</NavUl>
+	</Navbar>
+
 	<!-- Categories -->
 	<Category />
 

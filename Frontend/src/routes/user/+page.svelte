@@ -5,6 +5,9 @@
 	import { goto } from '$app/navigation';
 	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
+	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+    import { customStyles } from '$src/custom';
+
 
 	export let userId: string | null;
 	export let user: UserDTO | null;
@@ -89,7 +92,7 @@
 		try {
 			if (!userId) throw new Error('UserId not found');
 			if (!user) throw new Error('User data not found');
-			
+
 			user.allergies = allergies;
 			const updatedUser = {
 				...user,
@@ -105,43 +108,47 @@
 </script>
 
 {#if authenticated && user}
-	<div class="flex flex-wrap items-center justify-between rounded-full py-4">
-		<div class="font-sans text-3xl font-bold text-teal-400">
-			Hello {user.username}!
-		</div>
-		<div>
-			<a href="/" class="text-teal-400">Home</a> |
-			<a href="/user" class="text-teal-400">User</a>
-		</div>
-	</div>
-
+	<Navbar class={customStyles.navBar}>
+		<NavBrand  class="font-sans text-3xl  text-secondary-green">
+			Hello, {user.username}!
+		</NavBrand>
+		<NavHamburger/>
+		<NavUl>
+			<NavLi href="/" class={customStyles.aTag}>
+				Home
+			</NavLi>
+			<NavLi href="/user" class={customStyles.aTag}>
+				User
+			</NavLi>
+		</NavUl>
+	</Navbar>
 	<!-- Allergies -->
 	<div class="flex flex-col space-y-3 mt-6">
-		<h2 class="my-2 font-sans text-xl font-semibold text-teal-400 ">Allergies</h2>
+		<p class={customStyles.userP}>Allergies</p>
 		<div class="flex items-center gap-2">
 			<input
 				type="text"
 				bind:value={newAllergy}
-				class="rounded-2xl border border-teal-300 px-2 py-1"
+				class={customStyles.input}
 				placeholder="Enter new allergy"
 			/>
 			<Button
-				class="rounded-full bg-teal-300 px-3 py-1 font-sans text-lg font-semibold text-teal-900 hover:bg-teal-400 hover:text-white hover:outline hover:outline-teal-400 whitespace-nowrap"
+				class="mb-3  py-2 font-sans text-lg font-semibold text-white rounded-full bg-secondary-forest  hover:bg-secondary-blue hover:text-black hover:outline hover:outline-secondary-forest whitespace-nowrap"
 				onclick={handleAddAllergy}
 			>
 				Add allergy
 			</Button>
 		</div>
 	</div>
-	<div class="flex flex-wrap justify-between gap-4">
+	<div class="flex flex-wrap gap-4">
 		{#each user.allergies as allergy, i}
 			<div
-				class="my-4 gap-4 rounded-2xl bg-white p-2 text-teal-600 outline outline-teal-300 hover:bg-white hover:text-teal-600 focus:outline-none"
+				class="gap-4 rounded-2xl bg-secondary-green p-2 text-white outline outline-secondary-forest hover:bg-secondary-blue hover:text-black focus:outline-none"
 			>
 				{allergy}
 				<Button
 					on:click={async () => await handleRemoveAllergy(allergy)}
-					class="ml-2 bg-white p-0  text-teal-600 hover:bg-white hover:text-teal-600 focus:outline-none"
+					class="ml-2 p-0  text-black bg-transparent hover:bg-secondary-blue hover:text-black focus:outline-none"
 				>
 					x
 				</Button>
@@ -150,15 +157,15 @@
 	</div>
 
 	<!-- Favorite Recipes -->
-	<p class="my-2 font-sans text-xl font-semibold text-teal-400">Favorite recipes</p>
+	<p class={customStyles.userP}>Favorite recipes</p>
 	<RecipeList />
 {:else}
 	<!-- Show login prompt if not authenticated -->
 	<div class="flex h-screen flex-col items-center justify-center">
-		<p class="text-xl font-semibold text-teal-600">Please login first</p>
+		<p class={customStyles.userP}>Please Login First</p>
 		<Button
 			on:click={() => goto('/login')}
-			class="mt-4 rounded bg-teal-600 px-4 py-2 text-white hover:bg-teal-400"
+			class={customStyles.button}
 		>
 			Go to Login
 		</Button>
