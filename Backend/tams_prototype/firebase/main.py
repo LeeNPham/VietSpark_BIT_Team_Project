@@ -1,20 +1,21 @@
-from fastapi import Depends, Query, FastAPI, HTTPException, status, File, UploadFile
+from fastapi import Depends, Query, FastAPI, HTTPException, status, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
 from demo import *
 from models import *
 from additionalFucntions import *
 from fastapi.responses import JSONResponse
 from pathlib import Path
-from pathlib import Path
+import time
+import asyncio
+
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
 #import json
 
+q = []
 
 app = FastAPI(
     title="Project VietSpark",
@@ -25,7 +26,7 @@ app = FastAPI(
 origins = [
     "http://localhost:5173",
     "https://vietspark-v1.vercel.app",
-    "https://vietsparkv1.vercel.app",
+    "https://vietsparkv1.vercel.app"
     # "https://api.openai.com",
     # "https://chat.openai.com",
     # "https://platform.openai.com" # Add your frontend URL here
@@ -33,20 +34,21 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
-    # allow_origins=origins,  # Allows all origins from the list above
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
 )
 
 
+
+
 @app.post("/authentication", tags=['Authentication'])
 async def signup(signup_data: UserSignUpModel):
     try:
         signup_response = await signupOnFirebase(signup_data)
-        user_id = signup_response[0]
         if "successfully signed up" in signup_response[1]:
+            user_id = signup_response[0]
             response = await add_user_data(user_id, signup_data)
             return response
         else:
@@ -57,18 +59,24 @@ async def signup(signup_data: UserSignUpModel):
 
 @app.post("/login", tags=['Authentication'])
 async def sign_in(user_info: UserLoginModel):
-    # print(user_info)
-    # user_info = user_info.model_dump()  # Convert the Pydantic model to a dictionary
-    # print(user_info)
     try:
-        # Call the login function and check for successful login
-        # response = await loginOnFirebase(user_info["email"], user_info["password"])
         response = await loginOnFirebase(user_info.email, user_info.password)
-        if 'error' in response:
+        if "error" in response:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=response['error'])
         return JSONResponse(content=response)  # Directly return the response from Firebase
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.post("/refresh_token", tags=['Authentication'])
+async def refresh_token(refresh_token: str):
+    try:
+        refreshed_token = refresh_id_token(refresh_token)
+        return refreshed_token
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {str(e)}")
 
 
 
@@ -95,14 +103,13 @@ async def delete_user(user_id: str):
 
 
 @app.put("/users/{user_id}", tags=['Users'])
-# async def update_user(user_id: str, user_email: str = None, username: str = None, phone_number: str = None, profile_image_url: str = None, description: str = None):
 async def update_user(user_data: UserUpdateModel):
     return await update_user_data(user_data)
 
 
 @app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
 # async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
-async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel):
+async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel, id_token: str):
     try:
         if not user_data.recipes and not user_data.allergies:
             raise HTTPException(status_code=400, detail="At least one of 'recipes' or 'allergies' must be provided.")
@@ -114,6 +121,31 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+@app.put("/users/recipes/{user_id}", tags=["Users"])
+async def add_favorite(id_token: str, recipe_id: str):
+    try:
+        user_verify = await verify_id_token(id_token)
+        uid = user_verify['user_id']
+        try:
+            user_collection.document(uid).update({'recipes': firestore.ArrayUnion([recipe_id])})
+            user_data = await get_document(user_collection.document(uid))
+            return user_data["recipes"]
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except:
+        raise HTTPException(status_code=401, detail=f"Please login")
+
+
+@app.put("/users/update_all/{user_data.user_id}", tags=['Users'])
+async def update_all_user_data(user_data: allUserDataModel, id_token: str = Query(...)):
+    try:
+        if await verify_id_token(id_token):
+            return await update_all_u_d(user_data)
+    except:
+        raise HTTPException(status_code=401, detail=f"Please login")
+
 
 
 
@@ -135,30 +167,49 @@ async def get_recipe_by_id(recipe_id: str):
 
 
 @app.post("/recipes", tags=['Recipes'])
-async def user_added_recipe(recipe: RecipeModel):
-    return await new_recipe(recipe, None)
-
-
+async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
+    if await verify_id_token(id_token):
+        recipe_id = await new_recipe(recipe, user_added = True)
+        await update_user_r_a(recipe.author, [recipe_id], None)
+        return recipe_id
+    else:
+        raise HTTPException(status_code=401, detail=f"Please login")
 
 
 #Need a string of ingredients
 @app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str, user_id: Optional[str] = None):
+async def ingredients_to_GPT(ingredients: str, background_tasks: BackgroundTasks, id_token: str = Query(...)):
     try:
-        check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        if check_ingredients != []:
-            return check_ingredients
-        response_list = await GPT_to_recipe(ingredients)
+        user_verify = await verify_id_token(id_token)
+        uid = user_verify['user_id']
+        user_data = await get_document(user_collection.document(str(uid)))
+        allergies = " ".join(user_data['allergies'])
+        try:
+            check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
+            if check_ingredients != []:
+                return check_ingredients
+            
+            response_list = await GPT_to_recipe(ingredients, allergies)
+            response = await new_recipe(response_list[1], user_added = False)
+            # if user_id:
+            #     await update_user_r_a(user_id, [response["recipe_id"]], None)
+            background_tasks.add_task(GPT_image, response_list[0], response['recipe_id'])
 
-        # check_name = await search_recipe_by(response_list[0], "searchable_recipe_name")
-        # if check_name != "no match":
-        #     return check_name
-        response = await new_recipe(response_list[1], user_added = False)
-        return [response]
-    
-    except Exception as e:
-        print(f"Error in ingredients_to_GPT: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
+            return [response]
+
+            # response_list_task = asyncio.create_task(GPT_to_recipe(ingredients))
+            # img_url_task = asyncio.create_task(GPT_image(ingredients, img_name))
+            # r_list, GPT_img_url = await asyncio.gather(response_list_task, img_url_task)
+                
+            # response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
+            # response["img_url"] = GPT_img_url
+            # return [response]
+        
+        except Exception as e:
+            print(f"Error in ingredients_to_GPT: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
+    except:
+        raise HTTPException(status_code=401, detail=f"Please login")
 
 
 
@@ -188,23 +239,13 @@ async def upload_image_by_url(url: str):
 
 @app.get("/generate-image", tags=['Experimental'])
 async def generate_image(item: str):
-    return await GPT_image(item, item)
+    start_time = time.time()
+    a = await GPT_image(item, item)
+    end_time = time.time()
+    print(end_time - start_time)
+    return a
 
     # image_data = requests.get(image_url).content
     # img_byte_arr = io.BytesIO(image_data)
     # StreamingResponse(img_byte_arr, media_type="image/png")@app.post("/upload-image/{url}", tags=['Experimental'])
-async def upload_image_by_url(url: str):
-    return await image_url_to_storage(url)
-
-
-@app.get("/generate-image/", tags=['Experimental'])
-async def generate_image(item: str):
-    return await GPT_image(item, item)
-
-    # image_data = requests.get(image_url).content
-    # img_byte_arr = io.BytesIO(image_data)
-    # StreamingResponse(img_byte_arr, media_type="image/png")
-
-
-
 
