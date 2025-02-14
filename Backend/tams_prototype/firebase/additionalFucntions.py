@@ -23,7 +23,7 @@ def img_compression(img):
     img = Image.open(BytesIO(img))
     img = img.convert("RGB")
     byte_io = BytesIO()
-    img.save(byte_io, format="JPEG", quality=65)
+    img.save(byte_io, format="JPEG", quality=75)
     byte_io.seek(0)
     return byte_io
 
@@ -61,7 +61,7 @@ def remove_accents(input):
 
 def data_fill(data):
     new_data = {}
-    for key in data.items():
+    for key, value in data.model_fields.item():
         if data[key] == "string":
             new_data[key] = ""
         elif data[key] == int:

@@ -6,6 +6,7 @@ import json
 import base64
 import requests
 import io
+import aiohttp
 from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
@@ -19,7 +20,7 @@ from models import *
 from additionalFucntions import *
 
 load_dotenv()
-# Load Firebase configuration
+# Load Firebase configu ration
 apiKey = os.getenv("APIKEY")
 authDomain = os.getenv("AUTHDOMAIN")
 databaseURL = os.getenv("DATABASEURL")
@@ -73,7 +74,7 @@ print("Firebase initialized successfully!")
 
 
 
-async def get_document(document, details):
+async def get_document(document, details = Optional):
     try:
         item = document.get()
         if item.exists:
@@ -84,7 +85,7 @@ async def get_document(document, details):
         else:
             return f"item not found"
     except Exception as e:
-        return f"Error retrieving user from Firestore: {str(e)}"
+        return str(e)
 
 
 async def get_collection(collection, details):
@@ -123,10 +124,9 @@ async def signupOnFirebase(signup_data):
         l = []
         l.append(user.uid)
         l.append(f"You successfully signed up: {user.email}")
-        # return f"You successfully signed up: {user}"
         return l
     except Exception as e:
-        return f"Failed Signup: {str(e)}"
+        return str(e)
 
 
 async def add_user_data(user_id, signup_data):
@@ -141,21 +141,48 @@ async def add_user_data(user_id, signup_data):
             "allergies": []
         }
         user_collection.document(user_id).set(user_data)
-        response = {"data_response": f"User {signup_data.email} added to Firestore!"} 
+        return {"data_response": f"User {signup_data.email} added to Firestore!"} 
     except Exception as e:
-        response = {"data_response": f"Error adding user to Firestore: {str(e)}"}
-    
-    return response
+        return str(e)
 
 
 # Login function
 async def loginOnFirebase(email, password):
     try:
         login = mainAuth.sign_in_with_email_and_password(email, password)
+        # user_data = await user_collection.document(login["localId"])
+        uid = str(login['localId'])
+        user_data = await get_document(user_collection.document(uid), details=True)
+        login.update(user_data)
         return login
     except Exception as e:
-        error_message = str(e)
-        return {"error": "UNKNOWN_ERROR", "message": error_message}
+        e = json.loads(e.args[1])['error']['message']
+        return {"error": e}
+
+async def verify_id_token(id_token):
+    try:
+        data = auth.verify_id_token(id_token)
+        return data
+    except (auth.ExpiredIdTokenError, auth.RevokedIdTokenError, auth.InvalidIdTokenError) as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+def refresh_id_token(refresh_token):
+    url = f"https://securetoken.googleapis.com/v1/token?key={apiKey}" 
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 async def delete_user_from_firestore(user_id):
@@ -190,18 +217,47 @@ async def update_user_data(user_data):
         return f"Error retrieving user from Firestore: {str(e)}"
 
 
-async def update_user_r_a(user_id, recipes, allergies):
+async def update_user_r_a(user_id, recipes: Optional[List[str]] = None, allergies: Optional[List[str]] = None):
     try:
         if recipes:
             user_collection.document(user_id).update({'recipes': firestore.ArrayUnion(recipes)})
         if allergies:
             user_collection.document(user_id).update({'allergies': firestore.ArrayUnion(allergies)})
         return {"message": "User data updated successfully."}
-    
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
+
+async def update_all_u_d(user_data):
+    try:
+        auth.update_user(
+            user_data.user_id,
+            email=user_data.email,
+            display_name=user_data.username
+        )
+    except auth.AuthError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    try:
+        update_data = {
+            "userEmail": user_data.email,
+            "userName": user_data.username,
+            "phoneNumber": user_data.phone_number,
+            "profileImageURL": user_data.profile_image_url,
+            "description": user_data.description,
+            "recipes": user_data.recipes,
+            "allergies": user_data.allergies
+        }
+        user_collection.document(user_data.user_id).update(update_data)
+    except firestore.FirestoreError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    return user_data
 
 
 
@@ -218,9 +274,10 @@ async def new_recipe(recipe, user_added):
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
     
     if user_added == False:
-        img_prompt = " ".join(lower_searchable_name)
-        GPT_img_url = await GPT_image(img_prompt, recipe.name)
-        img_url = (GPT_img_url[GPT_img_url.find('http'):])
+        # img_prompt = " ".join(lower_searchable_name)
+        # GPT_img_url = await GPT_image(img_prompt, recipe.name)
+        # img_url = (GPT_img_url[GPT_img_url.find('http'):])
+        img_url = "https://s3.gifyu.com/images/b2PWA.gif"
     else:
         img_url = ""
 
@@ -304,7 +361,7 @@ async def search_recipe_by(data, search_type):
     return match_recipe
     
 
-async def GPT_to_recipe(ingredient):
+async def GPT_to_recipe(ingredients, allergies):
     print("GPT working...")
     OAI_api_key = os.getenv("OAI_API_KEY")
     client = OpenAI(api_key=OAI_api_key)
@@ -322,14 +379,17 @@ async def GPT_to_recipe(ingredient):
         "instructions": ["step 1", "step 2"]
     }}
     I will provide you a list of ingredients, and you will always respond with your best recommendation for a Vietnamese recipe. Here are the ingredients I have:
-    {{ingredients}}
+    {{Ingredients}}
+    I will also provide you a list of allergies, and you will always not including them in the recipe. It is very critical to not include any of them.
+    {{Allergies}}
 
     Respond only with the JSON format as described above.
     """
 
     messages = [{"role": "system", "content": prompt}]
     # Define a function to handle user input and generate a response using OpenAI's API
-    messages.append({"role": "user", "content": ingredient})
+    messages.append({"role": "user", "content": f"Ingredients: {ingredients}\n Allgeries: {allergies}"})
+    # response = client.chat.completions.create(
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         store=True,  # Specify the model to use
@@ -354,13 +414,14 @@ async def GPT_to_recipe(ingredient):
     recipe_json["author"] = "string"
     recipe_name = recipe_json['name']
     recipe = RecipeModel.model_validate(recipe_json)
-    messages.append({"role": "assistant", "content": response})
+    # messages.append({"role": "assistant", "content": response})
     response_list = [recipe_name, recipe]
 
     return response_list
 
 
-async def GPT_image(item, recipe_name):
+async def GPT_image(item, recipe_id):
+    print("GPT imaging...")
     OAI_api_key = os.getenv("OAI_API_KEY")
     client = OpenAI(api_key=OAI_api_key)
 
@@ -379,15 +440,15 @@ async def GPT_image(item, recipe_name):
     image_data = requests.get(image_url).content
     img_byte_arr = io.BytesIO(image_data)
 
-    return await image_url_to_storage(image_url, recipe_name)
+    return await image_url_to_storage(image_url, recipe_id)
     # return StreamingResponse(img_byte_arr, media_type="image/png")
 
 
 
 
-async def image_url_to_storage(url, recipe_name):
-    recipe_name = remove_accents(recipe_name)
-    recipe_name = recipe_name +'_1'
+async def image_url_to_storage(url, recipe_id):
+    print(recipe_id)
+    recipe_name = recipe_id +'_1'
     # name = (url[url.rfind('/') + 1:]) # select name after the last '/'
     response = requests.get(url)
     if response.status_code == 200:
@@ -397,6 +458,8 @@ async def image_url_to_storage(url, recipe_name):
         blob.upload_from_file(image_data, content_type='image/jpeg')
         blob.make_public()
         image_url = blob.public_url
+        print(image_url)
+        recipe_collection.document(recipe_id).update({"img_url": image_url})
         return image_url
 
     return f"Failed to fetch image from URL: {response.status_code}"

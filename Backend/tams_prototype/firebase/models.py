@@ -10,62 +10,74 @@ class publicProfile(BaseModel):
 
 
 class UserLoginModel(BaseModel):
-  email: str
-  password: str
+  email: str = ''
+  password: str =''
 
 class UserSignUpModel(BaseModel):
-  email: str
-  username: str
-  password: str
-  phone_number: str
+  email: str = ''
+  username: str = ''
+  password: str = ''
+  phone_number: str = ''
 
 class UserUpdateModel(BaseModel):
-  user_id: str
-  email: str
-  username: str
-  password: str
-  phone_number: str
-  profile_image_url: str
-  description: str
+  user_id: str = ''
+  email: str = ''
+  username: str = ''
+  password: str = ''
+  phone_number: str = ''
+  profile_image_url: str = ''
+  description: str = ''
 
 class UserUpdateRecipeAllergiesModel(BaseModel):
-  user_id: str
-  recipes: List[str]
-  allergies: List[str]
+  user_id: str = ''
+  recipes: List[str] = []
+  allergies: List[str] = []
+  add_remove: str = ''
 
 class UserSearchModel(BaseModel):
-  id: str
-  name: str
+  id: str = ''
+  name: str = ''
 
 class authProfile(BaseModel):
-   uid: str
-   email:str
-   username: str
-   profile_image: Optional[str]
-   phone_number: Optional[str]
+   uid: str = ''
+   email:str = ''
+   username: str = ''
+   profile_image: Optional[str] = ''
+   phone_number: Optional[str] = ''
   #  disabled: False
+
+class allUserDataModel(BaseModel):
+  user_id: str = ''
+  email: str = ''
+  username: str = ''
+  password: str = ''
+  phone_number: str = ''
+  profile_image_url: str = ''
+  description: str = ''
+  recipes: List[str] = []
+  allergies: List[str] = []
 
 
 class IngredientModel(BaseModel):
-  ingredientName: str
-  ingredientAmount: str
+  ingredientName: str = ''
+  ingredientAmount: str = ''
 
 class SearchIngredientsModel(BaseModel):
-   ingredients: List[str]
+   ingredients: List[str] = []
 
 class AddIngredientModel(BaseModel):
-   ingredient: str
-   recipe_id: str
+   ingredient: str = ''
+   recipe_id: str = ''
 
 class RecipeModel (BaseModel):
-  name: str
-  ingredients: List[IngredientModel]
-  instructions: List[str]
-  time: int
-  img_url: str = ""
-  servings: int
-  calories: int
-  author: str
+  name: str = ''
+  ingredients: List[IngredientModel] = []
+  instructions: List[str] = []
+  time: int = 0
+  img_url: str = ''
+  servings: int = 0
+  calories: int = 0
+  author: str = ''
 
 
 
