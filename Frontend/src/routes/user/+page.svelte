@@ -60,7 +60,12 @@
 		localStorage.removeItem('userId');
 		localStorage.removeItem('refreshToken');
 		localStorage.removeItem('expiresIn');
+
 		document.cookie = 'authToken=; path=/; Secure; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+	}
+
+	function handlerSignOut() {
+		userHandler.signOut();
 	}
 
 	async function handleAddAllergy() {
@@ -119,6 +124,9 @@
 			</NavLi>
 			<NavLi href="/user" class={customStyles.aTag}>
 				User
+			</NavLi>
+			<NavLi href="/" class={customStyles.aTag} on:click={handlerSignOut}>
+				Sign out
 			</NavLi>
 		</NavUl>
 	</Navbar>

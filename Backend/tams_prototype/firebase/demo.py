@@ -20,7 +20,7 @@ from models import *
 from additionalFucntions import *
 
 load_dotenv()
-# Load Firebase configu ration
+# Load Firebase configuration
 apiKey = os.getenv("APIKEY")
 authDomain = os.getenv("AUTHDOMAIN")
 databaseURL = os.getenv("DATABASEURL")

@@ -1,4 +1,4 @@
-from fastapi import Depends, Query, FastAPI, HTTPException, status, File, UploadFile, BackgroundTasks
+from fastapi import Header, Depends, Query, FastAPI, HTTPException, status, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
@@ -123,7 +123,7 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
-@app.put("/users/recipes/{user_id}", tags=["Users"])
+@app.put("/users/add_favorite/{id_token}", tags=["Users"])
 async def add_favorite(id_token: str, recipe_id: str):
     try:
         user_verify = await verify_id_token(id_token)
@@ -176,14 +176,15 @@ async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
         raise HTTPException(status_code=401, detail=f"Please login")
 
 
-#Need a string of ingredients
-@app.get("/GPT_ingredients_to_recipe", tags=['GPT'])
-async def ingredients_to_GPT(ingredients: str, background_tasks: BackgroundTasks, id_token: str = Query(...)):
+
+@app.get("/GPT_ingredients_to_recipe/", tags=['GPT'])
+async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str,  id_token: str = Query(...), allergies: str = Query(...)):
+    print(id_token)
     try:
         user_verify = await verify_id_token(id_token)
-        uid = user_verify['user_id']
-        user_data = await get_document(user_collection.document(str(uid)))
-        allergies = " ".join(user_data['allergies'])
+        # uid = user_verify['user_id']
+        # user_data = await get_document(user_collection.document(str(uid)))
+        # allergies = " ".join(user_data['allergies'])
         try:
             check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
             if check_ingredients != []:

@@ -1,4 +1,5 @@
 import { writable } from "svelte/store";
+import { getLSUserData } from "$lib/stores/userStore";
 import type { RecipeAddDTO } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -91,6 +92,10 @@ export const recipeHandler = {
     deleteRecipe: () => { },
 
     searchRecipesGPT: async (ingredients: string) => {
+        const userLS = getLSUserData();
+        console.log(userLS)
+        if (!userLS.idToken) {throw new Error("User is not signed in");}
+
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
         try {
@@ -99,7 +104,7 @@ export const recipeHandler = {
             else return recipeHandler.getRecipes(null);
 
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
-            const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}`);
+            const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}&id_token=${userLS.idToken}&allergies=${userLS.allergies}`);
 
             if (!res.ok) throw new Error("Failed to search for recipes with ingredients " + ingredients);
 
@@ -123,5 +128,29 @@ export const recipeHandler = {
             }))
             throw e;
         }
-    }
+    },
+
+    favoriteRecipe: async (recipeId: string) => {
+        const userLS = getLSUserData()
+        if (!userLS.idToken) {throw new Error("User is not signed in");}
+
+        try {
+            const url = `${API_URL}/users/add_favorite/${userLS.idToken}?recipe_id=${recipeId}`
+
+            const res = await fetch(url,{
+                method: 'PUT',
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to add favorite recipe')
+
+            const userRecipes = await res.json()
+            return userRecipes
+        } catch (error) {
+            console.error("Error adding favorite recipe", error);
+            throw error
+        }
+    },
 }

@@ -2,7 +2,8 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { RecipeDetailDTO } from '$lib/types';
-	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
+	import { recipeHandler, recipeStore} from '$lib/stores/recipeStore';
+	import { Button } from 'flowbite-svelte';
 
 
 	let recipe: RecipeDetailDTO | null = null;
@@ -20,10 +21,22 @@
 	
 	onMount(fetchRecipe);
 
+	async function handleAddFavorite() {
+		const recipesLS = localStorage.getItem('recipes')
+			if (recipesLS?.includes(recipeId)) {return alert('Recipe already already favorited')}
+		try {
+			await recipeHandler.favoriteRecipe(recipeId)
+			let userRecipes = recipesLS +"," + recipeId
+			localStorage.setItem('recipes', userRecipes)
+            alert('Recipe added to favorites');
+        } catch (e) {
+            alert((e as Error).message);
+        }
+	}
 
 </script>
 <div class="py-4 flex rounded-full justify-end flex-wrap">
-	
+
 	<div>
 		<a href="/" class="text-teal-600 font-semibold">Home</a> |
 		<a href="/user" class="text-teal-600 font-semibold">User</a>
@@ -54,6 +67,12 @@
 			{/each}
 		</ol>
 	</div>
+	<Button
+		class="mb-3 py-2 font-sans text-lg font-semibold text-white rounded-full bg-secondary-forest hover:bg-secondary-blue hover:text-black hover:outline hover:outline-secondary-forest whitespace-nowrap"
+		onclick={handleAddFavorite}>
+		Add to favorite
+	</Button>
+
 {:else}
 	<p>Recipe not found. <a href="/" class="text-teal-600">Go back to home</a></p>
 {/if}

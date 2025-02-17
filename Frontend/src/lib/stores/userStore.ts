@@ -2,7 +2,6 @@ import { writable } from "svelte/store";
 import type { UserDTO, UserLoginDTO, UserSignUpDTO } from "$lib/types";
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 export const userStore = writable({
     isLoading: true,
     useId: "",
@@ -29,6 +28,15 @@ export const userHandler = {
             // Store non-sensitive data in localStorage
             localStorage.setItem('authenticated', 'true');
             localStorage.setItem('userId', newUser.localId);
+            localStorage.setItem('userEmail', newUser.userEmail);
+            localStorage.setItem('userName', newUser.userName);
+            localStorage.setItem('phoneNumber', newUser.phoneNumber);
+            localStorage.setItem('allergies', newUser.allergies);
+            localStorage.setItem('recipes', newUser.recipes);
+            localStorage.setItem('profileImageURL', newUser.profileImageURL);
+            localStorage.setItem('idToken', newUser.idToken);
+            localStorage.setItem('refreshToken', newUser.refreshToken)
+
 
             // Store expiration timestamp
             const expiresAt = new Date().getTime() + newUser.expiresIn * 1000;
@@ -154,4 +162,26 @@ export const userHandler = {
         }
     },
     deleteuser: () => {},
+
+    signOut: () => {
+        localStorage.clear();
+        userStore.update((state) => ({
+            ...state,
+            isLoading: false,
+            currentUser: null
+        }));
+    }
+}
+
+
+export function getLSUserData() {
+    const userData: { [key: string]: string | null } = {};
+    for(let i = 0; i < localStorage.length; i++){
+        const key = localStorage.key(i);
+        if (key){
+            const value = localStorage.getItem(key);
+            userData[key] = value
+        }
+    }
+    return userData
 }
