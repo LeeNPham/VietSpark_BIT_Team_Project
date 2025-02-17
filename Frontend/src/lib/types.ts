@@ -55,3 +55,4 @@ export interface UserSignUpDTO {
     password: string,
     phone_number: string,
 }
+
