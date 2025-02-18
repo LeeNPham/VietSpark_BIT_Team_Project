@@ -4,7 +4,7 @@
 	import { derived } from 'svelte/store';
 
 	// For searching
-	let searchType = 'name'; // default: search by name, other: by ingredients
+	let searchType = 'ingredients'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
 	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
@@ -24,7 +24,15 @@
 			if (searchType === 'name') {
 				await recipeHandler.getRecipes(searchQuery.trim());
 			} else if (searchType === 'ingredients') {
+				//regex to remove all commas and special characters
+				searchQuery = searchQuery.replace(/[^a-zA-Z0-9 ]/g, '');
+				console.log('searchQuery',searchQuery);
 				await recipeHandler.searchRecipesGPT(searchQuery.trim());
+
+				await new Promise((resolve) => setTimeout(resolve, 13000));
+
+				// After the delay, call getRecipes
+				await recipeHandler.getRecipes(null);
 			}
 		} catch (e) {
 			console.error(e);
@@ -41,13 +49,15 @@
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
 		<label class="flex cursor-pointer items-center space-x-2">
+			<input type="radio" bind:group={searchType} value="ingredients" />
+			<span>Search by Ingredients </span>
+		</label>
+
+		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
 		</label>
-		<label class="flex cursor-pointer items-center space-x-2">
-			<input type="radio" bind:group={searchType} value="ingredients" />
-			<span>Search by ingredients (space-separated)</span>
-		</label>
+	
 	</div>
 
 	<!-- Search bar -->
@@ -60,8 +70,8 @@
 				if (event.key === 'Enter') handleSearchSubmit();
 			}}
 			placeholder={searchType === 'name'
-				? 'Enter recipe name'
-				: 'Enter space-separated ingredients'}
+				? 'eg: chicken curry, spaghetti, etc'
+				: 'eg: chicken, rice, tomato, etc'}
 			class="outline-secondary-green rounded-2xl text-lg outline"
 		/>
 		<Button
