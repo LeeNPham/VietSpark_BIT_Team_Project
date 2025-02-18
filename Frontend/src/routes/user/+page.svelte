@@ -14,8 +14,9 @@
 	let allergies: string[] = ['Test'];
 	let authenticated = false;
 	let newAllergy = '';
+	let myRecipes: string[] = [];
 
-	onMount(fetchUserInfo);
+
 
 	async function fetchUserInfo() {
 		try {
@@ -50,8 +51,9 @@
 	userStore.subscribe((store) => {
 		user = store?.currentUser;
 		allergies = store?.currentUser?.allergies ?? [];
+		myRecipes = store?.currentUser?.recipes ?? [];
+		console.log("user from user+page.svelte", user)
 
-		console.log("User store has been updated");
 	});
 
 	function clearCredentials() {
@@ -110,6 +112,8 @@
 			alert((e as Error).message);
 		}
 	}
+
+		onMount(fetchUserInfo);
 </script>
 
 {#if authenticated && user}
@@ -166,7 +170,7 @@
 
 	<!-- Favorite Recipes -->
 	<p class={customStyles.userP}>Favorite recipes</p>
-	<RecipeList />
+	<RecipeList {myRecipes} />
 {:else}
 	<!-- Show login prompt if not authenticated -->
 	<div class="flex h-screen flex-col items-center justify-center">
