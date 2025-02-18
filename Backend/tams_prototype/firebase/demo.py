@@ -6,7 +6,6 @@ import json
 import base64
 import requests
 import io
-import aiohttp
 from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
