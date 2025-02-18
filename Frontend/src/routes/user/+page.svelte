@@ -169,7 +169,7 @@
 	</div>
 
 	<!-- Favorite Recipes -->
-	<p class={customStyles.userP}>Favorite recipes</p>
+	<p class={customStyles.userP}>Favorite Recipes</p>
 	<RecipeList {myRecipes} />
 {:else}
 	<!-- Show login prompt if not authenticated -->
