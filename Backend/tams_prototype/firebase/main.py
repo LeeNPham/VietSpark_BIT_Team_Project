@@ -15,8 +15,6 @@ import asyncio
 #from fastapi.security import OAuth2PasswordRequestForm
 #import json
 
-q = []
-
 app = FastAPI(
     title="Project VietSpark",
     version="1.0.13",
