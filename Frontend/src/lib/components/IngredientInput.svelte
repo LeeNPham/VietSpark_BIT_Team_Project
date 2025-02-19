@@ -50,14 +50,12 @@
 	<div class="mb-4 flex space-x-4">
 		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="ingredients" />
-			<span>Search by Ingredients </span>
+			<span> AI Generated Recipe </span>
 		</label>
-
 		<label class="flex cursor-pointer items-center space-x-2">
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
 		</label>
-	
 	</div>
 
 	<!-- Search bar -->
@@ -70,8 +68,8 @@
 				if (event.key === 'Enter') handleSearchSubmit();
 			}}
 			placeholder={searchType === 'name'
-				? 'eg: chicken curry, spaghetti, etc'
-				: 'eg: chicken, rice, tomato, etc'}
+				? 'Enter recipe name'
+				: 'Enter 5 ingredients to generate a recipe'}
 			class="outline-secondary-green rounded-2xl text-lg outline"
 		/>
 		<Button
