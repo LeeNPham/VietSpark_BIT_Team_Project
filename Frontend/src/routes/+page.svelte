@@ -31,11 +31,11 @@
 </svelte:head>
 
 <main>
-	<img src="/home.jpg" alt="(Adobe stock) Home banner" />
+	<!-- <img src="/home.jpg" alt="(Adobe stock) Home banner" /> -->
 	<Navbar class={customStyles.navBar}>
-		<NavBrand  class="font-sans text-3xl  text-secondary-green">
+		<div  class="font-sans text-3xl  text-secondary-forest">
 			Hello, {name}!
-		</NavBrand>
+		</div>
 		<NavHamburger/>
 		<NavUl>
 			<NavLi href="/" class={customStyles.aTag}>

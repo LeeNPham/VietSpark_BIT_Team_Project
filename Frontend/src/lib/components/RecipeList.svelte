@@ -35,7 +35,7 @@ let searchTerm = '';
 bind:value = {searchTerm} />
 
 
-<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:p-5 w-full sm:w-3/4 md:w-1/2 lg:w-1/3 xl:w-1/4">
+<div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:p-5">
 	{#if myRecipesData}
 		{#each myRecipesData as item (item.recipe_id)}
 			<a
@@ -46,7 +46,7 @@ bind:value = {searchTerm} />
 					<img src={item.img_url} class="h-20 w-20 rounded-lg object-cover" alt={item.name} />
 					<div class="flex-1">
 						<p class="line-clamp-1">{item.name}</p>
-						<div class="space-x-2 text-sm font-medium text-teal-700">
+						<div class="space-x-2 text-sm font-medium text-secondary-forest">
 							<span>{item.time} minutes</span>
 							<span>*</span>
 							<span>{item.numIngredients} ingredients</span>
@@ -56,7 +56,7 @@ bind:value = {searchTerm} />
 			</a>
 		{/each}
 	{:else}
-		<div class="flex items-center justify-center h-full">
+		<div class="flex items-center justify-center h-full w-full">
 			<p class="text-center text-teal-600">No recipes found. Please try again later.</p>
 		</div>
 	{/if}
