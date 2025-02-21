@@ -5,7 +5,6 @@
 	import { goto } from '$app/navigation';
 	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
-	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
 
 	export let userId: string | null;
@@ -65,10 +64,6 @@
 		document.cookie = 'authToken=; path=/; Secure; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 	}
 
-	function handlerSignOut() {
-		userHandler.signOut();
-	}
-
 	async function handleAddAllergy() {
 		if (newAllergy.trim() === '') {
 			alert('Please enter a valid allergy');
@@ -103,7 +98,7 @@
 			if (phoneNumber.trim() !== user.phoneNumber.trim()) updatedUser.phoneNumber = phoneNumber;
 
 			await userHandler.updateUserDetail(updatedUser);
-			fetchUserInfo();
+			alert('User updated successfully');
 		} catch (e) {
 			alert((e as Error).message);
 		}
@@ -121,17 +116,6 @@
 </script>
 
 {#if authenticated && user}
-	<Navbar class={customStyles.navBar}>
-		<NavBrand class="text-secondary-green font-sans  text-3xl">
-			Hello, {user.userName}!
-		</NavBrand>
-		<NavHamburger />
-		<NavUl>
-			<NavLi href="/" class={customStyles.aTag}>Home</NavLi>
-			<NavLi href="/user" class={customStyles.aTag}>User</NavLi>
-			<NavLi href="/" class={customStyles.aTag} on:click={handlerSignOut}>Sign out</NavLi>
-		</NavUl>
-	</Navbar>
 	<div class="mt-6 flex gap-3">
 		<div class="flex flex-1 flex-col space-y-3">
 			<p class={customStyles.userP}>Name</p>
@@ -166,29 +150,31 @@
 			</Button>
 		</div>
 	</div>
-	<div class="flex flex-wrap gap-4">
-		{#each allergies as allergy, i}
-			<div
-				class="bg-secondary-green outline-secondary-forest hover:bg-secondary-blue gap-4 rounded-2xl p-2 text-white outline hover:text-black focus:outline-none"
-			>
-				{allergy}
-				<Button
-					on:click={async () => await handleRemoveAllergy(allergy)}
-					class="hover:bg-secondary-blue ml-2  bg-transparent p-0 text-black hover:text-black focus:outline-none"
-				>
-					x
-				</Button>
+	<div class="allergies-container">
+		<h3>Allergies</h3>
+		{#if allergies.length > 0}
+			<div class="allergy-list">
+				{#each allergies as allergy}
+					<div class="allergy-item">
+						<span class="icon">⚠️</span>
+						<span>{allergy}</span>
+						<button on:click={async () => await handleRemoveAllergy(allergy)} class="remove-btn">
+							×
+						</button>
+					</div>
+				{/each}
 			</div>
-		{/each}
+		{:else}
+			<p class="empty">No allergies listed</p>
+		{/if}
 	</div>
-
 	<!-- Favorite Recipes -->
 	<p class={customStyles.userP}>Favorite Recipes</p>
-	<RecipeList {myRecipes} {showFavorites}/>
+	<RecipeList {myRecipes} {showFavorites} />
 	<div class="mt-6 flex justify-center gap-4">
 		<!-- Cancel Button -->
 		<Button
-			class="bg-primary-gray rounded-2xl text-lg outline  outline-secondary-green text-gray-800 "
+			class="bg-primary-gray outline-secondary-green rounded-2xl text-lg  text-gray-800 outline "
 			on:click={cancelUpdateUser}
 		>
 			Close
@@ -209,3 +195,39 @@
 		<Button on:click={() => goto('/login')} class={customStyles.button}>Go to Login</Button>
 	</div>
 {/if}
+
+<style>
+	.allergy-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem; /* Matches your original gap-4 (~1rem) */
+	}
+	.allergy-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: #00695c; /* Deep teal, replacing light #e0f7fa */
+		color: #fff; /* White text for contrast */
+		padding: 0.5rem 1rem; /* Slightly larger than original p-2 */
+		border-radius: 1rem; /* Matches rounded-2xl */
+	}
+	.icon {
+		color: #ef5350; /* Deeper red for warning */
+	}
+	.remove-btn {
+		background: transparent;
+		border: none;
+		color: #fff; /* White to match text */
+		font-size: 1.25rem; /* Larger for visibility */
+		cursor: pointer;
+		padding: 0 0.5rem;
+		transition: color 0.2s;
+	}
+	.remove-btn:hover {
+		color: #ef5350; /* Deep red on hover, richer than #d32f2f */
+	}
+	.empty {
+		color: #b0bec5; /* Lighter gray for dark theme; adjust if needed */
+		font-style: italic;
+	}
+</style>

@@ -40,9 +40,6 @@ app.add_middleware(
 )
 
 
-@app.get("/", tags=['Root'])
-async def root():
-    return {"message": "Welcome to VietSpark API"}
 
 @app.post("/authentication", tags=['Authentication'])
 async def signup(signup_data: UserSignUpModel):
@@ -102,6 +99,10 @@ async def get_all_users():
 async def delete_user(user_id: str):
     return await delete_user_from_firestore(user_id)
 
+
+# @app.put("/users/{user_id}", tags=['Users'])
+# async def update_user(user_data: UserUpdateModel):
+#     return await update_user_data(user_data)
 
 
 @app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
