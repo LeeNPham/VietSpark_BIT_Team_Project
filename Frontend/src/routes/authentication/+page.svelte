@@ -4,9 +4,9 @@
 	import { customStyles } from '$src/custom';
 
 	let email = '';
-	let username = '';
+	let userName = '';
 	let password = '';
-	let phone_number = '';
+	let phoneNumber = '';
 	let errorMessage = '';
 
 	async function handleRegister() {
@@ -14,9 +14,9 @@
 		try {
 			await userHandler.signup({
 				email: email,
-				username: username,
+				userName: userName,
 				password: password,
-				phone_number: phone_number
+				phoneNumber: phoneNumber
 			});
 			goto('/login');
 		} catch (error) {
@@ -42,7 +42,7 @@
 		/>
 		<input
 			type="text"
-			bind:value={username}
+			bind:value={userName}
 			placeholder="Username"
 			class={customStyles.input}
 		/>
@@ -55,7 +55,7 @@
 		/>
 		<input
 			type="tel"
-			bind:value={phone_number}
+			bind:value={phoneNumber}
 			placeholder="Phone number (+12063000000)"
 			class={customStyles.input}
 

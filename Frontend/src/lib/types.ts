@@ -35,9 +35,9 @@ export interface RecipeAddDTO {
 // User
 export interface UserDTO {
     user_id: string, 
-    email: string,
-    username: string,
-    phone_number: string,
+    userEmail: string,
+    userName: string,
+    phoneNumber: string,
     profileImageURL: string,
     description: string;
     recipes: string[],
@@ -51,8 +51,8 @@ export interface UserLoginDTO {
 
 export interface UserSignUpDTO {
     email: string, 
-    username: string,
+    userName: string,
     password: string,
-    phone_number: string,
+    phoneNumber: string,
 }
 

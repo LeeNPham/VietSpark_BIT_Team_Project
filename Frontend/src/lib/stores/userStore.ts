@@ -28,12 +28,6 @@ export const userHandler = {
             // Store non-sensitive data in localStorage
             localStorage.setItem('authenticated', 'true');
             localStorage.setItem('userId', newUser.localId);
-            localStorage.setItem('userEmail', newUser.userEmail);
-            localStorage.setItem('userName', newUser.userName);
-            localStorage.setItem('phoneNumber', newUser.phoneNumber);
-            localStorage.setItem('allergies', newUser.allergies);
-            localStorage.setItem('recipes', newUser.recipes);
-            localStorage.setItem('profileImageURL', newUser.profileImageURL);
             localStorage.setItem('idToken', newUser.idToken);
             localStorage.setItem('refreshToken', newUser.refreshToken)
 
@@ -45,19 +39,26 @@ export const userHandler = {
             userStore.update((state) => ({
                 ...state,
                 isLoading: false,
+                currentUser: newUser,
                 userId: newUser.localId
             }));
             return newUser.userId;
         } catch (error) {
             console.error((error as Error).message);
+            userStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                currentUser: null,
+            }));
             throw error;
         }
     },
 
     checkSessionExpiration: () => {
         const expiresAt = localStorage.getItem('expiresAt');
-        if (expiresAt && new Date().getTime() > parseInt(expiresAt)) {
+        if (expiresAt && Date.now() > parseInt(expiresAt)) {
             // clear local storage
+            console.log("Session expired - Clearing local storage");
             localStorage.clear();
             
             // clear cookie
@@ -109,6 +110,10 @@ export const userHandler = {
     },
     getUser: async (userId: string) => {
         try {
+            userStore.update((state) => ({
+                ...state,
+                isLoading: true,
+            }))
             const res = await fetch(`${API_URL}/users/${userId}`)
             if (!res.ok) throw new Error(`Failed to fetch user ${userId} information`);
             const user = await res.json();
@@ -144,7 +149,24 @@ export const userHandler = {
     },
     updateUserDetail: async (userData: UserDTO) => {
         try {
-            const res = await fetch(`${API_URL}/users`, {
+            if (userData === null) {
+                throw new Error("User data is null");
+            }
+            if (userData.user_id === undefined) {
+                throw new Error("User ID is undefined");
+            }
+            userStore.update((state) => ({
+                ...state,
+                isLoading: true,
+            }));
+        
+            const idToken = localStorage.getItem('idToken');
+            if (!idToken) {
+                throw new Error("idToken is undefined");
+            }
+
+            console.log("Updating user", userData);
+            const res = await fetch(`${API_URL}/users/update_all?id_token=${idToken}`, {
                 method: 'PUT',
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(userData),

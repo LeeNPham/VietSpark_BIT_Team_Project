@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Header from '../lib/components/Header.svelte';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
@@ -15,13 +14,12 @@
 		try {
 			await recipeHandler.getRecipes(null);
 		} catch (e) {
-			console.error((e as Error));
+			console.error(e as Error);
 		}
 	});
 </script>
 
 <div class="app">
-
 	<main>
 		{@render children()}
 	</main>
