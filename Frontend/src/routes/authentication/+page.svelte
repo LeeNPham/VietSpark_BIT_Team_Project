@@ -25,7 +25,7 @@
 	}
 </script>
 
-<div class={customStyles.authMain}>
+<div class={customStyles.authMain2}>
 	<div class={customStyles.authDiv}>
 		<h1 class={customStyles.userH1}> Create Account</h1>
 
