@@ -109,15 +109,15 @@ async def get_collection(collection, details):
 
 # Signup function
 async def signupOnFirebase(signup_data):
-    if signup_data.phone_number == "string":
-        signup_data.phone_number = None
+    if signup_data.phoneNumber == "string":
+        signup_data.phoneNumber = None
     try:
         # user = mainAuth.create_user_with_email_and_password(email, password)
         user = auth.create_user(
             email=signup_data.email,
             password=signup_data.password,
-            display_name=signup_data.username,
-            phone_number=signup_data.phone_number,
+            display_name=signup_data.userName,
+            phone_number=signup_data.phoneNumber,
             photo_url=None,
             disabled=False,
         )
@@ -133,8 +133,8 @@ async def add_user_data(user_id, signup_data):
     try:
         user_data = {
             "userEmail": signup_data.email,
-            "userName": signup_data.username,
-            "phoneNumber": signup_data.phone_number or "",
+            "userName": signup_data.userName,
+            "phoneNumber": signup_data.phoneNumber or "",
             "profileImageURL": "",
             "description": "",
             "recipes": [],
@@ -203,9 +203,9 @@ async def update_user_data(user_data):
             return f"{user_data.user_id} not found"
         update_data = {
             "userEmail": user_data.email,
-            "userName": user_data.username,
-            "phoneNumber": user_data.phone_number,
-            "profileImageURL": user_data.profile_image_url,
+            "userName": user_data.userName,
+            "phoneNumber": user_data.phoneNumber,
+            "profileImageURL": user_data.profileImageURL,
             "description": user_data.description
         }
         for key, value in update_data.items():
@@ -232,35 +232,51 @@ async def update_user_r_a(user_id, recipes: Optional[List[str]] = None, allergie
 
 async def update_all_u_d(user_data):
     try:
-        auth.update_user(
-            user_data.user_id,
-            email=user_data.email,
-            display_name=user_data.username
-        )
+        # Update auth provider only if fields are provided
+        auth_kwargs = {}
+        if user_data.userEmail is not None:
+            auth_kwargs["email"] = user_data.userEmail
+        if user_data.userName is not None:
+            auth_kwargs["display_name"] = user_data.userName
+        if auth_kwargs:
+            auth.update_user(user_data.user_id, **auth_kwargs)
+
+        # Update Firestore only with provided fields
+        update_data = {}
+        if user_data.userEmail is not None:
+            update_data["userEmail"] = user_data.userEmail
+        if user_data.userName is not None:
+            update_data["userName"] = user_data.userName
+        if user_data.phoneNumber is not None:
+            update_data["phoneNumber"] = user_data.phoneNumber
+        if user_data.profileImageURL is not None:
+            update_data["profileImageURL"] = user_data.profileImageURL
+        if user_data.description is not None:
+            update_data["description"] = user_data.description
+        if user_data.recipes is not None:
+            update_data["recipes"] = user_data.recipes
+        if user_data.allergies is not None:
+            update_data["allergies"] = user_data.allergies
+
+        print("Firestore update data:", update_data)
+
+        user_ref = user_collection.document(user_data.user_id)
+        if update_data:
+            user_ref.update(update_data)
+
+        # Fetch and return the full updated document
+        updated_doc = user_ref.get()
+        if not updated_doc.exists:
+            raise HTTPException(status_code=404, detail="User not found in Firestore")
+        
+        updated_data = updated_doc.to_dict()
+        updated_data["user_id"] = user_data.user_id
+        return updated_data
+
     except auth.AuthError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-    try:
-        update_data = {
-            "userEmail": user_data.email,
-            "userName": user_data.username,
-            "phoneNumber": user_data.phone_number,
-            "profileImageURL": user_data.profile_image_url,
-            "description": user_data.description,
-            "recipes": user_data.recipes,
-            "allergies": user_data.allergies
-        }
-        user_collection.document(user_data.user_id).update(update_data)
-    except firestore.FirestoreError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-    return user_data
-
-
 
 async def new_recipe(recipe, user_added):
     ingredient_data = []

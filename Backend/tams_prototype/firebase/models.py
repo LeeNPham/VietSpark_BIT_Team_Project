@@ -15,17 +15,17 @@ class UserLoginModel(BaseModel):
 
 class UserSignUpModel(BaseModel):
   email: str = ''
-  username: str = ''
+  userName: str = ''
   password: str = ''
-  phone_number: str = ''
+  phoneNumber: str = ''
 
 class UserUpdateModel(BaseModel):
   user_id: str = ''
   email: str = ''
-  username: str = ''
+  userName: str = ''
   password: str = ''
-  phone_number: str = ''
-  profile_image_url: str = ''
+  phoneNumber: str = ''
+  profileImageURL: str = ''
   description: str = ''
 
 class UserUpdateRecipeAllergiesModel(BaseModel):
@@ -41,21 +41,20 @@ class UserSearchModel(BaseModel):
 class authProfile(BaseModel):
    uid: str = ''
    email:str = ''
-   username: str = ''
+   userName: str = ''
    profile_image: Optional[str] = ''
-   phone_number: Optional[str] = ''
+   phoneNumber: Optional[str] = ''
   #  disabled: False
 
 class allUserDataModel(BaseModel):
-  user_id: str = ''
-  email: str = ''
-  username: str = ''
-  password: str = ''
-  phone_number: str = ''
-  profile_image_url: str = ''
-  description: str = ''
-  recipes: List[str] = []
-  allergies: List[str] = []
+  user_id: str
+  userEmail: Optional[str] = None
+  userName: Optional[str] = None
+  phoneNumber: Optional[str] = None
+  profileImageURL: Optional[str] = None
+  description: Optional[str] = None
+  recipes: Optional[List[str]] = None
+  allergies: Optional[List[str]] = None 
 
 
 class IngredientModel(BaseModel):

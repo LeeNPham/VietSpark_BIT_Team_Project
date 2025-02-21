@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 import time
 import asyncio
+import logging
 
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
@@ -39,7 +40,9 @@ app.add_middleware(
 )
 
 
-
+@app.get("/", tags=['Root'])
+async def root():
+    return {"message": "Welcome to VietSpark API"}
 
 @app.post("/authentication", tags=['Authentication'])
 async def signup(signup_data: UserSignUpModel):
@@ -100,10 +103,6 @@ async def delete_user(user_id: str):
     return await delete_user_from_firestore(user_id)
 
 
-@app.put("/users/{user_id}", tags=['Users'])
-async def update_user(user_data: UserUpdateModel):
-    return await update_user_data(user_data)
-
 
 @app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
 # async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
@@ -134,7 +133,7 @@ async def add_favorite(id_token: str, recipe_id: str):
 
 
 
-@app.put("/users/update_all/{user_data.user_id}", tags=['Users'])
+@app.put("/users/update_all", tags=['Users'])
 async def update_all_user_data(user_data: allUserDataModel, id_token: str = Query(...)):
     await verify_id_token(id_token)
     return await update_all_u_d(user_data)

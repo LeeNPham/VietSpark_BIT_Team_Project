@@ -55,7 +55,7 @@
 		{#if authenticated}
 			<button class="bg-secondary-green  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
 				Add Recipe
-			</button>
+			</Button>
 		{/if}
 	</div>
 	<!-- Recipe -->
