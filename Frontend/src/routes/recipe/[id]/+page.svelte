@@ -5,9 +5,9 @@
 	import { recipeHandler, recipeStore} from '$lib/stores/recipeStore';
 	import { Button } from 'flowbite-svelte';
 
-
 	let recipe: RecipeDetailDTO | null = null;
 	let recipeId : string;
+
 	$: recipeId = $page.params.id;
 
 	async function fetchRecipe() {
@@ -35,13 +35,6 @@
 	}
 
 </script>
-<div class="py-4 flex rounded-full justify-end flex-wrap">
-
-	<div>
-		<a href="/" class="text-teal-600 font-semibold">Home</a> |
-		<a href="/user" class="text-teal-600 font-semibold">User</a>
-	</div>
-</div>
 {#if recipe}
 	<div class="p-6">
 		<h1 class="text-2xl font-bold text-teal-600">{recipe.name}</h1>

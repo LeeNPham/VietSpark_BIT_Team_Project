@@ -71,7 +71,7 @@
 			placeholder={searchType === 'name'
 				? 'Enter recipe name'
 				: 'Enter 5 ingredients to generate a recipe'}
-			class="outline-secondary-green rounded-2xl text-sm sm: text-sm md:text-lg lg:text-xl outline"
+			class="outline-secondary-green rounded-2xl text-sm sm: md:text-lg lg:text-xl outline"
 		/>
 		<Button
 			on:click={handleSearchSubmit}
