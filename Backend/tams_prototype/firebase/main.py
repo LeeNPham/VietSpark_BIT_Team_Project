@@ -123,26 +123,31 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
 
 @app.put("/users/add_favorite/{id_token}", tags=["Users"])
 async def add_favorite(id_token: str, recipe_id: str):
+    user_verify = await verify_id_token(id_token)
+    uid = user_verify['user_id']
     try:
-        user_verify = await verify_id_token(id_token)
-        uid = user_verify['user_id']
-        try:
-            user_collection.document(uid).update({'recipes': firestore.ArrayUnion([recipe_id])})
-            user_data = await get_document(user_collection.document(uid))
-            return user_data["recipes"]
-        except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    except:
-        raise HTTPException(status_code=401, detail=f"Please login")
+        user_collection.document(uid).update({'recipes': firestore.ArrayUnion([recipe_id])})
+        user_data = await get_document(user_collection.document(uid))
+        return user_data["recipes"]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 
 
 @app.put("/users/update_all/{user_data.user_id}", tags=['Users'])
 async def update_all_user_data(user_data: allUserDataModel, id_token: str = Query(...)):
-    try:
-        if await verify_id_token(id_token):
-            return await update_all_u_d(user_data)
-    except:
-        raise HTTPException(status_code=401, detail=f"Please login")
+    await verify_id_token(id_token)
+    return await update_all_u_d(user_data)
+
+
+#only jpeg at the moment
+@app.put("/users/profile_image/", tags=["Users"])
+async def user_profile_image(file: UploadFile = File(...), id_token: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    uid = user_verify['user_id']
+    profile_image_url = await image_to_storage(file, uid)
+    user_collection.document(uid).update({"profileImageURL": profile_image_url})
+    return profile_image_url
 
 
 
@@ -155,7 +160,6 @@ async def get_recipes(
     calories: Optional[int] = None, 
     time: Optional[int] = None
     ):
-
     return await recipe_database_search(name, author, calories, time)
 
 
@@ -166,49 +170,44 @@ async def get_recipe_by_id(recipe_id: str):
 
 @app.post("/recipes", tags=['Recipes'])
 async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
-    if await verify_id_token(id_token):
-        recipe_id = await new_recipe(recipe, user_added = True)
-        await update_user_r_a(recipe.author, [recipe_id], None)
-        return recipe_id
-    else:
-        raise HTTPException(status_code=401, detail=f"Please login")
+    verify_id_token(id_token)
+    recipe_id = await new_recipe(recipe, user_added = True)
+    await update_user_r_a(recipe.author, [recipe_id], None)
+    return recipe_id
 
 
 
 @app.get("/GPT_ingredients_to_recipe/", tags=['GPT'])
 async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str,  id_token: str = Query(...), allergies: str = Query(...)):
-    print(id_token)
+    user_verify = await verify_id_token(id_token)
+    # uid = user_verify['user_id']
+    # user_data = await get_document(user_collection.document(str(uid)))
+    # allergies = " ".join(user_data['allergies'])
     try:
-        user_verify = await verify_id_token(id_token)
-        # uid = user_verify['user_id']
-        # user_data = await get_document(user_collection.document(str(uid)))
-        # allergies = " ".join(user_data['allergies'])
-        try:
-            check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-            if check_ingredients != []:
-                return check_ingredients
-            
-            response_list = await GPT_to_recipe(ingredients, allergies)
-            response = await new_recipe(response_list[1], user_added = False)
-            # if user_id:
-            #     await update_user_r_a(user_id, [response["recipe_id"]], None)
-            background_tasks.add_task(GPT_image, response_list[0], response['recipe_id'])
-
-            return [response]
-
-            # response_list_task = asyncio.create_task(GPT_to_recipe(ingredients))
-            # img_url_task = asyncio.create_task(GPT_image(ingredients, img_name))
-            # r_list, GPT_img_url = await asyncio.gather(response_list_task, img_url_task)
-                
-            # response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
-            # response["img_url"] = GPT_img_url
-            # return [response]
+        check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
+        if check_ingredients != []:
+            return check_ingredients
         
-        except Exception as e:
-            print(f"Error in ingredients_to_GPT: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
-    except:
-        raise HTTPException(status_code=401, detail=f"Please login")
+        response_list = await GPT_to_recipe(ingredients, allergies)
+        response = await new_recipe(response_list[1], user_added = False)
+        # if user_id:
+        #     await update_user_r_a(user_id, [response["recipe_id"]], None)
+        background_tasks.add_task(GPT_image, response_list[0], response['recipe_id'])
+
+        return [response]
+
+        # response_list_task = asyncio.create_task(GPT_to_recipe(ingredients))
+        # img_url_task = asyncio.create_task(GPT_image(ingredients, img_name))
+        # r_list, GPT_img_url = await asyncio.gather(response_list_task, img_url_task)
+            
+        # response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
+        # response["img_url"] = GPT_img_url
+        # return [response]
+    
+    except Exception as e:
+        print(f"Error in ingredients_to_GPT: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
+
 
 
 
@@ -227,8 +226,9 @@ async def get_image(file_name: str):
 
 
 @app.post("/upload-image/file", tags=['Experimental'])
-async def upload_image(file: UploadFile = File(...)):
-    return await image_to_storage(file)
+async def upload_image(file: UploadFile = File(...), id_token: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    return await image_to_storage(file, None)
 
 
 @app.post("/upload-image/{url}", tags=['Experimental'])

@@ -6,6 +6,7 @@ import json
 import base64
 import requests
 import io
+import time
 from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
@@ -158,6 +159,7 @@ async def loginOnFirebase(email, password):
         e = json.loads(e.args[1])['error']['message']
         return {"error": e}
 
+
 async def verify_id_token(id_token):
     try:
         data = auth.verify_id_token(id_token)
@@ -279,6 +281,7 @@ async def new_recipe(recipe, user_added):
         img_url = "https://s3.gifyu.com/images/b2PWA.gif"
     else:
         img_url = ""
+    creation_time = int(time.time() * 1000)
 
     recipe_data = {
         "name": recipe.name,
@@ -290,6 +293,7 @@ async def new_recipe(recipe, user_added):
         "calories": recipe.calories,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
+        "creation_time": creation_time
     }
 
     if recipe.author:
@@ -316,7 +320,8 @@ async def recipe_database_search(name, author, calories, time):
     elif time:
         collection = recipe_collection.where("time", "==", time).stream()
     else:
-        collection =  await get_collection(recipe_collection.stream(), details=True)
+        latest_sort = recipe_collection.order_by('creation_time', direction=firestore.Query.DESCENDING).stream()
+        collection =  await get_collection(latest_sort, details=True)
         for recipe in collection:
             recipe = format_recipe(recipe, "short")
         return collection
@@ -446,7 +451,6 @@ async def GPT_image(item, recipe_id):
 
 
 async def image_url_to_storage(url, recipe_id):
-    print(recipe_id)
     recipe_name = recipe_id +'_1'
     # name = (url[url.rfind('/') + 1:]) # select name after the last '/'
     response = requests.get(url)
@@ -457,14 +461,13 @@ async def image_url_to_storage(url, recipe_id):
         blob.upload_from_file(image_data, content_type='image/jpeg')
         blob.make_public()
         image_url = blob.public_url
-        print(image_url)
         recipe_collection.document(recipe_id).update({"img_url": image_url})
         return image_url
 
     return f"Failed to fetch image from URL: {response.status_code}"
 
 
-async def image_to_storage(file):
+async def image_to_storage(file, name):
     # temp_file_path = f"temp_{file.filename}"
     # with open(temp_file_path, "wb") as temp_file:
     #     temp_file.write(await file.read())
@@ -473,7 +476,11 @@ async def image_to_storage(file):
     try:
         bucket = storage.bucket()
         # Upload the image to Firebase Storage
-        blob = bucket.blob(f"images/{file.filename}")
+        if name:
+            print(name)
+            blob = bucket.blob(f"images/{name}")
+        else:
+            blob = bucket.blob(f"images/{file.filename}")
         blob.upload_from_file(image_data, content_type='image/jpeg')
         # Make the file publicly accessible (optional)
         blob.make_public()
@@ -481,7 +488,6 @@ async def image_to_storage(file):
         image_url = blob.public_url
         # Clean up the temporary file
         # os.remove(temp_file_path)
-
         return image_url
 
     except Exception as e:
