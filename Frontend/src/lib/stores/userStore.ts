@@ -4,7 +4,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const userStore = writable({
     isLoading: true,
-    useId: "",
+    userId: "",
+    authenticated: false,
     currentUser: null as UserDTO | null,
 });
 
@@ -40,6 +41,7 @@ export const userHandler = {
                 ...state,
                 isLoading: false,
                 currentUser: newUser,
+                authenticated: true,
                 userId: newUser.localId
             }));
             return newUser.userId;
@@ -49,6 +51,7 @@ export const userHandler = {
                 ...state,
                 isLoading: false,
                 currentUser: null,
+                authenticated: false,
             }));
             throw error;
         }
@@ -57,12 +60,7 @@ export const userHandler = {
     checkSessionExpiration: () => {
         const expiresAt = localStorage.getItem('expiresAt');
         if (expiresAt && Date.now() > parseInt(expiresAt)) {
-            // clear local storage
-            console.log("Session expired - Clearing local storage");
-            localStorage.clear();
-            
-            // clear cookie
-            document.cookie = "authToken=; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"; 
+            userHandler.signOut();
         }
     }, 
 
@@ -124,6 +122,11 @@ export const userHandler = {
             }));
         } catch (e) {
             console.error((e as Error).message);
+            userStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                currentUser: null,
+            }));
             throw e;
         }
     },
@@ -187,12 +190,19 @@ export const userHandler = {
 
     signOut: () => {
         localStorage.clear();
+        document.cookie = "authToken=; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"; 
         userStore.update((state) => ({
             ...state,
             isLoading: false,
+            authenticated: false,
             currentUser: null
         }));
-    }
+    },
+    checkAuthenticated() {
+        const isAuthenticated = localStorage.getItem('authenticated') === 'true';
+        userStore.update(state => ({ ...state, authenticated: isAuthenticated }));
+        return isAuthenticated;
+      },
 }
 
 

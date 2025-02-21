@@ -185,7 +185,7 @@
 			class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline"
 			on:click={updateUser}
 		>
-			Save Changes
+			Save
 		</Button>
 	</div>
 {:else}
