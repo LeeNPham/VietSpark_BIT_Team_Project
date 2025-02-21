@@ -9,6 +9,12 @@ export default {
 
 	theme: {
 		extend: {
+			height:{
+				'18': '4.5rem',
+			},
+			width:{
+				'18': '4.5rem',
+			},
 			fontFamily: {
 				sans: ['Poppins', 'sans-serif']
 			},

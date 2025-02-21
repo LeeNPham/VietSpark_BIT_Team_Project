@@ -6,7 +6,7 @@
 	import AddRecipeModal from '$lib/components/AddRecipeModal.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+	import { Navbar, NavLi, NavUl, NavHamburger, Tooltip } from 'flowbite-svelte';
 
 	let name = 'Beautiful';
 	let showModal = false;
@@ -33,7 +33,7 @@
 <main>
 	<!-- <img src="/home.jpg" alt="(Adobe stock) Home banner" /> -->
 	<Navbar class={customStyles.navBar}>
-		<div  class="font-sans text-3xl  text-secondary-forest">
+		<div class="font-sans text-0 text-3xl text-secondary-forest hidden sm:block">
 			Hello, {name}!
 		</div>
 		<NavHamburger/>
@@ -53,10 +53,10 @@
 	<!-- Ingredient input -->
 	<IngredientInput />
 
-	<div class="flex items-center justify-between p-2 sm:p-2 md:p-5 lg:p-9">
+	<div class="flex items-center justify-between p-2 sm:p-2 md:p-5 lg:p-5">
 		<h2 class={customStyles.heading}>Recipes</h2>
 		{#if authenticated}
-			<button class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
+			<button class="bg-secondary-green  outline-secondary-green rounded-2xl text-lg text-black outline" on:click={toggleModal}>
 				Add Recipe
 			</button>
 		{/if}

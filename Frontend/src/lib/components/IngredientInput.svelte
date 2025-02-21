@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Input, Spinner } from 'flowbite-svelte';
+	import { Button, Input, Spinner, Tooltip } from 'flowbite-svelte';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { derived } from 'svelte/store';
 
@@ -43,16 +43,17 @@
 	}
 </script>
 
-<div class="flex flex-col justify-normal p-2 sm:p-2 md:p-5 lg:p-9">
-	<h1 class="mb-4 text-lg sm:text-xl md:text-2xl lg:text-3xl">What do you want to cook today?</h1>
+<div class="flex flex-col justify-normal p-2 sm:p-2 md:p-5 lg:p-7">
+	<h1 class="mb-6 sm:mb-6 md:mb-8 lg:mb-10 text-xl sm:text-xl md:text-3xl lg:text-4xl text-secondary-forest">What would you like to cook? </h1>
+	<Tooltip>Select from an AI-Generated Recipe or choose from our collection of curated recipes.</Tooltip>
 
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
-		<label class="flex cursor-pointer items-center space-x-2">
+		<label class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl">
 			<input type="radio" bind:group={searchType} value="ingredients" />
 			<span> AI Generated Recipe </span>
 		</label>
-		<label class="flex cursor-pointer items-center space-x-2">
+		<label class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl">
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
 		</label>
@@ -70,11 +71,11 @@
 			placeholder={searchType === 'name'
 				? 'Enter recipe name'
 				: 'Enter 5 ingredients to generate a recipe'}
-			class="outline-secondary-green rounded-2xl text-lg outline"
+			class="outline-secondary-green rounded-2xl text-sm sm: text-sm md:text-lg lg:text-xl outline"
 		/>
 		<Button
 			on:click={handleSearchSubmit}
-			class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline"
+			class="bg-primary-green outline-secondary-green rounded-2xl text-sm text-black outline p-2"
 			>Search</Button
 		>
 	</div>
