@@ -23,7 +23,7 @@ body {
 	min-height: 100vh;
 	margin: 0;
 	background-attachment: fixed;
-	background-color: var(--bg-background-white);
+	background-color: #ecf3fe;
 	background-size: 100vw 100vh;
 }
 

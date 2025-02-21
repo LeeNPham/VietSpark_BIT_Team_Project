@@ -32,10 +32,8 @@
 
 <main>
 	<!-- <img src="/home.jpg" alt="(Adobe stock) Home banner" /> -->
-	<Navbar class={customStyles.navBar}>
-		<div class="font-sans text-0 text-3xl text-secondary-forest hidden sm:block">
-			Hello, {name}!
-		</div>
+	<Navbar class={customStyles.navBar} style="background-color:#ecf3fe;">
+		<img src="/VS_CHEF.png" class="h-20" alt="Flowbite Logo" />
 		<NavHamburger/>
 		<NavUl>
 			<NavLi href="/" class={customStyles.aTag}>
@@ -46,7 +44,6 @@
 			</NavLi>
 		</NavUl>
 	</Navbar>
-
 	<!-- Categories -->
 	<Category />
 
