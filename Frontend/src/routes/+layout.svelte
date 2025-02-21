@@ -2,14 +2,16 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
-	import { userHandler } from '$lib/stores/userStore';
-	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+	import { userHandler, userStore } from '$lib/stores/userStore';
+	import { Navbar, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
+	import { browser } from '$app/environment';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
-	let authenticated = localStorage.getItem('authenticated') == 'true';
+	let authenticated = $derived($userStore.authenticated);
 	onMount(async () => {
+		userHandler.checkAuthenticated();
 		userHandler.checkSessionExpiration();
 		console.log('Preloading recipes');
 
