@@ -3,6 +3,7 @@
 	import Modal from '../components/Modal.svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { imageHandler } from '$lib/stores/imageStore';
+	import { showToast } from '$lib/stores/alertStore';
 	import { customStyles } from '$src/custom';
 
 
@@ -44,7 +45,7 @@
 			console.log(newImageLink)
 		} catch (e) {
 			console.error('Failed to upload image', e);
-			alert('Image upload failed. Please try again');
+			showToast("error", (e as Error).message);
 		} finally {
 			allowUploadImage = false;
 		}
@@ -52,7 +53,7 @@
 
 	async function generateImage() {
 		if (!newRecipeName.trim()) {
-			alert('Please enter a recipe name before generating an image');
+			showToast("error",'Please enter a recipe name before generating an image');
 			return;
 		}
 
@@ -61,7 +62,7 @@
 			newImageLink = await imageHandler.generateImage(newRecipeName);
 		} catch (e) {
 			console.error('Image generation failed', e);
-			alert('Generate image failed. Please try again');
+			showToast("error", (e as Error).message);
 		} finally {
 			allowUploadImage = false;
 		}
@@ -106,7 +107,7 @@
 		);
 
 		if (!newRecipeName || newIngredients.length === 0 || newInstructions.length === 0) {
-			alert('Please enter all recipe details.');
+			showToast("error", 'Please enter all recipe details.');
 			return;
 		}
 
@@ -133,7 +134,7 @@
 			await recipeHandler.getRecipes(null);
 			toggleModal();
 		} catch (error) {
-			alert((error as Error).message);
+			showToast("error", (error as Error).message);
 		}
 	}
 </script>

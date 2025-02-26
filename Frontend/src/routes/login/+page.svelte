@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
+	import { showToast } from '$lib/stores/alertStore';
     import { userHandler } from '$lib/stores/userStore';
     import { customStyles } from '$src/custom';
     import { HomeSolid } from 'flowbite-svelte-icons';
@@ -8,24 +9,49 @@
     let email = '';
     let password = '';
     let errorMessage = '';
-    let isEmailValid = true;
 
-    function validateEmail() {
-        isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        if (!isEmailValid) errorMessage = "Please enter a valid email address";
-        else errorMessage = "";
+    function validateEmail(email: string): boolean{
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email.trim() || !emailRegex.test(email)) {
+            errorMessage = "Please enter an email address";
+            return false;
+        }
+        errorMessage = '';
+        return true;
+    }
+
+    function validatePassword(password: string): boolean {
+        // const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        // const passwordRegex = /^[a-zA-Z0-9]{6,}$/;
+        if (!password.trim()) {
+            errorMessage = "Please enter a password";
+            return false;
+        }
+        // if (!passwordRegex.test(password)) {
+        //     errorMessage = "Password must be at least 6 characters long and contain alphanumeric characters only";
+        //     return false;
+        // }
+        errorMessage = '';
+        return true;
     }
 
     async function handleLogin() {
-        validateEmail()
-        if (!isEmailValid || !password) alert("Please fill in login credentials");
+        if (!validateEmail(email)){
+            // showToast('error', errorMessage);
+            return;
+        }
+        if (!validatePassword(password)){
+            // showToast('error', errorMessage);
+            return;
+        }
         try {
             await userHandler.login({email: email.toLowerCase(), password: password});
+            showToast('success', 'Login successful!');
             goto('/'); // Redirect to a dashboard or home page
 
         } catch (error) {
             errorMessage = (error as Error).message;
-            alert(errorMessage);
+            showToast("error", errorMessage);
         }
     }
 </script>

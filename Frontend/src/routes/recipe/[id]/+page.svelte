@@ -2,11 +2,12 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { RecipeDetailDTO } from '$lib/types';
-	import { recipeHandler, recipeStore} from '$lib/stores/recipeStore';
+	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { Button } from 'flowbite-svelte';
+	import { showToast } from '$lib/stores/alertStore';
 
 	let recipe: RecipeDetailDTO | null = null;
-	let recipeId : string;
+	let recipeId: string;
 
 	$: recipeId = $page.params.id;
 
@@ -15,24 +16,30 @@
 			await recipeHandler.getRecipe(recipeId);
 			recipe = $recipeStore.currentRecipe;
 		} catch (e) {
-			alert((e as Error).message);
+			showToast('error', (e as Error).message);
 		}
 	}
+
 
 	onMount(fetchRecipe);
 
 	async function handleAddFavorite() {
-		const recipesLS = localStorage.getItem('recipes')
-			if (recipesLS?.includes(recipeId)) {return alert('Recipe already already favorited')}
+		const recipesLS = localStorage.getItem('recipes');
+		if (recipesLS?.includes(recipeId)) {
+			showToast("error", 'Recipe already already favorited');
+			return;
+		}
 		try {
-			await recipeHandler.favoriteRecipe(recipeId)
-            alert('Recipe added to favorites');
-        } catch (e) {
-            alert((e as Error).message);
-        }
+			await recipeHandler.favoriteRecipe(recipeId);
+			let userRecipes = recipesLS + ',' + recipeId;
+			localStorage.setItem('recipes', userRecipes);
+			showToast("success", 'Recipe added to favorites');
+		} catch (e) {
+			showToast("error", (e as Error).message);
+		}
 	}
-
 </script>
+
 {#if recipe}
 	<div class="p-6">
 		<h1 class="text-3xl text-secondary-green">{recipe.name}</h1>
@@ -72,11 +79,11 @@
         {/if}
 	</div>
 	<Button
-		class="mb-3 py-2 font-sans text-lg font-semibold text-white rounded-full bg-secondary-forest hover:bg-secondary-blue hover:text-black hover:outline hover:outline-secondary-forest whitespace-nowrap"
-		onclick={handleAddFavorite}>
+		class="bg-secondary-forest hover:bg-secondary-blue hover:outline-secondary-forest mb-3 whitespace-nowrap rounded-full py-2 font-sans text-lg font-semibold text-white hover:text-black hover:outline"
+		onclick={handleAddFavorite}
+	>
 		Add to favorite
 	</Button>
-
 {:else}
 	<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>
 {/if}

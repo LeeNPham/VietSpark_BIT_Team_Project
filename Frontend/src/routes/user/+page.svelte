@@ -6,14 +6,18 @@
 	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 	import { customStyles } from '$src/custom';
+	import { showToast } from '$lib/stores/alertStore';
 	import ChangeProfileImageModal from '$lib/components/ChangeProfileImageModal.svelte';
 
 	export let userId: string | null;
 	export let user: UserDTO | null;
 
 	let userName: string = '';
+	let userNameError = '';
 	let email: string = '';
+	let emailError = '';
 	let phoneNumber: string = '';
+	let phoneNumberError = '';
 	let allergies: string[] = ['Test'];
 	let authenticated = false;
 	let newAllergy = '';
@@ -78,7 +82,7 @@
 
 	async function handleAddAllergy() {
 		if (newAllergy.trim() === '') {
-			alert('Please enter a valid allergy');
+			showToast('error', 'Please enter an allergy');
 			return;
 		}
 
@@ -95,11 +99,66 @@
 		}
 	}
 
+	function validateEmail(email: string): boolean {
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!email.trim()) {
+			emailError = 'Please enter an email address';
+			return false;
+		}
+		if (!emailRegex.test(email)) {
+			emailError = 'Please enter a valid email address';
+			return false;
+		}
+		emailError = '';
+		return true;
+	}
+
+	function validateUsername(userName: string): boolean {
+		const usernameRegex = /^[a-zA-Z0-9]{4,}$/;
+		if (!userName.trim()) {
+			userNameError = 'Please enter a username';
+			return false;
+		}
+		if (!usernameRegex.test(userName)) {
+			userNameError =
+				'Username must be at least 6 characters long and contain alphanumeric characters only';
+			return false;
+		}
+		userNameError = '';
+		return true;
+	}
+
+	function validatePhoneNumber(phoneNumber: string): boolean {
+		const phoneNumberRegex = /^\d{10}$/;
+		if (!phoneNumber.trim()) {
+			phoneNumberError = 'Please enter a phone number';
+			return false;
+		}
+		if (!phoneNumberRegex.test(phoneNumber)) {
+			phoneNumberError = 'Phone number must be 10 digits long';
+			return false;
+		}
+		phoneNumberError = '';
+		return true;
+	}
+
 	async function updateUser() {
 		try {
 			if (!userId) throw new Error('UserId not found');
 			if (!user) throw new Error('User data not found');
 
+			if (
+				!validateEmail(email) ||
+				!validateUsername(userName) ||
+				!validatePhoneNumber(phoneNumber)
+			) {
+				let timeoutId = setTimeout(() => {
+					emailError = '';
+					userNameError = '';
+					phoneNumberError = '';
+				}, 2000);
+				return;
+			}
 			const updatedUser = {
 				...user,
 				allergies: allergies,
@@ -110,9 +169,9 @@
 			if (phoneNumber.trim() !== user.phoneNumber.trim()) updatedUser.phoneNumber = phoneNumber;
 
 			await userHandler.updateUserDetail(updatedUser);
-			alert('User updated successfully');
+			showToast("success", 'User updated successfully');
 		} catch (e) {
-			alert((e as Error).message);
+			showToast("error", (e as Error).message);
 		}
 	}
 
@@ -156,16 +215,25 @@
 		<div class="flex flex-1 flex-col space-y-3">
 			<p class={customStyles.userP}>Name</p>
 			<input type="text" bind:value={userName} class={customStyles.input} />
+			{#if userNameError}
+				<p class={customStyles.error}>{userNameError}</p>
+			{/if}
 		</div>
 		<div class="flex flex-1 flex-col space-y-3">
 			<p class={customStyles.userP}>Email</p>
 			<input type="email" bind:value={email} class={customStyles.input} />
+			{#if emailError}
+				<p class={customStyles.error}>{emailError}</p>
+			{/if}
 		</div>
 	</div>
 
 	<div class="mt-6 flex flex-col space-y-3">
 		<p class={customStyles.userP}>Phone number</p>
 		<input type="text" bind:value={phoneNumber} class={customStyles.input} />
+		{#if phoneNumberError}
+			<p class={customStyles.error}>{phoneNumberError}</p>
+		{/if}
 	</div>
 
 	<!-- Allergies -->

@@ -27,7 +27,7 @@ export const recipeHandler = {
                 body: JSON.stringify(recipeData),
             });
 
-            if (!res.ok) throw new Error("Failed to add recipe");
+            if (!res.ok) throw new Error(res.statusText || "Failed to create new recipe");
 
             const newRecipe = await res.json();
             recipeStore.update((state) => ({
@@ -46,7 +46,7 @@ export const recipeHandler = {
 
             const url = `${API_URL}/recipes/${recipeId}`;
             const res = await fetch(url);
-            if (!res.ok) throw new Error(`Failed to fetch recipe ${recipeId}`);
+            if (!res.ok) throw new Error(res.statusText || "Failed to fetch recipe");
             const foundRecipe = await res.json();
             recipeStore.update((state) => ({
                 ...state,
@@ -72,7 +72,7 @@ export const recipeHandler = {
 
             const res = await fetch(`${API_URL}/recipes${paramStr}`);
 
-            if (!res.ok) throw new Error('Failed to fetch recipes');
+            if (!res.ok) throw new Error(res.statusText || 'Failed to fetch recipes');
             const recipes = await res.json();
             console.log("Fetched recipes", recipes);
             recipeStore.update((state) => ({
@@ -106,7 +106,7 @@ export const recipeHandler = {
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}&id_token=${userLS.idToken}&allergies=${userLS.allergies}`);
 
-            if (!res.ok) throw new Error("Failed to search for recipes with ingredients " + ingredients);
+            if (!res.ok) throw new Error(res.statusText ||"Failed to search for recipes with ingredients " + ingredients);
 
             const recipes = await res.json();
             console.log("Found recipes from GPT", recipes)
@@ -144,7 +144,7 @@ export const recipeHandler = {
                 }
             });
 
-            if (!res.ok) throw new Error('Failed to add favorite recipe')
+            if (!res.ok) throw new Error(res.statusText || 'Failed to add favorite recipe')
 
             const userRecipes = await res.json()
             return userRecipes
