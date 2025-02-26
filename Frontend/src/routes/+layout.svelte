@@ -1,11 +1,13 @@
 <script lang="ts">
 	import '../app.css';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 	import { Navbar, NavLi, NavUl, NavHamburger, NavBrand } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
 	import { browser } from '$app/environment';
+	import { showToast } from '$lib/stores/alertStore';
+	import CustomToast from '$lib/components/CustomToast.svelte';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
@@ -13,13 +15,22 @@
 	onMount(async () => {
 		userHandler.checkAuthenticated();
 		userHandler.checkSessionExpiration();
-		console.log('Preloading recipes');
 
-		try {
-			await recipeHandler.getRecipes(null);
-		} catch (e) {
-			console.error(e as Error);
-		}
+
+		console.log('Preloading recipes');
+		recipeHandler.getRecipes(null).catch((e) => {
+			console.log('Recipe fetch error:', e); // Debug log
+		});
+
+		const intervalId = setInterval(async () => {
+			if (!browser) return;
+			if (!authenticated) return;
+			try {
+				await userHandler.refreshToken();
+			} catch (e) {
+				console.log('Token refresh error:', e); // Debug log
+			}
+		}, 60000);
 	});
 
 	function handlerSignOut() {
@@ -44,6 +55,7 @@
 		</NavUl>
 	</Navbar>
 	<main>
+		<CustomToast />
 		{@render children()}
 	</main>
 </div>
@@ -53,6 +65,7 @@
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
+		position: relative;
 	}
 
 	main {

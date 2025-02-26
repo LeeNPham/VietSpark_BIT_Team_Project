@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { Button, Input, Spinner, Tooltip } from 'flowbite-svelte';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
+	import { userStore } from '$lib/stores/userStore';
 	import { derived } from 'svelte/store';
 
 	// For searching
-	let searchType = 'ingredients'; // default: search by name, other: by ingredients
+	let authenticated: boolean = false;
+	userStore.subscribe((user) => {
+		authenticated = user.authenticated;
+	});
+
+	let searchType = authenticated ? 'ingredients' : 'name'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
 	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
@@ -16,7 +22,7 @@
 				await recipeHandler.getRecipes(null);
 				return;
 			} catch (e) {
-				console.error((e as Error).message)
+				console.error((e as Error).message);
 			}
 		}
 
@@ -26,7 +32,7 @@
 			} else if (searchType === 'ingredients') {
 				//regex to remove all commas and special characters
 				searchQuery = searchQuery.replace(/[^a-zA-Z0-9 ]/g, '');
-				console.log('searchQuery',searchQuery);
+				console.log('searchQuery', searchQuery);
 				await recipeHandler.searchRecipesGPT(searchQuery.trim());
 
 				await new Promise((resolve) => setTimeout(resolve, 13000));
@@ -44,16 +50,28 @@
 </script>
 
 <div class="flex flex-col justify-normal p-2 sm:p-2 md:p-5 lg:p-7">
-	<h1 class="mb-6 sm:mb-6 md:mb-8 lg:mb-10 text-xl sm:text-xl md:text-3xl lg:text-4xl text-secondary-forest">What would you like to cook? </h1>
-	<Tooltip>Select from an AI-Generated Recipe or choose from our collection of curated recipes.</Tooltip>
+	<h1
+		class="text-secondary-forest mb-6 text-xl sm:mb-6 sm:text-xl md:mb-8 md:text-3xl lg:mb-10 lg:text-4xl"
+	>
+		What would you like to cook?
+	</h1>
+	<Tooltip
+		>Select from an AI-Generated Recipe or choose from our collection of curated recipes.</Tooltip
+	>
 
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
-		<label class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl">
-			<input type="radio" bind:group={searchType} value="ingredients" />
-			<span> AI Generated Recipe </span>
-		</label>
-		<label class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl">
+		{#if authenticated}
+			<label
+				class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl"
+			>
+				<input type="radio" bind:group={searchType} value="ingredients" />
+				<span> AI Generated Recipe </span>
+			</label>
+		{/if}
+		<label
+			class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl"
+		>
 			<input type="radio" bind:group={searchType} value="name" />
 			<span>Search by name</span>
 		</label>
@@ -71,11 +89,11 @@
 			placeholder={searchType === 'name'
 				? 'Enter recipe name'
 				: 'Enter 5 ingredients to generate a recipe'}
-			class="outline-secondary-green rounded-2xl text-sm sm: md:text-lg lg:text-xl outline"
+			class="outline-secondary-green sm: rounded-2xl text-sm outline md:text-lg lg:text-xl"
 		/>
 		<Button
 			on:click={handleSearchSubmit}
-			class="bg-primary-green outline-secondary-green rounded-2xl text-sm text-black outline p-2"
+			class="bg-primary-green outline-secondary-green rounded-2xl p-2 text-sm text-black outline"
 			>Search</Button
 		>
 	</div>

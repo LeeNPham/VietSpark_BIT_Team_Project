@@ -15,16 +15,16 @@ export const userHandler = {
         try {
             const res = await fetch(`${API_URL}/login`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData),
             });
 
-            if (!res.ok) throw new Error("Failed to login");
+            if (!res.ok) throw new Error(res.statusText);
 
             const newUser = await res.json();
 
             // Store token in HttpOnly cookie for security
-            document.cookie = `authToken=${newUser.token}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`; 
+            document.cookie = `authToken=${newUser.token}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
 
             // Store non-sensitive data in localStorage
             localStorage.setItem('authenticated', 'true');
@@ -62,33 +62,63 @@ export const userHandler = {
         if (expiresAt && Date.now() > parseInt(expiresAt)) {
             userHandler.signOut();
         }
-    }, 
+    },
 
     // TODO: add refresh token api on backend and then add function on frontend
-    // refreshToken: async(refreshToken: string) => {
-    //     try {
+    refreshToken: async () => {
+        try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+                throw new Error("Refresh token is undefined");
+            }
+            const res = await fetch(`${API_URL}/refresh_token`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refreshToken: refreshToken }),
+            });
 
-    //     } catch (e) {
-    //         console.error("Failed to refresh token", (e as Error).message);
-    //         localStorage.clear();
+            if (!res.ok) throw new Error(res.statusText || "Failed to refresh token");
 
-    //     }
-    // }, 
+            const newUser = await res.json();
+            document.cookie = `authToken=${newUser.idToken}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
+            localStorage.setItem('authenticated', 'true');
+            localStorage.setItem('userId', newUser.localId);
+            localStorage.setItem('idToken', newUser.idToken);
+            localStorage.setItem('refreshToken', newUser.refreshToken)
+            const expiresAt = new Date().getTime() + newUser.expiresIn * 1000;
+            localStorage.setItem('expiresAt', expiresAt.toString());
+            
+            userStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                authenticated: true,
+                currentUser: newUser
+            }));
+            return newUser;
+
+        } catch (e) {
+            console.error("Failed to refresh token", (e as Error).message);
+            localStorage.clear();
+            userStore.update((state) => ({
+                ...state,
+                isLoading: false,
+                authenticated: false,
+                currentUser: null,
+            }));
+            throw e;
+        }
+    },
 
     signup: async (userData: UserSignUpDTO) => {
         try {
             const res = await fetch(`${API_URL}/authentication`, {
                 method: 'POST',
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
-            if (!res.ok) throw new Error(`Failed to sign up`);
-            const user = await res.json();
-            userStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                currentuser: user
-            }));
+            if (!res.ok) throw new Error(res.statusText);
+            
+            userHandler.login({ email: userData.email, password: userData.password });
 
         } catch (error) {
             console.error((error as Error).message);
@@ -98,7 +128,7 @@ export const userHandler = {
     getUsers: async () => {
         try {
             const res = await fetch(`${API_URL}/users`);
-            if (!res.ok) throw new Error("Failed to fetch users");
+            if (!res.ok) throw new Error(res.statusText);
 
             const users = await res.json();
         } catch (e) {
@@ -113,7 +143,7 @@ export const userHandler = {
                 isLoading: true,
             }))
             const res = await fetch(`${API_URL}/users/${userId}`)
-            if (!res.ok) throw new Error(`Failed to fetch user ${userId} information`);
+            if (!res.ok) throw new Error(res.statusText);
             const user = await res.json();
             userStore.update((state) => ({
                 ...state,
@@ -134,13 +164,13 @@ export const userHandler = {
         try {
             const res = await fetch(`${API_URL}/users/recipes_allergies/${userData.user_id}`, {
                 method: 'PUT',
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
 
-            if (!res.ok) throw new Error(`Failed to update user ${userData.user_id} recipe info`);
+            if (!res.ok) throw new Error(res.statusText);
             const updatedUser = await res.json();
-            userStore.update((state) =>( {
+            userStore.update((state) => ({
                 ...state,
                 isLoading: false,
                 currentUser: updatedUser
@@ -162,7 +192,7 @@ export const userHandler = {
                 ...state,
                 isLoading: true,
             }));
-        
+
             const idToken = localStorage.getItem('idToken');
             if (!idToken) {
                 throw new Error("idToken is undefined");
@@ -171,12 +201,12 @@ export const userHandler = {
             console.log("Updating user", userData);
             const res = await fetch(`${API_URL}/users/update_all?id_token=${idToken}`, {
                 method: 'PUT',
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
-            if (!res.ok) throw new Error(`Failed to update user ${userData.user_id} recipe info`);
+            if (!res.ok) throw new Error(res.statusText);
             const updatedUser = await res.json();
-            userStore.update((state) =>( {
+            userStore.update((state) => ({
                 ...state,
                 isLoading: false,
                 currentUser: updatedUser
@@ -186,11 +216,11 @@ export const userHandler = {
             throw error;
         }
     },
-    deleteuser: () => {},
+    deleteuser: () => { },
 
     signOut: () => {
         localStorage.clear();
-        document.cookie = "authToken=; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"; 
+        document.cookie = "authToken=; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0";
         userStore.update((state) => ({
             ...state,
             isLoading: false,
@@ -251,9 +281,9 @@ export const userHandler = {
 
 export function getLSUserData() {
     const userData: { [key: string]: string | null } = {};
-    for(let i = 0; i < localStorage.length; i++){
+    for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key){
+        if (key) {
             const value = localStorage.getItem(key);
             userData[key] = value
         }
