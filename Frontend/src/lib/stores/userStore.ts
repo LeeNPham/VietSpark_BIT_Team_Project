@@ -19,9 +19,9 @@ export const userHandler = {
                 body: JSON.stringify(userData),
             });
 
-            if (!res.ok) throw new Error(res.statusText);
-
             const newUser = await res.json();
+            if (!res.ok) throw new Error(newUser?.detail || res.statusText);
+
 
             // Store token in HttpOnly cookie for security
             document.cookie = `authToken=${newUser.token}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
@@ -71,15 +71,14 @@ export const userHandler = {
             if (!refreshToken) {
                 throw new Error("Refresh token is undefined");
             }
-            const res = await fetch(`${API_URL}/refresh_token`, {
+            const res = await fetch(`${API_URL}/refresh_token?refresh_token=${refreshToken}`, {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ refreshToken: refreshToken }),
             });
 
-            if (!res.ok) throw new Error(res.statusText || "Failed to refresh token");
-
             const newUser = await res.json();
+            if (!res.ok) throw new Error(newUser?.detail || res.statusText || "Failed to refresh token");
+
             document.cookie = `authToken=${newUser.idToken}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
             localStorage.setItem('authenticated', 'true');
             localStorage.setItem('userId', newUser.localId);
@@ -116,7 +115,8 @@ export const userHandler = {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
-            if (!res.ok) throw new Error(res.statusText);
+            const result = await res.json();
+            if (!res.ok) throw new Error(result?.detail || res.statusText);
             
             userHandler.login({ email: userData.email, password: userData.password });
 
@@ -128,9 +128,9 @@ export const userHandler = {
     getUsers: async () => {
         try {
             const res = await fetch(`${API_URL}/users`);
-            if (!res.ok) throw new Error(res.statusText);
-
             const users = await res.json();
+            if (!res.ok) throw new Error(users?.detail || res.statusText);
+
         } catch (e) {
             console.error((e as Error).message);
             throw e;
@@ -143,8 +143,8 @@ export const userHandler = {
                 isLoading: true,
             }))
             const res = await fetch(`${API_URL}/users/${userId}`)
-            if (!res.ok) throw new Error(res.statusText);
             const user = await res.json();
+            if (!res.ok) throw new Error(user?.detail || res.statusText);
             userStore.update((state) => ({
                 ...state,
                 isLoading: false,
