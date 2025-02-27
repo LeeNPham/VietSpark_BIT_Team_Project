@@ -26,8 +26,6 @@
 			if (recipesLS?.includes(recipeId)) {return alert('Recipe already already favorited')}
 		try {
 			await recipeHandler.favoriteRecipe(recipeId)
-			let userRecipes = recipesLS +"," + recipeId
-			localStorage.setItem('recipes', userRecipes)
             alert('Recipe added to favorites');
         } catch (e) {
             alert((e as Error).message);
@@ -59,6 +57,19 @@
 				<li>{i + 1}. {instruction}</li>
 			{/each}
 		</ol>
+		<h2 class="mt-6 text-lg font-semibold text-blue-500">Created by:</h2>
+        {#if recipe.author}
+            <div class="flex">
+                <div class="relative group">
+                    <div class="w-10 h-10 overflow-hidden border-green-300 p-0 rounded-full">
+                        <img class="w-full h-full object-cover" src={"https://storage.googleapis.com/chat-app-react-and-firebase.appspot.com/profileImages/" + recipe.author} alt="Profile image of {recipe.author}">
+                    </div>
+                    <div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                        {recipe.author}
+                    </div>
+                </div>
+            </div>
+        {/if}
 	</div>
 	<Button
 		class="mb-3 py-2 font-sans text-lg font-semibold text-white rounded-full bg-secondary-forest hover:bg-secondary-blue hover:text-black hover:outline hover:outline-secondary-forest whitespace-nowrap"
