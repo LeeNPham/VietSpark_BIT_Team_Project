@@ -6,6 +6,7 @@
 	import type { UserDTO } from '$lib/types';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 	import { customStyles } from '$src/custom';
+	import ChangeProfileImageModal from '$lib/components/ChangeProfileImageModal.svelte';
 
 	export let userId: string | null;
 	export let user: UserDTO | null;
@@ -18,6 +19,15 @@
 	let newAllergy = '';
 	let myRecipes: string[] = [];
 	let showFavorites = true;
+	let profileImageURL = '';
+	let showProfileImageModal = false;
+    let profileImagePreview: string | null = null;
+	let imageRefreshed = false;
+
+    function toggleProfileImageModal() {
+        showProfileImageModal = !showProfileImageModal;
+        profileImagePreview = null;
+    }
 
 	async function fetchUserInfo() {
 		try {
@@ -55,6 +65,8 @@
 			phoneNumber = user?.phoneNumber ?? '';
 			allergies = user?.allergies ?? [];
 			myRecipes = user?.recipes ?? [];
+			userId = store?.userId ?? '';
+			profileImageURL = user?.profileImageURL ?? '';
 		}
 	});
 
@@ -110,12 +122,36 @@
 		phoneNumber = user?.phoneNumber ?? '';
 		allergies = user?.allergies ?? [];
 		myRecipes = user?.recipes ?? [];
+		profileImageURL = user?.profileImageURL ?? '';
 		goto('/');
 	}
+
+    function handleImageLoad(event: Event) {
+        const img = event.target as HTMLImageElement;
+        if (!imageRefreshed) {
+			img.src = img.src.split('?')[0] + '?' + new Date().getTime();
+			imageRefreshed = true; // Set the flag to true after refreshing the image
+        }
+    }
+
 	onMount(fetchUserInfo);
 </script>
 
 {#if authenticated && user}
+	<div class="flex">
+		<div class="relative group">
+			<button 
+				class="w-20 h-20 overflow-hidden border-green-300 p-0 rounded-full"
+				on:click={toggleProfileImageModal}>
+				<img class="w-full h-full object-cover" src={profileImageURL} on:load={handleImageLoad} alt={profileImageURL}>
+			</button>
+			<div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+				Click to change Image
+			</div>
+		</div>
+	</div>
+	<ChangeProfileImageModal {toggleProfileImageModal} {showProfileImageModal}/>
+	
 	<div class="mt-6 flex gap-3">
 		<div class="flex flex-1 flex-col space-y-3">
 			<p class={customStyles.userP}>Name</p>
