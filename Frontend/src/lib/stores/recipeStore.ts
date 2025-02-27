@@ -15,9 +15,10 @@ export const recipeStore = writable({
 
 export const recipeHandler = {
     addRecipe: async (recipeData: RecipeAddDTO) => {
+        const idToken = localStorage.getItem("idToken")
         try {
             console.log("Adding new recipe");
-            const res = await fetch(`${API_URL}/recipes`, {
+            const res = await fetch(`${API_URL}/recipes/add_recipe/?id_token=${idToken}`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -93,7 +94,6 @@ export const recipeHandler = {
 
     searchRecipesGPT: async (ingredients: string) => {
         const userLS = getLSUserData();
-        console.log(userLS)
         if (!userLS.idToken) {throw new Error("User is not signed in");}
 
         if (!ingredients.trim()) throw new Error("There is no ingredients");

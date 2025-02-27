@@ -135,7 +135,7 @@ async def add_user_data(user_id, signup_data):
             "userEmail": signup_data.email,
             "userName": signup_data.userName,
             "phoneNumber": signup_data.phoneNumber or "",
-            "profileImageURL": "",
+            "profileImageURL": "https://storage.googleapis.com/chat-app-react-and-firebase.appspot.com/profileImages/default_avatar.jpg",
             "description": "",
             "recipes": [],
             "allergies": []
@@ -278,6 +278,9 @@ async def update_all_u_d(user_data):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+
+
+
 async def new_recipe(recipe, user_added):
     ingredient_data = []
     searchable_ingredient = [] 
@@ -400,7 +403,7 @@ async def GPT_to_recipe(ingredients, allergies):
     }}
     I will provide you a list of ingredients, and you will always respond with your best recommendation for a Vietnamese recipe. Here are the ingredients I have:
     {{Ingredients}}
-    I will also provide you a list of allergies, and you will always not including them in the recipe. It is very critical to not include any of them.
+    I will also provide you a list of allergies, and you will not including them in the recipe. It is very critical to not include any of them.
     {{Allergies}}
 
     Respond only with the JSON format as described above.
@@ -415,10 +418,6 @@ async def GPT_to_recipe(ingredients, allergies):
         store=True,  # Specify the model to use
         messages = messages       # Pass the conversation history
     )
-
-    if not response.choices or not response.choices[0].message.content:
-        raise ValueError("Received empty or invalid response from OpenAI.")
-    
 
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
@@ -491,19 +490,20 @@ async def image_to_storage(file, name):
     image_data = img_compression(image_data)
     try:
         bucket = storage.bucket()
-        # Upload the image to Firebase Storage
         if name:
-            print(name)
-            blob = bucket.blob(f"images/{name}")
+            # if "default_avatar" not in name:
+            #     delete_blob = bucket.blob(f"profileImages/{name}")
+            #     delete_blob.delete()
+            #     print("deleted")
+            blob = bucket.blob(f"profileImages/{name}")
         else:
             blob = bucket.blob(f"images/{file.filename}")
         blob.upload_from_file(image_data, content_type='image/jpeg')
+        # url = blob.generate_signed_url(version='v4', expiration=3600, method='GET')
         # Make the file publicly accessible (optional)
         blob.make_public()
-        # Get the public URL of the uploaded image
         image_url = blob.public_url
-        # Clean up the temporary file
-        # os.remove(temp_file_path)
+        print(image_url)
         return image_url
 
     except Exception as e:

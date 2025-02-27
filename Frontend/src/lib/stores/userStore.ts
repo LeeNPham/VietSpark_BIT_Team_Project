@@ -202,7 +202,49 @@ export const userHandler = {
         const isAuthenticated = localStorage.getItem('authenticated') === 'true';
         userStore.update(state => ({ ...state, authenticated: isAuthenticated }));
         return isAuthenticated;
-      },
+    },
+
+    uploadProfileImage: async (image: File) => {
+        const idToken = localStorage.getItem('idToken');
+        if (!idToken) {
+            throw new Error("User is not signed in");
+        }
+        try {
+            const formData = new FormData();
+            formData.append("file", image);
+            const res = await fetch(`${API_URL}/upload-image/file/?id_token=${idToken}`, {
+                method: "PUT",
+                body: formData,
+            });
+            if (!res.ok) throw new Error("Failed to upload image");
+    
+            const data = await res.json();
+            const imageUrl = data; // Assuming the response contains the image URL
+    
+            // Update currentUser in the local store without using get()
+            let updatedUser: typeof data | undefined;
+            userStore.update((store) => {
+                if (store.currentUser) {
+                    updatedUser = { ...store.currentUser, profileImageURL: imageUrl };
+                    return { ...store, currentUser: updatedUser };
+                }
+                return store;
+            });
+			let userId = localStorage.getItem('userId');
+			updatedUser.user_id = userId
+            console.log("updateUser: ", updatedUser)
+            // If we have an updated user, update the backend as well
+            if (updatedUser) {
+                await userHandler.updateUserDetail(updatedUser);
+            }
+            return imageUrl;
+        } catch (error) {
+            console.error("Image upload failed", (error as Error).message);
+            throw error;
+        }
+    }
+    
+    
 }
 
 

@@ -106,7 +106,6 @@ async def delete_user(user_id: str):
 
 
 @app.put("/users/recipes_allergies/{user_id}", tags=['Users'])
-# async def update_user_recipes_allergies(user_id: Optional[str], recipes: Optional[list[str]] = None, allergies: Optional[list[str]] = None):
 async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesModel, id_token: str):
     try:
         if not user_data.recipes and not user_data.allergies:
@@ -140,13 +139,14 @@ async def update_all_user_data(user_data: allUserDataModel, id_token: str = Quer
     return await update_all_u_d(user_data)
 
 
-#only jpeg at the moment
 @app.put("/users/profile_image/", tags=["Users"])
 async def user_profile_image(file: UploadFile = File(...), id_token: str = Query(...)):
     user_verify = await verify_id_token(id_token)
     uid = user_verify['user_id']
+    # name = uid + str(int(time.time() * 1000))
     profile_image_url = await image_to_storage(file, uid)
     user_collection.document(uid).update({"profileImageURL": profile_image_url})
+    return await get_document(user_collection.document(user_id.strip()), details=True)
     return profile_image_url
 
 
@@ -168,9 +168,9 @@ async def get_recipe_by_id(recipe_id: str):
     return await search_recipe_by_id(recipe_id)
 
 
-@app.post("/recipes", tags=['Recipes'])
+@app.post("/recipes/add_recipe", tags=['Recipes'])
 async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
-    verify_id_token(id_token)
+    await verify_id_token(id_token)
     recipe_id = await new_recipe(recipe, user_added = True)
     await update_user_r_a(recipe.author, [recipe_id], None)
     return recipe_id
@@ -180,9 +180,6 @@ async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
 @app.get("/GPT_ingredients_to_recipe/", tags=['GPT'])
 async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str,  id_token: str = Query(...), allergies: str = Query(...)):
     user_verify = await verify_id_token(id_token)
-    # uid = user_verify['user_id']
-    # user_data = await get_document(user_collection.document(str(uid)))
-    # allergies = " ".join(user_data['allergies'])
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         if check_ingredients != []:
@@ -225,10 +222,14 @@ async def get_image(file_name: str):
     # return FileResponse(image_path)
 
 
-@app.post("/upload-image/file", tags=['Experimental'])
+@app.put("/upload-image/file", tags=['Experimental'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...)):
     user_verify = await verify_id_token(id_token)
-    return await image_to_storage(file, None)
+    uid = user_verify['user_id']
+    # name = uid + str(int(time.time() * 1000))
+    profile_image_url = await image_to_storage(file, uid)
+    print(profile_image_url)
+    return profile_image_url
 
 
 @app.post("/upload-image/{url}", tags=['Experimental'])

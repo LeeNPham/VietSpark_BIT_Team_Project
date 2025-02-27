@@ -16,10 +16,8 @@
 	// make sure to organize the recipes based on how recent it was created. this means we will need a createdAt attribute that uses new Date().toISOString()
 	$: if (myRecipes.length > 0 || showFavorites) {
 		myRecipesData = recipes.filter((recipe) => myRecipes.includes(recipe.recipe_id));
-		console.log('myRecipesData', myRecipesData);
 	} else {
 		myRecipesData = recipes;
-		console.log('myRecipesData', myRecipesData);
 	} 
 
 	// look into fuze.js for better search functionality, this includes details on how to implement a fuzzy
