@@ -12,7 +12,6 @@ export const imageHandler = {
                 method: "POST",
                 body: formData,
             });
-            console.log(savePath)
 
             if (!res.ok) throw new Error("Failed to upload image");
             const imageUrl = await res.json();

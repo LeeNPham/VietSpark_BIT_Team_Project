@@ -221,6 +221,7 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
 @app.post("/upload-image/file", tags=['Images'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
     user_verify = await verify_id_token(id_token)
+
     try:
         profile_image_url = await image_to_storage(file, save_path)
         return profile_image_url
