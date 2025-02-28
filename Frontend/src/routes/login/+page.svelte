@@ -37,7 +37,7 @@
     </div>
     <div class={customStyles.authMain}>
         <div class={customStyles.authDiv}>
-            <h1 class={customStyles.userH1}>User Sign-In</h1>
+            <h1 class={customStyles.userH1}>Welcome Back!</h1>
             {#if errorMessage}
                 <p class={customStyles.error}>{errorMessage}</p>
             {/if}

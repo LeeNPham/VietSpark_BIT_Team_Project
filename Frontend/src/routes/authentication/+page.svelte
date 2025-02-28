@@ -27,7 +27,7 @@
 
 <div class={customStyles.authMain2}>
 	<div class={customStyles.authDiv}>
-		<h1 class={customStyles.userH1}> Create Account</h1>
+		<h1 class={customStyles.userH1}>Sign Up</h1>
 
 		{#if errorMessage}
 			<p class={customStyles.error}>{errorMessage}</p>
