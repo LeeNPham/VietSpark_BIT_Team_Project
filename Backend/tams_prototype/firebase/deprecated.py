@@ -270,11 +270,13 @@ async def user_added_recipe(recipe: RecipeModel):
     response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
     response["img_url"] = GPT_img_url
 
+    
 
+    # uid = user_verify['user_id']
+    # name = uid + str(int(time.time() * 1000))
 
-
-
-
+    # url = blob.generate_signed_url(version='v4', expiration=3600, method='GET')
+    # Make the file publicly accessible (optional)
 
 
 

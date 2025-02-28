@@ -18,7 +18,8 @@ export interface RecipeDetailDTO {
     servings: number,
     ingredients: { ingredientAmount: string, ingredientName: string }[];
     instructions: string[],
-    author: string,
+    author_id: string,
+    author_name: string,
 }
 export interface RecipeAddDTO {
     name: string,

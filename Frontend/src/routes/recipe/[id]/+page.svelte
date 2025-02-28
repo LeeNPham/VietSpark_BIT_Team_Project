@@ -57,15 +57,15 @@
 				<li>{i + 1}. {instruction}</li>
 			{/each}
 		</ol>
-		<h2 class="mt-6 text-lg font-semibold text-blue-500">Created by:</h2>
-        {#if recipe.author}
+        {#if recipe.author_name}
+			<h2 class="mt-6 text-lg font-semibold text-blue-500">Created by:</h2>
             <div class="flex">
                 <div class="relative group">
                     <div class="w-10 h-10 overflow-hidden border-green-300 p-0 rounded-full">
-                        <img class="w-full h-full object-cover" src={"https://storage.googleapis.com/chat-app-react-and-firebase.appspot.com/profileImages/" + recipe.author} alt="Profile image of {recipe.author}">
+                        <img class="w-full h-full object-cover" src={"https://storage.googleapis.com/chat-app-react-and-firebase.appspot.com/profileImages/" + recipe.author_id} alt="Profile image of {recipe.author_id}">
                     </div>
                     <div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                        {recipe.author}
+                        {recipe.author_name}
                     </div>
                 </div>
             </div>
