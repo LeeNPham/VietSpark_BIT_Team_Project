@@ -25,7 +25,6 @@
 	function handlerSignOut() {
 		userHandler.signOut();
 	}
-
 </script>
 
 <div class="app">
@@ -36,9 +35,11 @@
 		<NavHamburger />
 		<NavUl>
 			<NavLi href="/" class={customStyles.aTag}>Home</NavLi>
-			<NavLi href="/user" class={customStyles.aTag}>User</NavLi>
 			{#if authenticated}
-			<NavLi href="/" class={customStyles.aTag} on:click={handlerSignOut}>Sign out</NavLi>
+				<NavLi href="/user" class={customStyles.aTag}>User</NavLi>
+				<NavLi href="/" class={customStyles.aTag} on:click={handlerSignOut}>Sign out</NavLi>
+			{:else}
+				<NavLi href="/login" class={customStyles.aTag}>Login</NavLi>
 			{/if}
 		</NavUl>
 	</Navbar>
