@@ -206,12 +206,14 @@ export const userHandler = {
 
     uploadProfileImage: async (image: File) => {
         const idToken = localStorage.getItem('idToken');
+        var userId = localStorage.getItem('userId')
         if (!idToken) {throw new Error("User is not signed in");}
-        const savePath = `profileImages/${image.name}`;
+        const savePath = `profileImages/${userId}`;
+
         try {
             const formData = new FormData();
             formData.append("file", image);
-            const res = await fetch(`${API_URL}/upload-image/file?id_token=${idToken}&savePath=${savePath}`, {
+            const res = await fetch(`${API_URL}/upload-image/file?id_token=${idToken}&save_path=${savePath}`, {
                 method: "POST",
                 body: formData,
             });
