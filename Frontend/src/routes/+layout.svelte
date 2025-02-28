@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { userHandler, userStore } from '$lib/stores/userStore';
-	import { Navbar, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+	import { Navbar, NavLi, NavUl, NavHamburger, NavBrand } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
 	import { browser } from '$app/environment';
 
@@ -30,7 +30,9 @@
 
 <div class="app">
 	<Navbar class={customStyles.navBar} style="background-color:#ecf3fe;">
-		<img src="/VS_CHEF.png" class="h-20" alt="Flowbite Logo" />
+		<NavBrand href="/">
+			<img src="/VS_CHEF.png" class="h-20" alt="Flowbite Logo" />
+		</NavBrand>
 		<NavHamburger />
 		<NavUl>
 			<NavLi href="/" class={customStyles.aTag}>Home</NavLi>

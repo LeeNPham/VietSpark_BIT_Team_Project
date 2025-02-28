@@ -11,4 +11,11 @@ export const customStyles = {
     input: "mb-3 w-full rounded-full border p-2",
     userP: "p-2 mt-4 text-2xl font-semibold text-secondary-forest",
     button:"m-4 rounded-2xl bg-secondary-green p-2 text-white outline outline-secondary-forest",
+    inputBox: "rounded-2xl outline-secondary-green  outline",
+    recipeResponsive: "text-xs sm:text-zz md:text-lg lg:text-lg",
+    recipeHeader: "text-sm sm:text-sm md:text-lg lg:text-2xl font-semibold text-secondary-forest",
+    recipeh2: "text-sm sm:text-sm md:text-lg lg:text-xl font-semibold text-secondary-forest",
+    recipeButton: "text-xs sm:text-sm md:text-md lg:text-md rounded-2xl bg-secondary-green p-2 text-white outline outline-secondary-forest ml-2",
+    recipeRemove: "text-xs sm:text-sm md:text-lg lg:text-lg rounded-2xl bg-secondary-forest p-2 text-white outline outline-secondary-green",
+
 };

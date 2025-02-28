@@ -38,6 +38,7 @@ export default {
 				secondary:{
 					'green': '#5ca11a', //Medium Green
 					'blue': '#CCE5E3',// blue
+					'light-blue':'#ecf3fe',//light blue
 					'forest':'#263d27'//forest green
 
 				},
