@@ -170,8 +170,8 @@ async def get_recipe_by_id(recipe_id: str):
 
 @app.post("/recipes/add_recipe", tags=['Recipes'])
 async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
-    await verify_id_token(id_token)
-    recipe_id = await new_recipe(recipe, user_added = True)
+    user_verify = await verify_id_token(id_token)
+    recipe_id = await new_recipe(recipe, user_verify['uid'], user_verify['name'], user_added = True)
     await update_user_r_a(recipe.author, [recipe_id], None)
     return recipe_id
 
@@ -186,7 +186,8 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
             return check_ingredients
         
         response_list = await GPT_to_recipe(ingredients, allergies)
-        response = await new_recipe(response_list[1], user_added = False)
+        response = await new_recipe(response_list[1], user_verify['uid'], user_verify['name'], user_added = False)
+
         # if user_id:
         #     await update_user_r_a(user_id, [response["recipe_id"]], None)
         background_tasks.add_task(GPT_image, response_list[0], response['recipe_id'])
@@ -203,33 +204,29 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
     
     except Exception as e:
         print(f"Error in ingredients_to_GPT: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating recipe: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
 
+
+
+
+@app.post("/upload-image/file", tags=['Images'])
+async def upload_image(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    try:
+        profile_image_url = await image_to_storage(file, save_path)
+        return profile_image_url
+    except Exception as e:
+        print(f"Error uploading image: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
 
 
 
 
 @app.get("/get_image_url/{file_name}", tags=['Experimental'])
 async def get_image(file_name: str):
-# async def get_image():
     img_url = await get_image_from_firebase(file_name)
     return img_url
-    # return StreamingResponse(img, media_type="image/jpeg", filename=file_name)
-    
-    # image_path = Path(r"C:\Users\t\Desktop\1683115847268.jpg")
-    # if not image_path.is_file():
-    #     return {"error": "Image not found on the server"}
-    # return FileResponse(image_path)
 
-
-@app.put("/upload-image/file", tags=['Experimental'])
-async def upload_image(file: UploadFile = File(...), id_token: str = Query(...)):
-    user_verify = await verify_id_token(id_token)
-    uid = user_verify['user_id']
-    # name = uid + str(int(time.time() * 1000))
-    profile_image_url = await image_to_storage(file, uid)
-    print(profile_image_url)
-    return profile_image_url
 
 
 @app.post("/upload-image/{url}", tags=['Experimental'])

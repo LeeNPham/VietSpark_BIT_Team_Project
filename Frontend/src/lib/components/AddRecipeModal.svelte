@@ -41,6 +41,7 @@
 		allowUploadImage = true;
 		try {
 			newImageLink = await imageHandler.uploadFile(newImageFile);
+			console.log(newImageLink)
 		} catch (e) {
 			console.error('Failed to upload image', e);
 			alert('Image upload failed. Please try again');

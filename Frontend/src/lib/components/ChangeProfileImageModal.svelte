@@ -11,7 +11,6 @@
     userStore.subscribe((store) => {
         user = store?.currentUser;
         profileImageURL = store?.currentUser?.profileImageURL;
-        console.log("imgURL" ,profileImageURL)
     });
 
     async function uploadProfileImage() {

@@ -281,7 +281,7 @@ async def update_all_u_d(user_data):
 
 
 
-async def new_recipe(recipe, user_added):
+async def new_recipe(recipe, uid, author, user_added):
     ingredient_data = []
     searchable_ingredient = [] 
     for ingredient in recipe.ingredients:
@@ -312,11 +312,14 @@ async def new_recipe(recipe, user_added):
         "calories": recipe.calories,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
-        "creation_time": creation_time
+        "creation_time": creation_time,
     }
-
-    if recipe.author:
-        recipe_data['author'] = recipe.author
+    if user_added == True:
+        recipe_data['author_id'] = uid
+        recipe_data['author_name'] = author
+    else:
+        recipe_data['author_id'] = "VSChef"
+        recipe_data['author_name'] = "VS Chef"
         # recipe_data["searchable_recipe_name"].append(recipe.author)
 
     recipe_doc = recipe_collection.document()
@@ -418,7 +421,6 @@ async def GPT_to_recipe(ingredients, allergies):
         store=True,  # Specify the model to use
         messages = messages       # Pass the conversation history
     )
-
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
     
@@ -435,7 +437,6 @@ async def GPT_to_recipe(ingredients, allergies):
     recipe = RecipeModel.model_validate(recipe_json)
     # messages.append({"role": "assistant", "content": response})
     response_list = [recipe_name, recipe]
-
     return response_list
 
 
@@ -482,25 +483,13 @@ async def image_url_to_storage(url, recipe_id):
     return f"Failed to fetch image from URL: {response.status_code}"
 
 
-async def image_to_storage(file, name):
-    # temp_file_path = f"temp_{file.filename}"
-    # with open(temp_file_path, "wb") as temp_file:
-    #     temp_file.write(await file.read())
+async def image_to_storage(file, path):
     image_data = await file.read()
     image_data = img_compression(image_data)
     try:
         bucket = storage.bucket()
-        if name:
-            # if "default_avatar" not in name:
-            #     delete_blob = bucket.blob(f"profileImages/{name}")
-            #     delete_blob.delete()
-            #     print("deleted")
-            blob = bucket.blob(f"profileImages/{name}")
-        else:
-            blob = bucket.blob(f"images/{file.filename}")
+        blob = bucket.blob(f"{path}")
         blob.upload_from_file(image_data, content_type='image/jpeg')
-        # url = blob.generate_signed_url(version='v4', expiration=3600, method='GET')
-        # Make the file publicly accessible (optional)
         blob.make_public()
         image_url = blob.public_url
         print(image_url)
