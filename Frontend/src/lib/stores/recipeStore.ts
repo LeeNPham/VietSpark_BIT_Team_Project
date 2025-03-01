@@ -18,7 +18,11 @@ export const recipeHandler = {
         const idToken = localStorage.getItem("idToken")
         try {
             console.log("Adding new recipe");
+<<<<<<< HEAD
             const res = await fetch(`${API_URL}/recipes/add_recipe?id_token=${idToken}`, {
+=======
+            const res = await fetch(`${API_URL}/recipes/add_recipe/?id_token=${idToken}`, {
+>>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
