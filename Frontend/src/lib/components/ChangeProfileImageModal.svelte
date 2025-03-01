@@ -12,9 +12,13 @@
         user = store?.currentUser;
         profileImageURL = store?.currentUser?.profileImageURL;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         console.log("imgURL" ,profileImageURL)
 >>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
+=======
+        console.log("imgURL" ,profileImageURL)
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     });
 
     async function uploadProfileImage() {
