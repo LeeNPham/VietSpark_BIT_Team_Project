@@ -11,6 +11,10 @@
     userStore.subscribe((store) => {
         user = store?.currentUser;
         profileImageURL = store?.currentUser?.profileImageURL;
+<<<<<<< HEAD
+=======
+        console.log("imgURL" ,profileImageURL)
+>>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     });
 
     async function uploadProfileImage() {
