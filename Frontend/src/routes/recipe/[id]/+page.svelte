@@ -58,6 +58,7 @@
 			{/each}
 		</ol>
 <<<<<<< HEAD
+<<<<<<< HEAD
         {#if recipe.author_name}
 			<h2 class="mt-6 text-lg font-semibold text-blue-500">Created by:</h2>
             <div class="flex">
@@ -68,6 +69,8 @@
                     <div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                         {recipe.author_name}
 =======
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
 		<h2 class="mt-6 text-lg font-semibold text-blue-500">Created by:</h2>
         {#if recipe.author}
             <div class="flex">
@@ -77,7 +80,10 @@
                     </div>
                     <div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                         {recipe.author}
+<<<<<<< HEAD
 >>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
                     </div>
                 </div>
             </div>
