@@ -313,7 +313,6 @@ async def new_recipe(recipe, uid, author, user_added):
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
         "creation_time": creation_time,
-        "creation_time": creation_time,
     }
     if user_added == True:
         recipe_data['author_id'] = uid
