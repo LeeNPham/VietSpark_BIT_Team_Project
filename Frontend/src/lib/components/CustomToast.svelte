@@ -8,7 +8,6 @@
 	let show: boolean = false;
 
 	toastStore.subscribe((store) => {
-		console.log('Toast store updated:', store);
 		type = store.type;
 		message = store.message;
 		show = store.show;
@@ -17,10 +16,8 @@
 	let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
 	$: if (show) {
-		console.log('Toast should show:', { type, message });
 		clearTimeout(timeoutId);
 		timeoutId = setTimeout(() => {
-			console.log('Hiding toast');
 			hideToast();
 		}, 3000);
 	}
@@ -40,7 +37,6 @@
 	$: toastColor = colorMap[type];
 
 	const handleClose = () => {
-		console.log('Toast close button clicked');
 		clearTimeout(timeoutId);
 		hideToast();
 	};

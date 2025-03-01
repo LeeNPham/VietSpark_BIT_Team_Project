@@ -30,7 +30,7 @@
 			} catch (e) {
 				console.log('Token refresh error:', e); // Debug log
 			}
-		}, 60000);
+		}, 60 *  60 * 1000);
 	});
 
 	function handlerSignOut() {

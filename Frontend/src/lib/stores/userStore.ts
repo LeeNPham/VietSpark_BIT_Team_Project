@@ -7,6 +7,7 @@ export const userStore = writable({
     userId: "",
     authenticated: false,
     currentUser: null as UserDTO | null,
+    recipes: [] as string[],
 });
 
 
@@ -42,7 +43,8 @@ export const userHandler = {
                 isLoading: false,
                 currentUser: newUser,
                 authenticated: true,
-                userId: newUser.localId
+                userId: newUser.localId,
+                recipes: newUser.recipes,
             }));
             return newUser.userId;
         } catch (error) {
@@ -79,31 +81,26 @@ export const userHandler = {
             const newUser = await res.json();
             if (!res.ok) throw new Error(newUser?.detail || res.statusText || "Failed to refresh token");
 
-            document.cookie = `authToken=${newUser.idToken}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
+            document.cookie = `authToken=${newUser.id_token}; path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${newUser.expiresIn}`;
             localStorage.setItem('authenticated', 'true');
-            localStorage.setItem('userId', newUser.localId);
-            localStorage.setItem('idToken', newUser.idToken);
-            localStorage.setItem('refreshToken', newUser.refreshToken)
-            const expiresAt = new Date().getTime() + newUser.expiresIn * 1000;
+            localStorage.setItem('userId', newUser.user_id);
+            localStorage.setItem('idToken', newUser.id_token);
+            localStorage.setItem('accessToken', newUser.access_token);
+            localStorage.setItem('refreshToken', newUser.refresh_token)
+            const expiresAt = new Date().getTime() + parseInt(newUser.expires_in) * 1000;
             localStorage.setItem('expiresAt', expiresAt.toString());
-            
-            userStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                authenticated: true,
-                currentUser: newUser
-            }));
+
             return newUser;
 
         } catch (e) {
             console.error("Failed to refresh token", (e as Error).message);
-            localStorage.clear();
-            userStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                authenticated: false,
-                currentUser: null,
-            }));
+            // localStorage.clear();
+            // userStore.update((state) => ({
+            //     ...state,
+            //     isLoading: false,
+            //     authenticated: false,
+            //     currentUser: null,
+            // }));
             throw e;
         }
     },
@@ -117,7 +114,7 @@ export const userHandler = {
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result?.detail || res.statusText);
-            
+
             userHandler.login({ email: userData.email, password: userData.password });
 
         } catch (error) {
@@ -149,6 +146,7 @@ export const userHandler = {
                 ...state,
                 isLoading: false,
                 currentUser: user,
+                recipes: user.recipes,
             }));
         } catch (e) {
             console.error((e as Error).message);
@@ -158,26 +156,6 @@ export const userHandler = {
                 currentUser: null,
             }));
             throw e;
-        }
-    },
-    updateUserRecipes: async (userData: UserDTO) => {
-        try {
-            const res = await fetch(`${API_URL}/users/recipes_allergies/${userData.user_id}`, {
-                method: 'PUT',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(userData),
-            });
-
-            if (!res.ok) throw new Error(res.statusText);
-            const updatedUser = await res.json();
-            userStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                currentUser: updatedUser
-            }));
-        } catch (error) {
-            console.error((error as Error).message);
-            throw error;
         }
     },
     updateUserDetail: async (userData: UserDTO) => {
@@ -198,7 +176,6 @@ export const userHandler = {
                 throw new Error("idToken is undefined");
             }
 
-            console.log("Updating user", userData);
             const res = await fetch(`${API_URL}/users/update_all?id_token=${idToken}`, {
                 method: 'PUT',
                 headers: { "Content-Type": "application/json" },
@@ -248,10 +225,10 @@ export const userHandler = {
                 body: formData,
             });
             if (!res.ok) throw new Error("Failed to upload image");
-    
+
             const data = await res.json();
             const imageUrl = data; // Assuming the response contains the image URL
-    
+
             // Update currentUser in the local store without using get()
             let updatedUser: typeof data | undefined;
             userStore.update((store) => {
@@ -261,8 +238,8 @@ export const userHandler = {
                 }
                 return store;
             });
-			let userId = localStorage.getItem('userId');
-			updatedUser.user_id = userId
+            let userId = localStorage.getItem('userId');
+            updatedUser.user_id = userId
             console.log("updateUser: ", updatedUser)
             // If we have an updated user, update the backend as well
             if (updatedUser) {
@@ -273,9 +250,63 @@ export const userHandler = {
             console.error("Image upload failed", (error as Error).message);
             throw error;
         }
-    }
+    },
+
+    addFavoriteRecipe: async (recipeId: string) => {
+        const idToken = localStorage.getItem('idToken');
+        if (!idToken) { throw new Error("User is not signed in"); }
+
+        try {
+            const url = `${API_URL}/users/add_favorite/${idToken}?recipe_id=${recipeId}`
+
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error(res.statusText || 'Failed to add favorite recipe')
+
+            const userRecipes = await res.json();
+            userStore.update((state) => ({
+                ...state,
+                recipes: userRecipes
+            }))
+            return userRecipes;
+        } catch (error) {
+            console.error("Error adding favorite recipe", error);
+            throw error
+        }
+    },
+
+    unfavoriteRecipe: async (recipeId: string) => {
+        const idToken = localStorage.getItem('idToken');
+        if (!idToken) { throw new Error("User is not signed in"); }
+        try {
+            const url = `${API_URL}/users/favorite/${idToken}?recipe_id=${recipeId}`
+
+            const res = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!res.ok) throw new Error(res.statusText || 'Failed to remove favorite recipe');
+            const userRecipes = await res.json();
+            userStore.update((state) => ({
+                ...state,
+                recipes: userRecipes
+            }))
+            return userRecipes;
+        } catch (error) {
+            console.error("Error removing favorite recipe", error);
+            throw error
+        }
+    },
+
     
-    
+
 }
 
 

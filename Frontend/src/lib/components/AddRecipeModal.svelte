@@ -100,6 +100,7 @@
 	async function handleAddRecipeSubmit() {
 		if (!authenticated || !userId) {
 			console.log('User is not authenticated');
+			showToast("error", 'Please log in to add a recipe.');
 			return;
 		}
 		const newIngredients = ingredientRows.filter(

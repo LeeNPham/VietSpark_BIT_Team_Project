@@ -131,7 +131,16 @@ async def add_favorite(id_token: str, recipe_id: str):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-
+@app.delete("/users/favorite/{id_token}", tags=["Users"])
+async def remove_favorite(id_token: str, recipe_id: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    uid = user_verify['user_id']
+    try:
+        user_collection.document(uid).update({'recipes': firestore.ArrayRemove([recipe_id])})
+        user_data = await get_document(user_collection.document(uid))
+        return user_data["recipes"]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @app.put("/users/update_all", tags=['Users'])
 async def update_all_user_data(user_data: allUserDataModel, id_token: str = Query(...)):

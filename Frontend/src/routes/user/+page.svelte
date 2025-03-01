@@ -53,7 +53,6 @@
 
 			await userHandler.getUser(userId);
 			authenticated = true;
-			console.log('User is authenticated', user);
 		} catch (e) {
 			console.error((e as Error).message);
 			clearCredentials();

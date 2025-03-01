@@ -6,11 +6,11 @@
 
 	// For searching
 	let authenticated: boolean = false;
-	userStore.subscribe((user) => {
-		authenticated = user.authenticated;
+	userStore.subscribe((state) => {
+		authenticated = state.authenticated;
 	});
 
-	let searchType = authenticated ? 'ingredients' : 'name'; // default: search by name, other: by ingredients
+	let searchType = (authenticated ? 'ingredients' : 'name'); // default: search by name, other: by ingredients
 	let searchQuery = '';
 
 	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
