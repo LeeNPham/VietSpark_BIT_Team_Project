@@ -17,7 +17,6 @@ export const recipeHandler = {
     addRecipe: async (recipeData: RecipeAddDTO) => {
         const idToken = localStorage.getItem("idToken")
         try {
-            console.log("Adding new recipe");
             const res = await fetch(`${API_URL}/recipes/add_recipe?id_token=${idToken}`, {
                 method: 'POST',
                 headers: { 
@@ -127,30 +126,6 @@ export const recipeHandler = {
                 recipes: []
             }))
             throw e;
-        }
-    },
-
-    favoriteRecipe: async (recipeId: string) => {
-        const userLS = getLSUserData()
-        if (!userLS.idToken) {throw new Error("User is not signed in");}
-
-        try {
-            const url = `${API_URL}/users/add_favorite/${userLS.idToken}?recipe_id=${recipeId}`
-
-            const res = await fetch(url,{
-                method: 'PUT',
-                headers:{
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!res.ok) throw new Error(res.statusText || 'Failed to add favorite recipe')
-
-            const userRecipes = await res.json()
-            return userRecipes
-        } catch (error) {
-            console.error("Error adding favorite recipe", error);
-            throw error
         }
     },
 }
