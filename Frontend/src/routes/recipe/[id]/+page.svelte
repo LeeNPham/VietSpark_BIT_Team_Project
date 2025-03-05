@@ -1,18 +1,20 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import type { RecipeDetailDTO } from '$lib/types';
+	import type { RecipeDetailDTO, ReviewDTO } from '$lib/types';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { userStore, userHandler } from '$lib/stores/userStore';
+	import { reviewHandler, reviewStore } from '$lib/stores/reviewStore';
+	import { imageHandler } from '$lib/stores/imageStore';
 	import { Button } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
-	import { reviewHandler } from '$lib/stores/reviewStore';
+	import { count } from 'firebase/firestore';
 
 	let recipe: RecipeDetailDTO | null = null;
 	let recipeId: string;
 	let authenticated = false;
 	let userRecipes: string[] = [];
-	let reviews: any[] = []; // Todo, add review section
+	let reviews: ReviewDTO[] = [];
 	let rating = 0;
 	let reviewText = '';
 	let reviewImages: File[] = [];
@@ -23,6 +25,7 @@
 	async function fetchRecipe() {
 		try {
 			await recipeHandler.getRecipe(recipeId);
+			await reviewHandler.getReviews(recipeId, null, null, null);
 			recipe = $recipeStore.currentRecipe;
 		} catch (e) {
 			showToast('error', (e as Error).message);
@@ -33,6 +36,10 @@
 		authenticated = store?.authenticated ?? false;
 		userRecipes = store?.recipes ?? [];
 		console.log('Current user recipes:', userRecipes);
+	});
+
+	reviewStore.subscribe((store) => {
+		reviews = store?.reviews ?? [];
 	});
 
 	onMount(fetchRecipe);
@@ -63,15 +70,47 @@
 	}
 
 	async function submitReview() {
-		// try {
-		// 	await reviewHandler.submitReview(recipeId, rating, reviewText, reviewImages, reviewVideo);
-		// 	showToast('success', 'Review submitted successfully');
-		// 	reviewText = '';
-		// 	reviewImages = [];
-		// 	reviewVideo = null;
-		// } catch (e) {
-		// 	showToast('error', (e as Error).message);
-		// }
+		if (!authenticated) {
+			showToast('error', 'Please login to submit a review');
+			return;
+		}
+		if (!rating) {
+			showToast('error', 'Please rate the recipe');
+			return;
+		}
+		if (!reviewText) {
+			showToast('error', 'Please write a review');
+			return;
+		}
+
+		try {
+			const reviewImageLinks: string[] = [];
+			let counter = 0;
+			for (const image of reviewImages) {
+				if (!image) continue;
+				if (counter >= 3) break;
+				const link = await imageHandler.uploadFile(image);
+				reviewImageLinks.push(link);
+				counter++;
+			}
+
+			const reviewVideoLink = reviewVideo ? await imageHandler.uploadFile(reviewVideo) : '';
+
+			const reviewData = {
+				rating,
+				content: reviewText,
+				images: reviewImageLinks,
+				video: reviewVideoLink,
+				recipe_id: recipeId
+			};
+			await reviewHandler.submitReview(reviewData);
+			showToast('success', 'Review submitted successfully');
+			reviewText = '';
+			reviewImages = [];
+			reviewVideo = null;
+		} catch (e) {
+			showToast('error', (e as Error).message);
+		}
 	}
 </script>
 
@@ -174,9 +213,9 @@
 			{#each recipe.instructions as instruction, i}
 				<li class="flex items-start font-medium text-gray-800">
 					<span
-						class="mr-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white"
+						class="m-3 p-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 font-mono text-sm font-bold text-white"
 					>
-						{i + 1}
+						{(i + 1).toString().padStart(2, '0')}
 					</span>
 					{instruction}
 				</li>
@@ -185,7 +224,7 @@
 	</div>
 
 	{#if authenticated}
-		<div class="mt-4 rounded-lg bg-gray-50 p-6 shadow">
+		<div class="mt-3 rounded-lg bg-gray-50 p-4 shadow">
 			<h3 class="text-lg font-semibold text-gray-800">Leave a Review</h3>
 
 			<!-- Star Rating -->
@@ -256,7 +295,7 @@
 					<div class="text-yellow-400">{'⭐'.repeat(review.rating)}</div>
 
 					<!-- Review Text -->
-					<p class="mt-1 text-gray-800">{review.text}</p>
+					<p class="mt-1 text-gray-800">{review.content}</p>
 
 					<!-- Display Uploaded Images -->
 					{#if review.images.length > 0}

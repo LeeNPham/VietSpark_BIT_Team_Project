@@ -1,26 +1,38 @@
 import { writable } from "svelte/store";
+import type { ReviewAddDTO, ReviewDTO } from "$lib/types";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const reviewStore = writable({
+interface ReviewState {
+    isLoading: boolean;
+    reviews: ReviewDTO[];
+}
+export const reviewStore = writable<ReviewState>({
     isLoading: true,
     reviews: [],
-    currentReview: null,
-    currentIndex: -1,
 });
+
 export const reviewHandler = {
-    getReviews: async (recipeId: string) => {
+    getReviews: async (recipeId: string, review_id: string | null,  rating: number | null, has_image: boolean | null) => {
         try {
             reviewStore.update((state) => ({
                 ...state,
                 isLoading: true,
             }));
-            const res = await fetch(`${API_URL}/reviews/${recipeId}`);
+            const queryParams = new URLSearchParams();
+            if (review_id) queryParams.append("review_id", review_id);
+            if (rating !== null) queryParams.append("rating", rating.toString());
+            if (has_image !== null) queryParams.append("has_image", has_image.toString());
+            
+            const queryParamsString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+            
+            const res = await fetch(`${API_URL}/reviews/${recipeId}${queryParamsString}`);
             const reviews = await res.json();
             if (!res.ok) throw new Error(reviews?.detail || res.statusText);
             reviewStore.update((state) => ({
                 ...state,
                 isLoading: false,
-                reviews: reviews,
+                reviews: reviews as ReviewDTO[],
             }));
         } catch (e) {
             console.error((e as Error).message);
@@ -32,63 +44,26 @@ export const reviewHandler = {
             throw e;
         }
     },
-    getReview: async (reviewId: string) => {
-        try {
-            reviewStore.update((state) => ({
-                ...state,
-                isLoading: true,
-            }));
-            const res = await fetch(`${API_URL}/reviews/${reviewId}`);
-            const review = await res.json();
-            if (!res.ok) throw new Error(review?.detail || res.statusText);
-            reviewStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                currentReview: review,
-            }));
-        } catch (e) {
-            console.error((e as Error).message);
-            reviewStore.update((state) => ({
-                ...state,
-                isLoading: false,
-                currentReview: null,
-            }));
-            throw e;
-        }
-    },
 
-    submitReviews: async (recipeId: string, rating: number, reviewText: string, reviewImages: File[], reviewVideo: File) => {
-        // TODO: Implement this function
+    submitReview: async (reviewData: ReviewAddDTO) => {
         const idToken = localStorage.getItem('idToken');
         if (!idToken) { throw new Error("User is not signed in"); }
         try {
-            const url = `${API_URL}/reviews/${recipeId}`;
-            const formData = new FormData();
-            formData.append('rating', rating.toString());
-            formData.append('reviewText', reviewText);
-            if (reviewImages.length > 0) {
-                reviewImages.forEach((image) => {
-                    formData.append('reviewImages', image);
-                });
-            }
-
-            if (reviewVideo) {
-                formData.append('reviewVideo', reviewVideo);
-            }
-
+            const url = `${API_URL}/reviews?id_token=${idToken}`;
             const res = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                    // 'Authorization': `Bearer ${idToken}`,
+                },
+                body: JSON.stringify(reviewData),
             });
-            if (!res.ok) throw new Error(res.statusText || 'Failed to submit review');
+
             const newReviews = await res.json();
-            reviewStore.update((state) => ({
-                ...state,
-                reviews: newReviews
-            }))
-            return newReviews;
+            if (!res.ok) throw new Error(newReviews?.detail || 'Failed to submit review');
+            
+            
+            reviewHandler.getReviews(reviewData.recipe_id, null, null, null);
         } catch (error) {
             console.error("Error submitting review", error);
             throw error

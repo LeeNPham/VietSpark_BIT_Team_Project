@@ -69,6 +69,7 @@ mainAuth = firebase.auth()
 ingredient_collection = db.collection("ingredient")
 user_collection = db.collection("user")
 recipe_collection = db.collection("recipe")
+review_collection = db.collection("review")
 print("Firebase initialized successfully!")
 
 
@@ -511,9 +512,50 @@ async def get_image_from_firebase(file_name):
 
 
 
+### Reviews
+async def search_reviews(recipe_id: str, review_id: Optional[str] = None, rating: Optional[int] = None, has_image: Optional[bool] = None):
+    try:
+        query = review_collection.where("recipe_id", "==", recipe_id)
+        if review_id:
+            query = query.where("review_id", "==", review_id)
+        if rating is not None:
+            collection = query.where("stars", "==", stars)
+        if has_image:
+            collection = query.where("images", "!=", []) if has_image else query.where("images", "==", [])
+        
+        reviews_stream = query.stream()
+        reviews = [doc.to_dict() for doc in reviews_stream]
+        return reviews
+    except Exception as e:
+        print(f"Error in get_reviews: {str(e)}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
+async def get_review_by_id(review_id: str):
+    try:
+        review = await get_document(review_collection.document(review_id), details=True)
+        return review
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
+        
+async def create_review(review: ReviewAdd, user_id, userName):
+    
+    # Check if the user has already reviewed this recipe
+    existing_review = review_collection.where("user_id", "==", user_id).where("recipe_id", "==", review.recipe_id).stream()
+    for doc in existing_review:
+        raise HTTPException(status_code=400, detail="You have already reviewed this recipe")
 
+    try:
+        review_data = review.dict()
+        review_doc = review_collection.document()
+        review_data["review_id"] = review_doc.id
+        review_data["user_id"] = user_id
+        review_data["created_at"] = int(time.time() * 1000)
+        review_data["userName"] = userName
+        review_doc.set(review_data)
+        return review_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

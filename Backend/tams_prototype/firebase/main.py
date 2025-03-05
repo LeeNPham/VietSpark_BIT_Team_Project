@@ -265,3 +265,41 @@ async def generate_image(item: str):
     # img_byte_arr = io.BytesIO(image_data)
     # StreamingResponse(img_byte_arr, media_type="image/png")@app.post("/upload-image/{url}", tags=['Experimental'])
 
+# Authorization with Firebase Authentication
+from fastapi import FastAPI, HTTPException, Depends
+from firebase_admin import firestore, auth
+from typing import List
+async def get_current_user(authorization: str = Header(...)):
+    try:
+        token = authorization.split("Bearer ")[1]
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token['uid']
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+# Review
+@app.get("/reviews/{recipe_id}", tags=['Reviews'])
+async def get_reviews(
+    recipe_id: str,
+    review_id: Optional[str] = Query(None, description="Filter by review ID"),
+    rating: Optional[int] = Query(None, description="Filter by rating 1 - 5", ge=1, le=5), 
+    has_image: Optional[bool] = Query(None, description="Filter by has image or not"),
+    ):
+    reviews = []
+    try:
+        reviews = await search_reviews(recipe_id, review_id, rating, has_image)
+        return reviews
+    except Exception as e:
+        print(f"Error in get_reviews: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
+
+    
+@app.post("/reviews", tags=['Reviews'])
+async def add_review(review: ReviewAdd, id_token: str = Query(...)):
+    user_data = await verify_id_token(id_token)
+    if not user_data:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    print("User data", user_data)
+    review_id = await create_review(review, user_data['user_id'], user_data['name'])
+    return review_id
+
