@@ -79,6 +79,13 @@ class RecipeModel (BaseModel):
   author: str = ''
 
 
+class ReviewAdd (BaseModel):
+  recipe_id: str = ''
+  rating: int = 0
+  content: str = ''
+  images: List[str] = []
+  video: Optional[str] = None
+
 
 
 

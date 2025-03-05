@@ -1,3 +1,5 @@
+import type { idText } from "typescript";
+
 export interface RecipeDTO {
     recipe_id: string,
     name: string,
@@ -57,3 +59,22 @@ export interface UserSignUpDTO {
     phoneNumber: string,
 }
 
+export interface ReviewAddDTO {
+    recipe_id: string,
+    rating: number,
+    content: string,
+    images: string[],
+    video: string | null,
+}
+
+export interface ReviewDTO {
+    review_id: string,
+    rating: number,
+    content: string,
+    images: string[],
+    video: string | null,
+    userName: string,
+    user_id: string,
+    recipe_id: string,
+    created_at: string,
+}
