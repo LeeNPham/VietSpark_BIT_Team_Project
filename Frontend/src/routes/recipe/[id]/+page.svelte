@@ -36,7 +36,9 @@
 {#if recipe}
 	<div class="p-6">
 		<h1 class="text-3xl text-secondary-green">{recipe.name}</h1>
-		<img src={recipe.img_url} class="mt-4 w-1/2 rounded-lg object-cover" alt={recipe.name} />
+		<div class="flex justify-center">
+			<img src="/Pork.png" class="mt-4 w-1/2 rounded-lg object-cover" alt={recipe.name} />
+		</div>
 
 		<h2 class="mt-6 text-xl text-secondary-green">Description</h2>
 		<div class="flex items-center justify-center">
