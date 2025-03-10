@@ -158,17 +158,17 @@
 		</div>
 
 		<!-- Right Column: Buttons -->
-		<div class="flex justify-center space-x-4 mt-10">
+		<div class="flex justify-center space-x-4">
 			{#if authenticated && !userRecipes.includes(recipeId)}
 				<Button
-					class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
+					class="mt-8 px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
 					onclick={handleAddFavorite}
 				>
 					<span>❤️</span> <span>Add to favorite</span>
 				</Button>
 			{:else if authenticated}
 				<Button
-					class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
+					class="mt-8 px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
 					onclick={handleRemoveFavorite}
 				>
 					<span>💔 </span> <span>Remove from favorite</span>
@@ -176,7 +176,7 @@
 			{/if}
 		</div>
 		<!-- Left Column: Details -->
-		<div class="flex flex-col sm:flex-col md:flex-row lg:flex-row justify-evenly mt-8">
+		<div class="flex flex-col sm:flex-col md:flex-row lg:flex-row justify-evenly mt-6">
 			<p class="text-lg"><strong>⏰  Time:</strong> {recipe.time} mins</p>
 			<p class="text-lg"><strong>🔥 Calories:</strong> {recipe.calories} kcal</p>
 			<p class="text-lg"><strong>🥘 Servings:</strong> {recipe.servings}</p>

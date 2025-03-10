@@ -175,19 +175,19 @@
             <img src="/Pork.png" class="mt-4 w-5/6 sm:w-5/6 md:w-[40%] rounded-lg object-cover  border-2 border-secondary-forest" alt={recipe.name} />
         </div>
 
-        <div class="flex justify-center space-x-4 mt-10">
-            {#if authenticated && !userRecipes.includes(recipe.author_id)}
-                <Button class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black" onclick={handleAddFavorite}>
+        <div class="flex justify-center space-x-4">
+            <!-- {#if authenticated && !userRecipes.includes(recipe.author_id)}
+                <Button class="mt-8 px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black" onclick={handleAddFavorite}>
                     <span>❤️</span> <span>Add to favorite</span>
                 </Button>
             {:else if authenticated}
-                <Button class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black" onclick={handleRemoveFavorite}>
+                <Button class="mt-8 px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black" onclick={handleRemoveFavorite}>
                     <span> 💔 </span> <span>Remove from favorite</span>
                 </Button>
-            {/if}
+            {/if} -->
         </div>
 
-        <div class="flex flex-col sm:flex-col md:flex-row lg:flex-row justify-evenly mt-8">
+        <div class="flex flex-col sm:flex-col md:flex-row lg:flex-row justify-evenly mt-6">
             <p class="text-lg"><strong>⏰ Time:</strong> {recipe.time} mins</p>
             <p class="text-lg"><strong>🔥 Calories:</strong> {recipe.calories} kcal</p>
             <p class="text-lg"><strong>🥘 Servings:</strong> {recipe.servings}</p>
