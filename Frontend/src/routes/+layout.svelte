@@ -41,7 +41,7 @@
 <div class="app">
 	<Navbar class={customStyles.navBar} style="background-color:#ecf3fe;">
 		<NavBrand href="/">
-			<img src="/VS_CHEF.png" class="h-10 sm:h-10 md:h-15 lg:h-20" alt="Flowbite Logo" />
+			<img src="/VS_CHEF.png" class="h-12 sm:h-12 md:h-18 lg:h-20" alt="Flowbite Logo" />
 		</NavBrand>
 		<NavHamburger />
 		<NavUl>

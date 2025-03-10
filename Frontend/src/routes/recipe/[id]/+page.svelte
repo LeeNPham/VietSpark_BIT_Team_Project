@@ -115,13 +115,11 @@
 </script>
 
 {#if recipe}
-	<div class="p-6">
 		<!-- Recipe Name with a Gradient Effect -->
+	<div class="p-0 sm:p-0 md:p-4 lg:p-6 px-4 sm:px-4 md:px-6 lg:px-0">
 		<div class="flex flex-col md:flex-row md:items-end md:justify-between">
 			<!-- Recipe Name -->
-			<h1
-				class="bg-gradient-to-r from-teal-600 to-blue-500 bg-clip-text text-3xl font-extrabold text-transparent lg:text-6xl"
-			>
+			<h1 class="text-3xl sm:text-3xl md:text-4xl lg:text-4xl font-medium text-transparent bg-gradient-to-r from-secondary-green to-secondary-forest bg-clip-text">
 				{recipe.name}
 			</h1>
 
@@ -130,7 +128,7 @@
 				<div class="mt-2 flex items-center space-x-4 rounded-lg md:mt-0">
 					<div class="group relative">
 						<!-- Profile Image with Border -->
-						<div class="h-12 w-12 overflow-hidden rounded-full border-2 border-green-500">
+						<div class="h-12 w-12 overflow-hidden rounded-full border-2 border-secondary-forest ml-2 sm:ml-2 md:ml-0">
 							<img
 								class="h-full w-full object-cover"
 								src={'https://storage.googleapis.com/chat-app-react-and-firebase.appspot.com/profileImages/' +
@@ -139,9 +137,7 @@
 							/>
 						</div>
 						<!-- Tooltip on Hover -->
-						<div
-							class="absolute left-full top-1/2 ml-3 -translate-y-1/2 transform whitespace-nowrap rounded bg-gray-900 px-3 py-1 text-sm text-white opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
-						>
+						<div class="absolute left-full top-1/2 ml-3 -translate-y-1/2 transform whitespace-nowrap rounded bg-gray-900 px-3 py-1 text-sm text-white opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100">
 							{recipe.author_name}
 						</div>
 					</div>
@@ -150,54 +146,47 @@
 				</div>
 			{/if}
 		</div>
-		<!-- Image with Shadow & Hover Effect -->
-		<img
-			src={recipe.img_url}
-			class="mt-4 w-full rounded-lg object-cover shadow-lg transition-transform duration-300 hover:scale-105"
-			alt={recipe.name}
-		/>
+	
 
-		<!-- Description Section -->
-		<h2 class="mt-8 border-b-2 border-blue-400 pb-1 text-xl font-bold text-blue-600">
-			📖 Description
-		</h2>
+		<div class="mt-2 sm:mt-2 md:mt-6 lg:mt-8 flex justify-center">
+			<!-- Image with Shadow & Hover Effect -->
+			<img
+				src={recipe.img_url}
+				class="mt-4 w-5/6 sm:w-5/6 md:w-[40%] rounded-lg object-cover  border-2 border-secondary-forest"
+				alt={recipe.name}
+			/>
+		</div>
 
-		<!-- Two-Column Layout -->
-		<div
-			class="mt-4 flex flex-col items-start justify-between rounded-lg bg-gray-100 p-6 shadow-md md:flex-row md:items-center"
-		>
-			<!-- Left Column: Details -->
-			<div class="space-y-3 text-gray-800">
-				<p class="text-lg"><strong>⏳ Time:</strong> {recipe.time} mins</p>
-				<p class="text-lg"><strong>🔥 Calories:</strong> {recipe.calories} kcal</p>
-				<p class="text-lg"><strong>🍽️ Servings:</strong> {recipe.servings}</p>
-			</div>
-
-			<!-- Right Column: Buttons -->
-			<div class="mt-4 flex space-x-4 md:mt-0">
-				{#if authenticated && !userRecipes.includes(recipeId)}
-					<Button
-						class="bg-secondary-forest hover:bg-secondary-blue hover:text-secondary-forest flex items-center space-x-2 rounded-full px-5 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300"
-						onclick={handleAddFavorite}
-					>
-						<span>❤️</span> <span>Add to favorite</span>
-					</Button>
-				{:else if authenticated}
-					<Button
-						class="border-secondary-forest text-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 rounded-full border-2 bg-white px-5 py-3 text-lg font-semibold shadow-md transition-all duration-300 hover:text-black"
-						onclick={handleRemoveFavorite}
-					>
-						<span>🖤</span> <span>Remove from favorite</span>
-					</Button>
-				{/if}
-			</div>
+		<!-- Right Column: Buttons -->
+		<div class="flex justify-center space-x-4 mt-10">
+			{#if authenticated && !userRecipes.includes(recipeId)}
+				<Button
+					class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
+					onclick={handleAddFavorite}
+				>
+					<span>❤️</span> <span>Add to favorite</span>
+				</Button>
+			{:else if authenticated}
+				<Button
+					class="px-5 py-1 text-sm sm:text-sm md:text-lg lg:text-lg font-semibold flex items-center space-x-2  text-secondary-forest border-secondary-forest hover:bg-secondary-blue rounded-full border-2 bg-white shadow-md transition-all duration-300 hover:text-black"
+					onclick={handleRemoveFavorite}
+				>
+					<span>💔 </span> <span>Remove from favorite</span>
+				</Button>
+			{/if}
+		</div>
+		<!-- Left Column: Details -->
+		<div class="flex flex-col sm:flex-col md:flex-row lg:flex-row justify-evenly mt-8">
+			<p class="text-lg"><strong>⏰  Time:</strong> {recipe.time} mins</p>
+			<p class="text-lg"><strong>🔥 Calories:</strong> {recipe.calories} kcal</p>
+			<p class="text-lg"><strong>🥘 Servings:</strong> {recipe.servings}</p>
 		</div>
 
 		<!-- Ingredients Section -->
-		<h2 class="mt-8 border-b-2 border-blue-400 pb-1 text-xl font-bold text-blue-600">
-			📝 Ingredients
+		<h2 class="mt-4 sm:mt-4 md:mt-6 lg:mt-6 text-2xl text-secondary-green font-medium">
+			🥗 Ingredients
 		</h2>
-		<ul class="mt-3 list-disc rounded-lg bg-gray-100 p-4 pl-6 shadow-md">
+		<ul class="mt-4 list-disc rounded-lg bg-white p-4 pl-10 border-2 border-secondary-forest">
 			{#each recipe.ingredients as ingredient}
 				<li class="font-medium text-gray-800">
 					{ingredient.ingredientName} - {ingredient.ingredientAmount}
@@ -206,16 +195,14 @@
 		</ul>
 
 		<!-- Instructions Section -->
-		<h2 class="mt-8 border-b-2 border-blue-400 pb-1 text-xl font-bold text-blue-600">
-			📌 Instructions
+		<h2 class="mt-4 text-2xl text-secondary-green font-medium">
+			🍽️ Instructions
 		</h2>
-		<ol class="mt-3 space-y-2 rounded-lg bg-gray-100 p-4 shadow-md">
+		<ol class="mt-4 space-y-2 rounded-lg bg-white p-4 border-2 border-secondary-forest">
 			{#each recipe.instructions as instruction, i}
 				<li class="flex items-start font-medium text-gray-800">
-					<span
-						class="m-3 p-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 font-mono text-sm font-bold text-white"
-					>
-						{(i + 1).toString().padStart(2, '0')}
+					<span class="flex h-6 w-6 items-center justify-center text-sm">
+						{(i + 1).toString().padStart(2) + '. '}
 					</span>
 					{instruction}
 				</li>
@@ -224,68 +211,70 @@
 	</div>
 
 	{#if authenticated}
-		<div class="mt-3 rounded-lg bg-gray-50 p-4 shadow">
-			<h3 class="text-lg font-semibold text-gray-800">Leave a Review</h3>
+		<div class="mt-4 px-4 sm:px-4 md:px-6 lg:px-0">
+			<div class="rounded-lg bg-white p-4  border-2 border-secondary-forest">
+				<h3 class="text-lg font-semibold text-gray-800">Leave a Review</h3>
 
-			<!-- Star Rating -->
-			<div class="mt-2 flex space-x-1">
-				{#each [1, 2, 3, 4, 5] as star}
-					<button class="text-gray-400 hover:text-yellow-400" on:click={() => setRating(star)}>
-						{star <= rating ? '⭐' : '☆'}
-					</button>
-				{/each}
+				<!-- Star Rating -->
+				<div class="mt-2 flex space-x-1">
+					{#each [1, 2, 3, 4, 5] as star}
+						<button class="text-gray-400 hover:text-yellow-400" on:click={() => setRating(star)}>
+							{star <= rating ? '⭐' : '☆'}
+						</button>
+					{/each}
+				</div>
+
+				<!-- Text Review -->
+				<textarea
+					class="mt-2 w-full rounded-lg border p-3 text-gray-800 focus:ring-2 focus:ring-blue-400"
+					placeholder="Write your review..."
+					bind:value={reviewText}
+				></textarea>
+
+				<!-- Image & Video Upload -->
+				<div class="mt-4">
+					<label for="rv-image" class="font-semibold text-gray-700">Upload Images (Max 3)</label>
+					<input
+						id="rv-image"
+						type="file"
+						accept="image/*"
+						multiple
+						max="3"
+						class="mt-2 block w-full rounded-lg border p-2"
+						on:change={(e) => {
+							const target = e.target as HTMLInputElement;
+							reviewImages = Array.from(target.files || []);
+						}}
+					/>
+				</div>
+
+				<div class="mt-4">
+					<label for="rv-video" class="font-semibold text-gray-700">Upload Video (Max 1)</label>
+					<input
+						id="rv-video"
+						type="file"
+						accept="video/*"
+						class="mt-2 block w-full rounded-lg border p-2"
+						on:change={(e) => {
+							const target = e.target as HTMLInputElement;
+							reviewVideo = target.files?.[0] || null;
+						}}
+					/>
+				</div>
+
+				<!-- Submit Button -->
+				<button
+					class="mt-4 rounded-lg bg-blue-500 px-5 py-2 font-semibold text-white hover:bg-blue-600"
+					on:click={submitReview}
+				>
+					Submit Review
+				</button>
 			</div>
-
-			<!-- Text Review -->
-			<textarea
-				class="mt-2 w-full rounded-lg border p-3 text-gray-800 focus:ring-2 focus:ring-blue-400"
-				placeholder="Write your review..."
-				bind:value={reviewText}
-			></textarea>
-
-			<!-- Image & Video Upload -->
-			<div class="mt-4">
-				<label for="rv-image" class="font-semibold text-gray-700">Upload Images (Max 3)</label>
-				<input
-					id="rv-image"
-					type="file"
-					accept="image/*"
-					multiple
-					max="3"
-					class="mt-2 block w-full rounded-lg border p-2"
-					on:change={(e) => {
-						const target = e.target as HTMLInputElement;
-						reviewImages = Array.from(target.files || []);
-					}}
-				/>
-			</div>
-
-			<div class="mt-4">
-				<label for="rv-video" class="font-semibold text-gray-700">Upload Video (Max 1)</label>
-				<input
-					id="rv-video"
-					type="file"
-					accept="video/*"
-					class="mt-2 block w-full rounded-lg border p-2"
-					on:change={(e) => {
-						const target = e.target as HTMLInputElement;
-						reviewVideo = target.files?.[0] || null;
-					}}
-				/>
-			</div>
-
-			<!-- Submit Button -->
-			<button
-				class="mt-4 rounded-lg bg-blue-500 px-5 py-2 font-semibold text-white hover:bg-blue-600"
-				on:click={submitReview}
-			>
-				Submit Review
-			</button>
 		</div>
 	{/if}
 
 	<!-- Display Reviews -->
-	<div class="mt-6">
+	<div class="mt-6 px-4 sm:px-4 md:px-6 lg:px-0">
 		{#if reviews.length === 0}
 			<p class="text-gray-600">No reviews yet. Be the first to rate this recipe!</p>
 		{:else}
