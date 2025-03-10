@@ -146,7 +146,7 @@
 				</div>
 			{/if}
 		</div>
-	
+
 
 		<div class="mt-2 sm:mt-2 md:mt-6 lg:mt-8 flex justify-center">
 			<!-- Image with Shadow & Hover Effect -->
