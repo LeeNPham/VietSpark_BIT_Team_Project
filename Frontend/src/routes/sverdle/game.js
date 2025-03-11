@@ -1,5 +1,5 @@
 import { words, allowed } from './words.server';
-
+// hello world this is a test to bypass
 export class Game {
 	/**
 	 * Create a game object from the player's cookie, or initialise a new game
