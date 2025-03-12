@@ -281,7 +281,11 @@ async def update_all_u_d(user_data):
 
 
 
+<<<<<<< HEAD
 async def new_recipe(recipe, uid, author, user_added):
+=======
+async def new_recipe(recipe, user_added):
+>>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     ingredient_data = []
     searchable_ingredient = [] 
     for ingredient in recipe.ingredients:
@@ -421,6 +425,10 @@ async def GPT_to_recipe(ingredients, allergies):
         store=True,  # Specify the model to use
         messages = messages       # Pass the conversation history
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
     
@@ -488,8 +496,22 @@ async def image_to_storage(file, path):
     image_data = img_compression(image_data)
     try:
         bucket = storage.bucket()
+<<<<<<< HEAD
         blob = bucket.blob(f"{path}")
         blob.upload_from_file(image_data, content_type='image/jpeg')
+=======
+        if name:
+            # if "default_avatar" not in name:
+            #     delete_blob = bucket.blob(f"profileImages/{name}")
+            #     delete_blob.delete()
+            #     print("deleted")
+            blob = bucket.blob(f"profileImages/{name}")
+        else:
+            blob = bucket.blob(f"images/{file.filename}")
+        blob.upload_from_file(image_data, content_type='image/jpeg')
+        # url = blob.generate_signed_url(version='v4', expiration=3600, method='GET')
+        # Make the file publicly accessible (optional)
+>>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
         blob.make_public()
         image_url = blob.public_url
         print(image_url)

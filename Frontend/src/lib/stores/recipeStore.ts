@@ -17,7 +17,8 @@ export const recipeHandler = {
     addRecipe: async (recipeData: RecipeAddDTO) => {
         const idToken = localStorage.getItem("idToken")
         try {
-            const res = await fetch(`${API_URL}/recipes/add_recipe?id_token=${idToken}`, {
+            console.log("Adding new recipe");
+            const res = await fetch(`${API_URL}/recipes/add_recipe/?id_token=${idToken}`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
