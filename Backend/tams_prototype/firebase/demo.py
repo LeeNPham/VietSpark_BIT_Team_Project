@@ -282,8 +282,11 @@ async def update_all_u_d(user_data):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 async def new_recipe(recipe, uid, author, user_added):
 =======
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
 async def new_recipe(recipe, user_added):
 >>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     ingredient_data = []
@@ -428,7 +431,10 @@ async def GPT_to_recipe(ingredients, allergies):
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
 >>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
     
@@ -497,9 +503,12 @@ async def image_to_storage(file, path):
     try:
         bucket = storage.bucket()
 <<<<<<< HEAD
+<<<<<<< HEAD
         blob = bucket.blob(f"{path}")
         blob.upload_from_file(image_data, content_type='image/jpeg')
 =======
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
         if name:
             # if "default_avatar" not in name:
             #     delete_blob = bucket.blob(f"profileImages/{name}")
