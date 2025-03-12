@@ -47,6 +47,9 @@ export const recipeHandler = {
             const res = await fetch(url);
             if (!res.ok) throw new Error(res.statusText || "Failed to fetch recipe");
             const foundRecipe = await res.json();
+            if (!foundRecipe || Array.isArray(foundRecipe) && foundRecipe.length === 0 || foundRecipe === "item not found" ) {
+                throw new Error(`Recipe is not found`);
+            }
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
@@ -55,10 +58,10 @@ export const recipeHandler = {
             }));
             return foundRecipe;
         } catch (error) {
-            console.error("Error finding recipe", recipeId);
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
+                currentRecipe: null,
             }))
             throw error;
         }

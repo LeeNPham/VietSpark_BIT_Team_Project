@@ -6,19 +6,21 @@
 	import { userStore, userHandler } from '$lib/stores/userStore';
 	import { reviewHandler, reviewStore } from '$lib/stores/reviewStore';
 	import { imageHandler } from '$lib/stores/imageStore';
-	import { Button } from 'flowbite-svelte';
+	import { Button, Spinner } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
-	import { count } from 'firebase/firestore';
 
 	let recipe: RecipeDetailDTO | null = null;
+	let isLoading: boolean = false;
 	let recipeId: string;
 	let authenticated = false;
 	let userRecipes: string[] = [];
 	let reviews: ReviewDTO[] = [];
 	let rating = 0;
 	let reviewText = '';
+	let reviewDescription = '';
 	let reviewImages: File[] = [];
 	let reviewVideo: File | null = null;
+	let reviewerProfileImage: string = '';
 
 	$: recipeId = $page.params.id;
 
@@ -26,16 +28,20 @@
 		try {
 			await recipeHandler.getRecipe(recipeId);
 			await reviewHandler.getReviews(recipeId, null, null, null);
-			recipe = $recipeStore.currentRecipe;
 		} catch (e) {
 			showToast('error', (e as Error).message);
 		}
 	}
 
+	recipeStore.subscribe((store) => {
+		isLoading = store?.isLoading ?? false;
+		recipe = store?.currentRecipe ?? null;
+		console.log('recipe', recipe);
+	});
+
 	userStore.subscribe((store) => {
 		authenticated = store?.authenticated ?? false;
 		userRecipes = store?.recipes ?? [];
-		console.log('Current user recipes:', userRecipes);
 	});
 
 	reviewStore.subscribe((store) => {
@@ -99,6 +105,7 @@
 			const reviewData = {
 				rating,
 				content: reviewText,
+				description: reviewDescription,
 				images: reviewImageLinks,
 				video: reviewVideoLink,
 				recipe_id: recipeId
@@ -114,7 +121,8 @@
 	}
 </script>
 
-{#if recipe}
+{#if recipe && !isLoading}
+	<div class="p-6">
 		<!-- Recipe Name with a Gradient Effect -->
 	<div class="p-0 sm:p-0 md:p-4 lg:p-6 px-4 sm:px-4 md:px-6 lg:px-0">
 		<div class="flex flex-col md:flex-row md:items-end md:justify-between">
@@ -226,11 +234,33 @@
 
 				<!-- Text Review -->
 				<textarea
+					class="h-10 w-full resize-none rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400"
+					placeholder="Review title..."
+					maxlength="50"
+					bind:value={reviewDescription}
+				></textarea>
+				<textarea
 					class="mt-2 w-full rounded-lg border p-3 text-gray-800 focus:ring-2 focus:ring-blue-400"
 					placeholder="Write your review..."
 					bind:value={reviewText}
 				></textarea>
 
+				<!-- Image & Video Upload -->
+				<div class="mt-4">
+					<label for="rv-image" class="font-semibold text-gray-700">Upload Images (Max 3)</label>
+					<input
+						id="rv-image"
+						type="file"
+						accept="image/*"
+						multiple
+						max="3"
+						class="mt-2 block w-full rounded-lg border p-2"
+						on:change={(e) => {
+							const target = e.target as HTMLInputElement;
+							reviewImages = Array.from(target.files || []);
+						}}
+					/>
+				</div>
 				<!-- Image & Video Upload -->
 				<div class="mt-4">
 					<label for="rv-image" class="font-semibold text-gray-700">Upload Images (Max 3)</label>
@@ -261,6 +291,19 @@
 						}}
 					/>
 				</div>
+				<div class="mt-4">
+					<label for="rv-video" class="font-semibold text-gray-700">Upload Video (Max 1)</label>
+					<input
+						id="rv-video"
+						type="file"
+						accept="video/*"
+						class="mt-2 block w-full rounded-lg border p-2"
+						on:change={(e) => {
+							const target = e.target as HTMLInputElement;
+							reviewVideo = target.files?.[0] || null;
+						}}
+					/>
+				</div>
 
 				<!-- Submit Button -->
 				<button
@@ -270,44 +313,75 @@
 					Submit Review
 				</button>
 			</div>
-		</div>
-	{/if}
-
-	<!-- Display Reviews -->
-	<div class="mt-6 px-4 sm:px-4 md:px-6 lg:px-0">
-		{#if reviews.length === 0}
-			<p class="text-gray-600">No reviews yet. Be the first to rate this recipe!</p>
-		{:else}
-			{#each reviews as review}
-				<div class="mb-6 border-b pb-4">
-					<!-- Star Rating -->
-					<div class="text-yellow-400">{'⭐'.repeat(review.rating)}</div>
-
-					<!-- Review Text -->
-					<p class="mt-1 text-gray-800">{review.content}</p>
-
-					<!-- Display Uploaded Images -->
-					{#if review.images.length > 0}
-						<div class="mt-2 flex space-x-2">
-							{#each review.images as img}
-								<img src={img} alt="Review image" class="h-20 w-20 rounded-lg object-cover" />
-							{/each}
-						</div>
-					{/if}
-
-					<!-- Display Uploaded Video -->
-					{#if review.video}
-						<div class="mt-2">
-							<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
-						</div>
-					{/if}
-
-					<!-- Reviewer Name -->
-					<p class="mt-2 text-sm text-gray-500">Reviewed by {review.userName}</p>
-				</div>
-			{/each}
 		{/if}
+
+		<!-- Display Reviews -->
+		<div class="mt-6 px-4 sm:px-4 md:px-6 lg:px-0">
+			{#if reviews.length === 0}
+				<div class="flex flex-col items-center justify-center space-y-2">
+					<p class="text-gray-600">No reviews yet.</p>
+				</div>
+			{:else}
+				<h2
+					class="mt-8 flex items-center gap-2 border-b-2 border-blue-400 pb-1 text-xl font-bold text-blue-600"
+				>
+					<img
+						src="https://img.icons8.com/?size=100&id=apsEwjRsibDJ&format=png&color=000000"
+						alt="Review Icon"
+						class="h-6 w-6"
+					/> Reviews
+				</h2>
+				{#each reviews as review}
+					<div class="mb-6 border-b pb-4">
+						<!-- Reviewer Name -->
+						<div class="mt-1 flex items-center space-x-2">
+							<img
+								src={review?.userImage ||
+									'https://img.icons8.com/?size=100&id=zxB19VPoVLjK&format=png&color=000000'}
+								alt="Reviewer Profile"
+								class="h-10 w-10 rounded-full object-cover"
+							/>
+							<p class="mt-2 text-sm">{review.userName}</p>
+						</div>
+
+						<!-- Star Rating -->
+						<div class="mt-1 flex items-center space-x-2">
+							<span class="text-yellow-400">{'⭐'.repeat(review.rating)}</span>
+							<strong class="text-lg text-gray-500"
+								>{review?.description || 'Test description'}</strong
+							>
+						</div>
+
+						<!-- Review Text -->
+						<p class="mt-1 text-gray-800">{review.content}</p>
+
+						<!-- Display Uploaded Images -->
+						{#if review.images.length > 0}
+							<div class="mt-2 flex space-x-2">
+								{#each review.images as img}
+									<img src={img} alt="Review image" class="h-20 w-20 rounded-lg object-cover" />
+								{/each}
+							</div>
+						{/if}
+
+						<!-- Display Uploaded Video -->
+						{#if review.video}
+							<div class="mt-2">
+								<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			{/if}
+		</div>
+	</div>
+{:else if isLoading}
+	<div class="mt-4 flex flex-col items-center justify-center">
+		<span>Wait while we load the recipe...</span>
+		<Spinner size={10} color="green" />
 	</div>
 {:else}
-	<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>
+	<div class="mt-4 flex flex-col items-center justify-center">
+		<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>
+	</div>
 {/if}

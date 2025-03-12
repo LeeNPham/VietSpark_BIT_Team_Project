@@ -299,7 +299,8 @@ async def add_review(review: ReviewAdd, id_token: str = Query(...)):
     user_data = await verify_id_token(id_token)
     if not user_data:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    print("User data", user_data)
     review_id = await create_review(review, user_data['user_id'], user_data['name'])
     return review_id
 
+# for route in app.routes:
+#     print(f"Path: {route.path}")
