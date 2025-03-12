@@ -180,9 +180,12 @@ async def get_recipe_by_id(recipe_id: str):
 @app.post("/recipes/add_recipe", tags=['Recipes'])
 async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
 <<<<<<< HEAD
+<<<<<<< HEAD
     user_verify = await verify_id_token(id_token)
     recipe_id = await new_recipe(recipe, user_verify['uid'], user_verify['name'], user_added = True)
 =======
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     await verify_id_token(id_token)
     recipe_id = await new_recipe(recipe, user_added = True)
 >>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
@@ -244,7 +247,10 @@ async def get_image(file_name: str):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
 @app.put("/upload-image/file", tags=['Experimental'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...)):
     user_verify = await verify_id_token(id_token)
