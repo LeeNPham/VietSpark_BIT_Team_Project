@@ -179,16 +179,8 @@ async def get_recipe_by_id(recipe_id: str):
 
 @app.post("/recipes/add_recipe", tags=['Recipes'])
 async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
-<<<<<<< HEAD
-<<<<<<< HEAD
     user_verify = await verify_id_token(id_token)
     recipe_id = await new_recipe(recipe, user_verify['uid'], user_verify['name'], user_added = True)
-=======
-=======
->>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
-    await verify_id_token(id_token)
-    recipe_id = await new_recipe(recipe, user_added = True)
->>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
     await update_user_r_a(recipe.author, [recipe_id], None)
     return recipe_id
 
@@ -229,7 +221,6 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
 @app.post("/upload-image/file", tags=['Images'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
     user_verify = await verify_id_token(id_token)
-
     try:
         profile_image_url = await image_to_storage(file, save_path)
         return profile_image_url
@@ -246,11 +237,6 @@ async def get_image(file_name: str):
     return img_url
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> a9d9892 (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
 @app.put("/upload-image/file", tags=['Experimental'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...)):
     user_verify = await verify_id_token(id_token)
@@ -260,7 +246,6 @@ async def upload_image(file: UploadFile = File(...), id_token: str = Query(...))
     print(profile_image_url)
     return profile_image_url
 
->>>>>>> fd1430c (Add creation time to new recipes, enhance user profile image handling, and streamline token verification)
 
 @app.post("/upload-image/{url}", tags=['Experimental'])
 async def upload_image_by_url(url: str):
