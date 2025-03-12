@@ -280,7 +280,15 @@ async def user_added_recipe(recipe: RecipeModel):
 
 
 
-
+@app.put("/users/profile_image/", tags=["Users"])
+async def user_profile_image(file: UploadFile = File(...), id_token: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    uid = user_verify['user_id']
+    # name = uid + str(int(time.time() * 1000))
+    profile_image_url = await image_to_storage(file, uid)
+    user_collection.document(uid).update({"profileImageURL": profile_image_url})
+    return await get_document(user_collection.document(user_id.strip()), details=True)
+    return profile_image_url
 
 
 

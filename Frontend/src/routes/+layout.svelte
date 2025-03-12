@@ -29,12 +29,32 @@
 				await userHandler.refreshToken();
 			} catch (e) {
 				console.log('Token refresh error:', e); // Debug log
-			}
+			};
+
+		getLocation()
+
 		}, 60 *  60 * 1000);
 	});
 
 	function handlerSignOut() {
 		userHandler.signOut();
+	}
+
+
+	function getLocation() {
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                console.log("Latitude:", position.coords.latitude, "Longitude:", position.coords.longitude);
+            },
+            (err) => {
+                console.error("Error getting location:", err.message);
+            },
+            { enableHighAccuracy: true } // Request high-accuracy location
+        );
+    } else {
+        console.error('Geolocation is not supported in your browser.');
+    }
 	}
 </script>
 

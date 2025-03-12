@@ -11,6 +11,7 @@ from pathlib import Path
 import time
 import asyncio
 import logging
+import requests
 
 #from fastapi.encoders import jsonable_encoder
 #from fastapi.security import OAuth2PasswordRequestForm
@@ -38,6 +39,15 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
 )
+
+
+
+
+# --- STYLING ---
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")
+
 
 
 
@@ -148,17 +158,6 @@ async def update_all_user_data(user_data: allUserDataModel, id_token: str = Quer
     return await update_all_u_d(user_data)
 
 
-@app.put("/users/profile_image/", tags=["Users"])
-async def user_profile_image(file: UploadFile = File(...), id_token: str = Query(...)):
-    user_verify = await verify_id_token(id_token)
-    uid = user_verify['user_id']
-    # name = uid + str(int(time.time() * 1000))
-    profile_image_url = await image_to_storage(file, uid)
-    user_collection.document(uid).update({"profileImageURL": profile_image_url})
-    return await get_document(user_collection.document(user_id.strip()), details=True)
-    return profile_image_url
-
-
 
 
 #GET cannot pass a body, only parameters
@@ -264,6 +263,11 @@ async def generate_image(item: str):
     # image_data = requests.get(image_url).content
     # img_byte_arr = io.BytesIO(image_data)
     # StreamingResponse(img_byte_arr, media_type="image/png")@app.post("/upload-image/{url}", tags=['Experimental'])
+
+@app.get("/Nutritions", tags=["Recipes"])
+async def get_nutritions(ingredients: str):
+    return await request_nutritions(ingredients)
+
 
 # Authorization with Firebase Authentication
 from fastapi import FastAPI, HTTPException, Depends
