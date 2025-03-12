@@ -212,7 +212,7 @@
 				{:else}
 					<img
 						class="h-full w-full object-cover"
-						src="https://www.vecteezy.com/vector-art/495460-profile-line-black-icon"
+						src="https://img.icons8.com/?size=100&id=zxB19VPoVLjK&format=png&color=000000"
 						alt="Default Profile Image"
 					/>
 				{/if}
