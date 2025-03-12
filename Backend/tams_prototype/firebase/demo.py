@@ -1,5 +1,4 @@
 import os
-import firebase_admin.auth
 import pyrebase
 import firebase_admin
 import json
@@ -546,12 +545,16 @@ async def create_review(review: ReviewAdd, user_id, userName):
         raise HTTPException(status_code=400, detail="You have already reviewed this recipe")
 
     try:
+        user_ref = user_collection.document(user_id)
+        user_data = await get_document(user_ref, details=True)
+        
         review_data = review.dict()
         review_doc = review_collection.document()
         review_data["review_id"] = review_doc.id
         review_data["user_id"] = user_id
         review_data["created_at"] = int(time.time() * 1000)
         review_data["userName"] = userName
+        review_data["userImage"] = user_data["profileImageURL"]
         review_doc.set(review_data)
         return review_data
     except Exception as e:

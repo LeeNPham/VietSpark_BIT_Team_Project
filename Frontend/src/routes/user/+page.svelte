@@ -25,13 +25,13 @@
 	let showFavorites = true;
 	let profileImageURL = '';
 	let showProfileImageModal = false;
-    let profileImagePreview: string | null = null;
+	let profileImagePreview: string | null = null;
 	let imageRefreshed = false;
 
-    function toggleProfileImageModal() {
-        showProfileImageModal = !showProfileImageModal;
-        profileImagePreview = null;
-    }
+	function toggleProfileImageModal() {
+		showProfileImageModal = !showProfileImageModal;
+		profileImagePreview = null;
+	}
 
 	async function fetchUserInfo() {
 		try {
@@ -151,7 +151,7 @@
 				!validateUsername(userName) ||
 				!validatePhoneNumber(phoneNumber)
 			) {
-				let timeoutId = setTimeout(() => {
+				setTimeout(() => {
 					emailError = '';
 					userNameError = '';
 					phoneNumberError = '';
@@ -168,9 +168,9 @@
 			if (phoneNumber.trim() !== user.phoneNumber.trim()) updatedUser.phoneNumber = phoneNumber;
 
 			await userHandler.updateUserDetail(updatedUser);
-			showToast("success", 'User updated successfully');
+			showToast('success', 'User updated successfully');
 		} catch (e) {
-			showToast("error", (e as Error).message);
+			showToast('error', (e as Error).message);
 		}
 	}
 
@@ -184,32 +184,48 @@
 		goto('/');
 	}
 
-    function handleImageLoad(event: Event) {
-        const img = event.target as HTMLImageElement;
-        if (!imageRefreshed) {
+	function handleImageLoad(event: Event) {
+		const img = event.target as HTMLImageElement;
+		if (!imageRefreshed) {
 			img.src = img.src.split('?')[0] + '?' + new Date().getTime();
 			imageRefreshed = true; // Set the flag to true after refreshing the image
-        }
-    }
+		}
+	}
 
 	onMount(fetchUserInfo);
 </script>
 
 {#if authenticated && user}
 	<div class="flex">
-		<div class="relative group">
-			<button 
-				class="w-20 h-20 overflow-hidden border-green-300 p-0 rounded-full"
-				on:click={toggleProfileImageModal}>
-				<img class="w-full h-full object-cover" src={profileImageURL} on:load={handleImageLoad} alt={profileImageURL}>
+		<div class="group relative">
+			<button
+				class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-green-300 p-0"
+				on:click={toggleProfileImageModal}
+			>
+				{#if profileImageURL && profileImageURL.trim() !== ''}
+					<img
+						class="h-full w-full object-cover"
+						src={profileImageURL}
+						on:load={handleImageLoad}
+						alt={profileImageURL}
+					/>
+				{:else}
+					<img
+						class="h-full w-full object-cover"
+						src="https://www.vecteezy.com/vector-art/495460-profile-line-black-icon"
+						alt="Default Profile Image"
+					/>
+				{/if}
 			</button>
-			<div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+			<div
+				class="absolute left-full top-1/2 ml-2 -translate-y-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+			>
 				Click to change Image
 			</div>
 		</div>
 	</div>
-	<ChangeProfileImageModal {toggleProfileImageModal} {showProfileImageModal}/>
-	
+	<ChangeProfileImageModal {toggleProfileImageModal} {showProfileImageModal} />
+
 	<div class="mt-6 flex gap-3">
 		<div class="flex flex-1 flex-col space-y-3">
 			<p class={customStyles.userP}>Name</p>
@@ -247,7 +263,7 @@
 			/>
 			<Button
 				class="bg-primary-orange  outline-secondary-green rounded-2xl text-lg text-black outline"
-				onclick={handleAddAllergy}
+				on:click={handleAddAllergy}
 			>
 				+
 			</Button>

@@ -8,7 +8,7 @@ export interface RecipeDTO {
     calories: number,
     servings: number,
     numIngredients: number,
-    
+
 };
 
 export interface RecipeDetailDTO {
@@ -37,7 +37,7 @@ export interface RecipeAddDTO {
 
 // User
 export interface UserDTO {
-    user_id: string, 
+    user_id: string,
     userEmail: string,
     userName: string,
     phoneNumber: string,
@@ -53,7 +53,7 @@ export interface UserLoginDTO {
 }
 
 export interface UserSignUpDTO {
-    email: string, 
+    email: string,
     userName: string,
     password: string,
     phoneNumber: string,
@@ -62,6 +62,7 @@ export interface UserSignUpDTO {
 export interface ReviewAddDTO {
     recipe_id: string,
     rating: number,
+    description: string,
     content: string,
     images: string[],
     video: string | null,
@@ -70,10 +71,12 @@ export interface ReviewAddDTO {
 export interface ReviewDTO {
     review_id: string,
     rating: number,
+    description: string,
     content: string,
     images: string[],
     video: string | null,
     userName: string,
+    userImage: string,
     user_id: string,
     recipe_id: string,
     created_at: string,
