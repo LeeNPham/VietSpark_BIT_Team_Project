@@ -355,6 +355,7 @@
 		<span>Wait while we load the recipe...</span>
 		<Spinner size={10} color="green" />
 	</div>
+
 {:else}
 	<div class="mt-4 flex flex-col items-center justify-center">
 		<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>

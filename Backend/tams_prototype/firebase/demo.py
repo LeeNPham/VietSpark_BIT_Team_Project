@@ -284,7 +284,9 @@ async def update_all_u_d(user_data):
 async def new_recipe(recipe, uid, author, user_added):
     ingredient_data = []
     searchable_ingredient = [] 
+    all_ingredients = ""
     for ingredient in recipe.ingredients:
+        all_ingredients += ingredient.ingredientAmount + " " + ingredient.ingredientName + ", " 
         ingredient_data.append(ingredient.dict())
         searchable_ingredient = list(set(searchable_ingredient + ingredient.ingredientName.split())) 
     
@@ -294,13 +296,16 @@ async def new_recipe(recipe, uid, author, user_added):
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
     
     if user_added == False:
-        # img_prompt = " ".join(lower_searchable_name)
-        # GPT_img_url = await GPT_image(img_prompt, recipe.name)
-        # img_url = (GPT_img_url[GPT_img_url.find('http'):])
         img_url = "https://s3.gifyu.com/images/b2PWA.gif"
     else:
         img_url = ""
     creation_time = int(time.time() * 1000)
+
+    nutritions = await request_nutritions(all_ingredients)
+    recipe_nutrition = combined_nutrition(nutritions, recipe.name)
+    print(all_ingredients)
+    print(nutritions)
+    print(recipe_nutrition)
 
     recipe_data = {
         "name": recipe.name,
@@ -310,6 +315,7 @@ async def new_recipe(recipe, uid, author, user_added):
         "img_url": img_url,
         "servings": recipe.servings,
         "calories": recipe.calories,
+        "nutrition": recipe_nutrition,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
         "creation_time": creation_time,
@@ -464,6 +470,25 @@ async def GPT_image(item, recipe_id):
     # return StreamingResponse(img_byte_arr, media_type="image/png")
 
 
+# async def add_nutritions_data(ingredients):
+
+async def request_nutritions(ingredients):
+    try:
+        nutritions_api_key = os.getenv("CALORIES_NINJAS_API_KEY")
+        api_url = 'https://api.calorieninjas.com/v1/nutrition?query='
+        response = requests.get(api_url + ingredients, headers={'X-Api-Key': nutritions_api_key})
+        response.raise_for_status()  # Raise an exception for bad status codes
+        nutritions_json = response.json()
+        return nutritions_json
+    
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail={str(e)})
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to decode JSON: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={str(e)})
+
+
 
 
 async def image_url_to_storage(url, recipe_id):
@@ -518,7 +543,7 @@ async def search_reviews(recipe_id: str, review_id: Optional[str] = None, rating
         if review_id:
             query = query.where("review_id", "==", review_id)
         if rating is not None:
-            collection = query.where("stars", "==", stars)
+            collection = query.where("stars", "==", rating)
         if has_image:
             collection = query.where("images", "!=", []) if has_image else query.where("images", "==", [])
         
