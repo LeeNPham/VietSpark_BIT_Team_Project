@@ -8,6 +8,7 @@
 	import { imageHandler } from '$lib/stores/imageStore';
 	import { Button, Spinner } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
+	import { goto } from '$app/navigation';
 
 	let recipe: RecipeDetailDTO | null = null;
 	let isLoading: boolean = false;
@@ -208,7 +209,16 @@
 			</ul>
 
 			<!-- Instructions Section -->
-			<h2 class="text-secondary-green mt-4 text-2xl font-medium">🍽️ Instructions</h2>
+			<div class="mt-4 flex justify-between">
+				<h2 class="text-secondary-green text-2xl font-medium">🍽️ Instructions</h2><Button
+					class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
+					onclick={() => {
+						goto('/map');
+					}}
+				>
+					Search stores
+				</Button>
+			</div>
 			<ol class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
 				{#each recipe.instructions as instruction, i}
 					<li class="flex items-start font-medium text-gray-800">
@@ -229,7 +239,10 @@
 					<!-- Star Rating -->
 					<div class="mt-2 flex space-x-1">
 						{#each [1, 2, 3, 4, 5] as star}
-							<button class="text-gray-400 hover:text-yellow-400" on:click={() => setRating(star)}>
+							<button
+								class="text-6xl text-gray-400 hover:text-yellow-400"
+								on:click={() => setRating(star)}
+							>
 								{star <= rating ? '⭐' : '☆'}
 							</button>
 						{/each}
@@ -280,12 +293,15 @@
 					</div>
 
 					<!-- Submit Button -->
-					<button
-						class="mt-4 rounded-lg bg-blue-500 px-5 py-2 font-semibold text-white hover:bg-blue-600"
-						on:click={submitReview}
-					>
-						Submit Review
-					</button>
+
+					<div class="flex justify-end">
+						<button
+							class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue mt-4 flex items-center space-x-2 rounded-full border-2 bg-white px-5 py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
+							on:click={submitReview}
+						>
+							Submit Review
+						</button>
+					</div>
 				</div>
 			</div>
 		{/if}
@@ -297,56 +313,53 @@
 					<p class="text-gray-600">No reviews yet.</p>
 				</div>
 			{:else}
-				<h2
-					class="mt-8 flex items-center gap-2 border-b-2 border-blue-400 pb-1 text-xl font-bold text-blue-600"
-				>
-					<img
-						src="https://img.icons8.com/?size=100&id=apsEwjRsibDJ&format=png&color=000000"
-						alt="Review Icon"
-						class="h-6 w-6"
-					/> Reviews
+				<h2 class="text-secondary-green mt-4 text-2xl font-medium sm:mt-4 md:mt-6 lg:mt-6">
+					✨Reviews
 				</h2>
-				{#each reviews as review}
-					<div class="mb-6 border-b pb-4">
-						<!-- Reviewer Name -->
-						<div class="mt-1 flex items-center space-x-2">
-							<img
-								src={review?.userImage ||
-									'https://img.icons8.com/?size=100&id=zxB19VPoVLjK&format=png&color=000000'}
-								alt="Reviewer Profile"
-								class="h-10 w-10 rounded-full object-cover"
-							/>
-							<p class="mt-2 text-sm">{review.userName}</p>
-						</div>
 
-						<!-- Star Rating -->
-						<div class="mt-1 flex items-center space-x-2">
-							<span class="text-yellow-400">{'⭐'.repeat(review.rating)}</span>
-							<strong class="text-lg text-gray-500"
-								>{review?.description || 'Test description'}</strong
-							>
-						</div>
-
-						<!-- Review Text -->
-						<p class="mt-1 text-gray-800">{review.content}</p>
-
-						<!-- Display Uploaded Images -->
-						{#if review.images.length > 0}
-							<div class="mt-2 flex space-x-2">
-								{#each review.images as img}
-									<img src={img} alt="Review image" class="h-20 w-20 rounded-lg object-cover" />
-								{/each}
+				<div class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
+					{#each reviews as review}
+						<div class="mb-6 border-b pb-4">
+							<!-- Reviewer Name -->
+							<div class="mt-1 flex items-center space-x-2">
+								<img
+									src={review?.userImage ||
+										'https://img.icons8.com/?size=100&id=zxB19VPoVLjK&format=png&color=000000'}
+									alt="Reviewer Profile"
+									class="h-10 w-10 rounded-full object-cover"
+								/>
+								<p class="mt-2 text-sm">{review.userName}</p>
 							</div>
-						{/if}
 
-						<!-- Display Uploaded Video -->
-						{#if review.video}
-							<div class="mt-2">
-								<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
+							<!-- Star Rating -->
+							<div class="mt-1 flex items-center space-x-2">
+								<span class="text-yellow-400">{'⭐'.repeat(review.rating)}</span>
+								<strong class="text-lg text-gray-500"
+									>{review?.description || 'Test description'}</strong
+								>
 							</div>
-						{/if}
-					</div>
-				{/each}
+
+							<!-- Review Text -->
+							<p class="mt-1 text-gray-800">{review.content}</p>
+
+							<!-- Display Uploaded Images -->
+							{#if review.images.length > 0}
+								<div class="mt-2 flex space-x-2">
+									{#each review.images as img}
+										<img src={img} alt="Review image" class="h-20 w-20 rounded-lg object-cover" />
+									{/each}
+								</div>
+							{/if}
+
+							<!-- Display Uploaded Video -->
+							{#if review.video}
+								<div class="mt-2">
+									<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	</div>
@@ -355,7 +368,6 @@
 		<span>Wait while we load the recipe...</span>
 		<Spinner size={10} color="green" />
 	</div>
-
 {:else}
 	<div class="mt-4 flex flex-col items-center justify-center">
 		<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>
