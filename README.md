@@ -82,12 +82,14 @@ APPID =
 MEASUREMENTID=
 SERVICE_ACCOUNT_KEY=
 OAI_API_KEY=
+CALORIES_NINJAS_API_KEY=
 ```
 
 ### Frontend
 Before running frontend, you need to set up the environment variables. Create a `.env` file in the `Frontend` directory and add the following variables:
 ```
 VITE_API_KEY=
+VITE_GMAP_API_KEY=
 ```
 
 ## Frontend Setup
@@ -98,6 +100,10 @@ cd Frontend
 npm install
 npm run dev
 ```
+
+Access the application in your browser at `http://localhost:5173`.
+
+
 ## Backend Setup
 Before setting up the backend, create a virtual environment and activate it:
 * On Windows:
