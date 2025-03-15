@@ -4,33 +4,32 @@
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { Card } from 'flowbite-svelte';
 
-	export let myRecipes = []; // passed down option property in the case that a user has favorited recipes
-	export let showFavorites = false;
+	export let userRecipes = [];
+	export let limit: number = 10;
 
-	let searchTerm = '';
-	let myRecipesData = [];
-	let recipes: RecipeDTO[] | [] = [];
+	let myRecipesData: RecipeDTO[] = [];
 	let shownDescriptions = {};
+	let page = 1;
+	let totalRecipes = 0;
 
-	recipeStore.subscribe((store) => {
-		recipes = store.recipes;
-	});
+	$: {
+		const allRecipes = $recipeStore.recipes || [];
+		let filteredRecipes = userRecipes.length
+			? allRecipes.filter((recipe) => userRecipes.includes(recipe.recipe_id))
+			: allRecipes;
 
-	// make sure to organize the recipes based on how recent it was created. this means we will need a createdAt attribute that uses new Date().toISOString()
-	$: if (myRecipes.length > 0 || showFavorites) {
-		myRecipesData = recipes.filter((recipe) => myRecipes.includes(recipe.recipe_id));
-	} else {
-		myRecipesData = recipes;
+		// Sort by creation_time (assuming it’s in the data)
+		filteredRecipes = filteredRecipes.sort(
+			(a, b) => new Date(b.creation_time) - new Date(a.creation_time)
+		);
+
+		totalRecipes = filteredRecipes.length;
+		myRecipesData = filteredRecipes.slice(0, limit * page);
 	}
 
-	// look into fuze.js for better search functionality, this includes details on how to implement a fuzzy
-	// $: if (searchTerm !== '') {
-	// 	myRecipesData = myRecipesData.filter((recipe) =>
-	// 		recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
-	// 	);
-	// } else {
-	// 	myRecipesData = recipes;
-	// }
+	function loadMore() {
+		page += 1;
+	}
 
 	function toggleDescription(recipeId: string) {
 		shownDescriptions[recipeId] = !shownDescriptions[recipeId];
@@ -38,17 +37,10 @@
 	}
 </script>
 
-<!-- <input
-	type="text"
-	class="w-full rounded-lg border border-gray-300 p-2"
-	placeholder="Search for recipes"
-	bind:value={searchTerm}
-/> -->
-
 <div
 	class="mb-4 grid grid-cols-1 place-content-center gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
 >
-	{#if myRecipesData}
+	{#if myRecipesData.length > 0}
 		{#each myRecipesData as item (item.recipe_id)}
 			<div class="space-y-4">
 				<Card
@@ -64,11 +56,8 @@
 						<p class="text-md"><strong>🥘 Servings:</strong> {item.servings}</p>
 						<div class="mt-10 flex items-end justify-between">
 							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 mt-auto flex w-fit items-center"
-								onclick={(event) => {
-									event.preventDefault();
-									toggleDescription(item.recipe_id);
-								}}
+								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex w-fit items-center"
+								on:click|preventDefault={() => toggleDescription(item.recipe_id)}
 								aria-label="Hide description"
 							>
 								<span class="mr-2">Back</span>
@@ -91,11 +80,8 @@
 						<div class="mt-10 flex items-end justify-between">
 							<div></div>
 							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 mt-auto flex w-fit items-center"
-								onclick={(event) => {
-									event.preventDefault();
-									toggleDescription(item.recipe_id);
-								}}
+								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex w-fit items-center"
+								on:click|preventDefault={() => toggleDescription(item.recipe_id)}
 							>
 								<span class="mr-2">Summary</span>
 								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,9 +98,18 @@
 				</Card>
 			</div>
 		{/each}
+		{#if myRecipesData.length < totalRecipes}
+			<div class="col-span-full text-center">
+				<button class="bg-primary-green outline-secondary-green rounded-2xl text-sm text-black outline p-2" on:click={loadMore}>
+					Load More
+				</button>
+			</div>
+		{/if}
 	{:else}
 		<div class="flex h-full w-full items-center justify-center">
-			<p class="text-center text-teal-600">No recipes found. Please try again later.</p>
+			<p class="text-center text-teal-600">
+				{$recipeStore.recipes ? 'No recipes found.' : 'Loading recipes...'}
+			</p>
 		</div>
 	{/if}
 </div>
