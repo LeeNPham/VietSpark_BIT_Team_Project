@@ -290,7 +290,7 @@
 	</div>
 	<!-- Favorite Recipes -->
 	<p class={customStyles.userP}>Favorite Recipes</p>
-	<RecipeList {myRecipes} {showFavorites} />
+	<RecipeList userRecipes={myRecipes}/>
 	<div class="mt-6 flex justify-center gap-4">
 		<!-- Cancel Button -->
 		<Button
