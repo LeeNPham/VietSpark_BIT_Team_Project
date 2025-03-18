@@ -184,32 +184,27 @@ async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
     return recipe_id
 
 
+@app.get("/recipes/search_recipe_database/{ingredients}", tags=['Recipes'])
+async def search_by_ingredients(ingredients: str):
+    print(ingredients)
+    try:
+        check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
+        if check_ingredients != []:
+            return check_ingredients
+        else:
+            raise HTTPException(status_code=404, detail="No recipes found with the given ingredients.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
+
 
 @app.get("/GPT_ingredients_to_recipe/", tags=['GPT'])
 async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str,  id_token: str = Query(...), allergies: str = Query(...)):
     user_verify = await verify_id_token(id_token)
     try:
-        check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        if check_ingredients != []:
-            return check_ingredients
-        
         response_list = await GPT_to_recipe(ingredients, allergies)
         response = await new_recipe(response_list[1], user_verify['uid'], user_verify['name'], user_added = False)
-
-        # if user_id:
-        #     await update_user_r_a(user_id, [response["recipe_id"]], None)
         background_tasks.add_task(GPT_image, response_list[0], response['recipe_id'])
-
         return [response]
-
-        # response_list_task = asyncio.create_task(GPT_to_recipe(ingredients))
-        # img_url_task = asyncio.create_task(GPT_image(ingredients, img_name))
-        # r_list, GPT_img_url = await asyncio.gather(response_list_task, img_url_task)
-            
-        # response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
-        # response["img_url"] = GPT_img_url
-        # return [response]
-    
     except Exception as e:
         print(f"Error in ingredients_to_GPT: {str(e)}")
         raise HTTPException(status_code=500, detail=f"{str(e)}")
@@ -220,7 +215,6 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
 @app.post("/upload-image/file", tags=['Images'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
     user_verify = await verify_id_token(id_token)
-
     try:
         profile_image_url = await image_to_storage(file, save_path)
         return profile_image_url
@@ -260,9 +254,10 @@ async def generate_image(item: str):
     print(end_time - start_time)
     return a
 
-    # image_data = requests.get(image_url).content
-    # img_byte_arr = io.BytesIO(image_data)
-    # StreamingResponse(img_byte_arr, media_type="image/png")@app.post("/upload-image/{url}", tags=['Experimental'])
+@app.get('/index', tags=['Experimental'])
+async def index_of():
+    return await return_index()
+
 
 @app.get("/Nutritions", tags=["Recipes"])
 async def get_nutritions(ingredients: str):
@@ -306,5 +301,6 @@ async def add_review(review: ReviewAdd, id_token: str = Query(...)):
     review_id = await create_review(review, user_data['user_id'], user_data['name'])
     return review_id
 
+ 
 # for route in app.routes:
 #     print(f"Path: {route.path}")

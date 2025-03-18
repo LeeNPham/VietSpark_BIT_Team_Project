@@ -10,7 +10,7 @@ from io import BytesIO
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
-from google.cloud import firestore
+from google.cloud import firestore, datastore
 from dotenv import load_dotenv
 from firebase_admin import credentials, auth, storage
 from pydantic import BaseModel
@@ -343,7 +343,7 @@ async def recipe_database_search(name, author, calories, time):
     if name:
         return await search_recipe_by(name, "searchable_recipe_name")
     elif author:
-        collection = recipe_collection.where("author", "==", author).stream()
+        collection = recipe_collection.where("author_name", "==", author).stream()
     elif calories:
         collection = recipe_collection.where("calories", "==", calories).stream()
     elif time:
@@ -371,6 +371,7 @@ async def search_recipe_by_id(id: str):
 
 
 async def search_recipe_by(data, search_type):
+    print(data)
     data = data.lower().split()
     clean_data = clean_words(remove_accents(data))
     recipe_list = []
@@ -587,11 +588,14 @@ async def create_review(review: ReviewAdd, user_id, userName):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-
-
-
-
+async def return_index():
+    collection = recipe_collection.order_by('calories').offset(15).limit(10).stream()
+    collection = await get_collection(collection, details=True)
+    print(len(collection))
+    print(collection)
+    for recipe in collection:
+        recipe = format_recipe(recipe, "short")
+    return collection
 
 
 
