@@ -212,7 +212,7 @@ async def ingredients_to_GPT(background_tasks: BackgroundTasks, ingredients: str
 
 
 
-@app.post("/upload-image/file", tags=['Images'])
+@app.post("/upload-image/file", tags=['Media'])
 async def upload_image(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
     user_verify = await verify_id_token(id_token)
     try:
@@ -222,8 +222,25 @@ async def upload_image(file: UploadFile = File(...), id_token: str = Query(...),
         print(f"Error uploading image: {str(e)}")
         raise HTTPException(status_code=500, detail=f"{str(e)}")
 
+@app.post("/upload-video/file", tags=['Media'])
+async def upload_video(file: UploadFile = File(...), id_token: str = Query(...), save_path: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    try:
+        video_url = await video_to_storage(file, save_path)
+        return video_url
+    except Exception as e:
+        print(f"Error uploading media: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
 
-
+@app.delete("/media", tags=['Media'])
+async def delete_media(url: str, id_token: str = Query(...)):
+    user_verify = await verify_id_token(id_token)
+    try:
+        await delete_media_from_firebase(url)
+        return {"message": "Media deleted successfully"}
+    except Exception as e:
+        print(f"Error deleting media: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
 
 @app.get("/get_image_url/{file_name}", tags=['Experimental'])
 async def get_image(file_name: str):

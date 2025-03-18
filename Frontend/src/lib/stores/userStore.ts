@@ -32,6 +32,7 @@ export const userHandler = {
             localStorage.setItem('userId', newUser.localId);
             localStorage.setItem('idToken', newUser.idToken);
             localStorage.setItem('refreshToken', newUser.refreshToken)
+            localStorage.setItem('recipes',  JSON.stringify(newUser.recipes));
 
 
             // Store expiration timestamp
@@ -269,6 +270,7 @@ export const userHandler = {
             if (!res.ok) throw new Error(res.statusText || 'Failed to add favorite recipe')
 
             const userRecipes = await res.json();
+            localStorage.setItem('recipes', JSON.stringify(userRecipes));
             userStore.update((state) => ({
                 ...state,
                 recipes: userRecipes
@@ -294,6 +296,7 @@ export const userHandler = {
             });
             if (!res.ok) throw new Error(res.statusText || 'Failed to remove favorite recipe');
             const userRecipes = await res.json();
+            localStorage.setItem('recipes', JSON.stringify(userRecipes));
             userStore.update((state) => ({
                 ...state,
                 recipes: userRecipes

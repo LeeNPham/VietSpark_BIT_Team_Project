@@ -133,6 +133,7 @@
 			phoneNumberError = 'Please enter a phone number';
 			return false;
 		}
+		
 		if (!phoneNumberRegex.test(phoneNumber)) {
 			phoneNumberError = 'Phone number must be 10 digits long';
 			return false;
