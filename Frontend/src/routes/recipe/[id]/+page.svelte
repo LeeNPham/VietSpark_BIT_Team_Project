@@ -5,15 +5,18 @@
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
 	import { userStore, userHandler } from '$lib/stores/userStore';
 	import { reviewHandler, reviewStore } from '$lib/stores/reviewStore';
-	import { imageHandler } from '$lib/stores/imageStore';
-	import { Button, Spinner } from 'flowbite-svelte';
+	import { mediaHandler } from '$lib/stores/mediaStore';
+	import { Button, Spinner, Modal } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
 	import { goto } from '$app/navigation';
+	import Carousel from 'svelte-carousel/src/components/Carousel/Carousel.svelte';
+
+	let authenticated: boolean = false;
+	let userId: string = '';
 
 	let recipe: RecipeDetailDTO | null = null;
 	let isLoading: boolean = false;
 	let recipeId: string;
-	let authenticated = false;
 	let userRecipes: string[] = [];
 	let reviews: ReviewDTO[] = [];
 	let rating = 0;
@@ -21,9 +24,21 @@
 	let reviewDescription = '';
 	let reviewImages: File[] = [];
 	let reviewVideo: File | null = null;
-	let reviewerProfileImage: string = '';
 
 	$: recipeId = $page.params.id;
+
+	onMount(async () => {
+		try {
+			authenticated = localStorage.getItem('authenticated') == 'true';
+			userId = localStorage.getItem('userId') ?? '';
+			await fetchRecipe();
+			if (authenticated && userId) {
+				await userHandler.getUser(userId);
+			}
+		} catch (e) {
+			showToast('error', (e as Error).message);
+		}
+	});
 
 	async function fetchRecipe() {
 		try {
@@ -37,19 +52,17 @@
 	recipeStore.subscribe((store) => {
 		isLoading = store?.isLoading ?? false;
 		recipe = store?.currentRecipe ?? null;
-		console.log('recipe', recipe);
 	});
 
 	userStore.subscribe((store) => {
-		authenticated = store?.authenticated ?? false;
-		userRecipes = store?.recipes ?? [];
+		if (authenticated && userId) {
+			userRecipes = store?.recipes ?? [];
+		}
 	});
 
 	reviewStore.subscribe((store) => {
 		reviews = store?.reviews ?? [];
 	});
-
-	onMount(fetchRecipe);
 
 	async function handleAddFavorite() {
 		if (userRecipes?.includes(recipeId)) {
@@ -96,12 +109,12 @@
 			for (const image of reviewImages) {
 				if (!image) continue;
 				if (counter >= 3) break;
-				const link = await imageHandler.uploadFile(image);
+				const link = await mediaHandler.uploadImage(image);
 				reviewImageLinks.push(link);
 				counter++;
 			}
 
-			const reviewVideoLink = reviewVideo ? await imageHandler.uploadFile(reviewVideo) : '';
+			const reviewVideoLink = reviewVideo ? await mediaHandler.uploadVideo(reviewVideo) : '';
 
 			const reviewData = {
 				rating,
@@ -119,6 +132,16 @@
 		} catch (e) {
 			showToast('error', (e as Error).message);
 		}
+	}
+
+	let selectedImage: string | null = null;
+	let openImage = false;
+	let activeReviewIndex = 0;
+
+	$: openImage = selectedImage !== null;
+
+	function openReviewImage(imageSrc: string) {
+		selectedImage = imageSrc;
 	}
 </script>
 
@@ -151,7 +174,8 @@
 							</div>
 							<!-- Tooltip on Hover -->
 							<div
-								class="absolute left-full top-1/2 ml-3 -translate-y-1/2 transform whitespace-nowrap rounded bg-gray-900 px-3 py-1 text-sm text-white opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
+								class="absolute left-full top-1/2 ml-3 -translate-y-1/2 transform whitespace-nowrap rounded bg-gray-900
+									px-3 py-1 text-sm text-white opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
 							>
 								{recipe.author_name}
 							</div>
@@ -175,14 +199,18 @@
 			<div class="mt-10 flex justify-center space-x-4">
 				{#if authenticated && !userRecipes.includes(recipeId)}
 					<Button
-						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
+						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2
+						rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 
+						hover:text-black sm:text-sm md:text-lg lg:text-lg"
 						onclick={handleAddFavorite}
 					>
 						<span>❤️</span> <span>Add to favorite</span>
 					</Button>
 				{:else if authenticated}
 					<Button
-						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
+						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 
+						rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 
+						hover:text-black sm:text-sm md:text-lg lg:text-lg"
 						onclick={handleRemoveFavorite}
 					>
 						<span>💔 </span> <span>Remove from favorite</span>
@@ -210,8 +238,12 @@
 
 			<!-- Instructions Section -->
 			<div class="mt-4 flex justify-between">
-				<h2 class="text-secondary-green text-2xl font-medium">🍽️ Instructions</h2><Button
-					class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
+				<h2 class="text-secondary-green text-2xl font-medium">🍽️ Instructions</h2>
+				<Button
+					class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 whitespace-nowrap rounded-full border-2 bg-white px-2 py-1 text-xs font-semibold shadow-md transition-all duration-300 hover:text-black
+					sm:px-3 sm:py-1 sm:text-sm
+					md:px-4 md:py-1.5 md:text-lg
+					lg:px-5 lg:py-2 lg:text-lg"
 					onclick={() => {
 						goto('/map');
 					}}
@@ -240,7 +272,7 @@
 					<div class="mt-2 flex space-x-1">
 						{#each [1, 2, 3, 4, 5] as star}
 							<button
-								class="text-6xl text-gray-400 hover:text-yellow-400"
+								class="text-gray-400 transition-colors duration-200 hover:text-yellow-400 sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
 								on:click={() => setRating(star)}
 							>
 								{star <= rating ? '⭐' : '☆'}
@@ -344,10 +376,20 @@
 
 							<!-- Display Uploaded Images -->
 							{#if review.images.length > 0}
-								<div class="mt-2 flex space-x-2">
-									{#each review.images as img}
-										<img src={img} alt="Review image" class="h-20 w-20 rounded-lg object-cover" />
-									{/each}
+								<div class="mt-2 max-w-xs sm:max-w-sm md:max-w-md">
+									<Carousel arrows dots={true}>
+										{#each review.images as image}
+											<div class="flex items-center justify-center">
+												<img
+													src={image}
+													alt={`Review Image ${review.images.indexOf(image) + 1}`}
+													class="max-h-32 max-w-32 cursor-pointer rounded-lg object-contain transition-opacity duration-200 hover:opacity-80
+													   sm:max-h-24 sm:max-w-24 md:max-h-32 md:max-w-32"
+													on:click={() => openReviewImage(image)}
+												/>
+											</div>
+										{/each}
+									</Carousel>
 								</div>
 							{/if}
 
@@ -373,3 +415,11 @@
 		<p>Recipe not found. <a href="/" class="text-secondary-green">Go back to home.</a></p>
 	</div>
 {/if}
+
+<Modal bind:open={openImage} size="lg" autoclose on:close={() => (selectedImage = null)}>
+    {#if selectedImage}
+        <div class="flex justify-center">
+            <img src={selectedImage} alt="Enlarged Review Image" class="max-h-[80vh] object-contain" />
+        </div>
+    {/if}
+</Modal>

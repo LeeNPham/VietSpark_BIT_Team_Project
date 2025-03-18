@@ -525,7 +525,29 @@ async def image_to_storage(file, path):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+async def video_to_storage(file, path):
+    video_data = await file.read()
+    try:
+        bucket = storage.bucket()
+        print("Video", path)
+        blob = bucket.blob(f"{path}")
+        blob.upload_from_string(video_data, content_type='video/mp4')
+        blob.make_public()
+        video_url = blob.public_url
+        return video_url
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
+async def delete_media_from_firebase(url):
+    try:
+        bucket = storage.bucket()
+        blob = bucket.blob(url)
+        blob.delete()
+        return True
+    except Exception as e:
+        return False
+    
+    
 async def get_image_from_firebase(file_name):
     try:
         bucket = storage.bucket()
