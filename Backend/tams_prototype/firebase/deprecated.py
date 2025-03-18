@@ -292,6 +292,15 @@ async def user_profile_image(file: UploadFile = File(...), id_token: str = Query
 
 
 
+        response_list_task = asyncio.create_task(GPT_to_recipe(ingredients))
+        img_url_task = asyncio.create_task(GPT_image(ingredients, img_name))
+        r_list, GPT_img_url = await asyncio.gather(response_list_task, img_url_task)
+            
+        response = await new_recipe(r_list[1], GPT_img_url, user_added = False)
+        response["img_url"] = GPT_img_url
+        return [response]
+    
+
 
 
 
