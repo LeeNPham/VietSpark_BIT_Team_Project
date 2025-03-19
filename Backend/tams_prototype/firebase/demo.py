@@ -618,3 +618,37 @@ async def return_index():
     for recipe in collection:
         recipe = format_recipe(recipe, "short")
     return collection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 6131f10 (Enhance recipe search functionality and add new index route; update Firestore queries and include datastore dependency)
