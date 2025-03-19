@@ -618,3 +618,36 @@ async def return_index():
     for recipe in collection:
         recipe = format_recipe(recipe, "short")
     return collection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
