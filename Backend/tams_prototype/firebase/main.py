@@ -305,8 +305,8 @@ async def generate_image(item: str):
     return a
 
 @app.get('/index', tags=['Experimental'])
-async def index_of():
-    return await return_index()
+async def index_of(offset: Optional[int] = None, limit: Optional[int] = None):
+    return await return_index(offset, limit)
 
 
 @app.get("/Nutritions", tags=["Recipes"])

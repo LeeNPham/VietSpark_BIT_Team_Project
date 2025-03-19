@@ -602,14 +602,16 @@ async def create_review(review: ReviewAdd, user_id, userName):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def return_index():
-    collection = recipe_collection.order_by('calories').offset(15).limit(10).stream()
-    collection = await get_collection(collection, details=True)
-    print(len(collection))
-    print(collection)
-    for recipe in collection:
-        recipe = format_recipe(recipe, "short")
-    return collection
+async def return_index(offset, limit):
+    if limit is not None and offset is not None:
+        collection = recipe_collection.order_by('calories').offset(offset).limit(limit).stream()
+        collection = await get_collection(collection, details=True)
+        print(len(collection))
+        # print(collection[0]['calories'])
+        print(collection)
+        for recipe in collection:
+            recipe = format_recipe(recipe, "short")
+        return collection
 
 
 
