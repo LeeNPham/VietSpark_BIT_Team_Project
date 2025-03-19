@@ -303,9 +303,9 @@ async def new_recipe(recipe, uid, author, user_added):
 
     nutritions = await request_nutritions(all_ingredients)
     recipe_nutrition = combined_nutrition(nutritions, recipe.name)
-    print(all_ingredients)
-    print(nutritions)
-    print(recipe_nutrition)
+    print("All ingredients", all_ingredients)
+    print("Nutritions", nutritions)
+    print("Recipe nutrition", recipe_nutrition)
 
     recipe_data = {
         "name": recipe.name,
@@ -315,7 +315,7 @@ async def new_recipe(recipe, uid, author, user_added):
         "img_url": img_url,
         "servings": recipe.servings,
         # "calories": recipe.calories,
-        "calories": recipe_nutrition.calories,
+        "calories": recipe_nutrition.get('calories', 0),
         "nutrition": recipe_nutrition,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
