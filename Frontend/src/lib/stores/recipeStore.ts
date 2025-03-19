@@ -102,11 +102,28 @@ export const recipeHandler = {
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
         try {
+            // Step 1: Search with ingredients only
             const queryParams = new URLSearchParams();
             if (ingredients) queryParams.append("ingredients", ingredients);
             else return recipeHandler.getRecipes(null);
 
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
+            
+            const resIngredients = await fetch(`${API_URL}/recipes/search_recipe_database${paramStr}`);
+            const resData = await resIngredients.json();
+            if (resIngredients.ok && resData !== "item not found") {
+                recipeStore.update((state) => ({
+                    ...state,
+                    recipes: resData.recipes,
+                    isLoading: false,
+                    currentRecipe: resData.recipes[0].recipe_id,
+                    currentIndex: 0
+                }));
+                return resData.recipes;
+            }
+            
+
+            // Step 2: Search with GPT
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}&id_token=${userLS.idToken}&allergies=${userLS.allergies}`);
 
             if (!res.ok) throw new Error(res.statusText ||"Failed to search for recipes with ingredients " + ingredients);

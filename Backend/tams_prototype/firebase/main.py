@@ -189,7 +189,7 @@ async def search_by_ingredients(ingredients: str):
     print(ingredients)
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        if check_ingredients != []:
+        if check_ingredients != [] and check_ingredients != 'item not found':
             return check_ingredients
         else:
             raise HTTPException(status_code=404, detail="No recipes found with the given ingredients.")
