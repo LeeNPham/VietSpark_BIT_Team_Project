@@ -683,6 +683,3 @@ async def return_index():
 
 
 
-
-
->>>>>>> 6131f10 (Enhance recipe search functionality and add new index route; update Firestore queries and include datastore dependency)
