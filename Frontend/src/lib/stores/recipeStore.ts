@@ -8,8 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 export const recipeStore = writable({
     isLoading: true,
     recipes: [],
+    page: 1,
+    totalPages: 1,
+    total: 0,
     currentRecipe: null,
-    currentIndex: -1,
 });
 
 
@@ -20,20 +22,19 @@ export const recipeHandler = {
             console.log("Adding new recipe");
             const res = await fetch(`${API_URL}/recipes/add_recipe?id_token=${idToken}`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify(recipeData),
             });
 
-            if (!res.ok) throw new Error(res.statusText || "Failed to create new recipe");
-
             const newRecipe = await res.json();
+            if (!res.ok) throw new Error(newRecipe.detail || "Failed to create new recipe");
+
             recipeStore.update((state) => ({
                 ...state,
                 currentRecipe: newRecipe,
-                currentIndex: -1
             }))
             return newRecipe.id;
         } catch (error) {
@@ -43,19 +44,19 @@ export const recipeHandler = {
     },
     getRecipe: async (recipeId: string) => {
         try {
-
             const url = `${API_URL}/recipes/${recipeId}`;
             const res = await fetch(url);
-            if (!res.ok) throw new Error(res.statusText || "Failed to fetch recipe");
             const foundRecipe = await res.json();
-            if (!foundRecipe || Array.isArray(foundRecipe) && foundRecipe.length === 0 || foundRecipe === "item not found" ) {
+            
+            if (!res.ok) throw new Error(foundRecipe.detail || "Failed to fetch recipe");
+            
+            if (!foundRecipe || Array.isArray(foundRecipe) && foundRecipe.length === 0 || foundRecipe === "item not found") {
                 throw new Error(`Recipe is not found`);
             }
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
                 currentRecipe: foundRecipe,
-                currentIndex: -1
             }));
             return foundRecipe;
         } catch (error) {
@@ -67,37 +68,62 @@ export const recipeHandler = {
             throw error;
         }
     },
-    getRecipes: async (recipeName: string | null) => {
+    getRecipes: async (recipeName: string | null, limit: number = 10, offset: number = 0) => {
         try {
             const queryParams = new URLSearchParams();
             if (recipeName?.trim()) queryParams.append("name", recipeName.trim());
+            queryParams.append("offset", offset.toString());
+            queryParams.append("limit", limit.toString());
+
             const paramStr = queryParams.toString() ? '?' + queryParams.toString() : '';
 
             const res = await fetch(`${API_URL}/recipes${paramStr}`);
+            const resData = await res.json();
 
-            if (!res.ok) throw new Error(res.statusText || 'Failed to fetch recipes');
-            const recipes = await res.json();
-            console.log("Fetched recipes", recipes);
+            if (!res.ok) throw new Error(resData.detail || 'Failed to fetch recipes');
+            console.log("Fetched recipes", resData);
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
-                recipes
+                recipes: resData.recipes,
+                page: resData.pagination.page,
+                totalPages: resData.pagination.totalPages,
+                total: resData.pagination.total,
             }));
         } catch (e) {
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
-                recipes: []
+                recipes: [],
+                page: 1,
+                totalPages: 1,
+                total: 0,
             }))
             throw e;
         }
+    },
+
+    getRecipeList: async (recipeIds: string[]) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("recipeIds", recipeIds.join(','));
+        const paramStr = queryParams.toString() ? '?' + queryParams.toString() : '';
+
+        try {
+            const res = await fetch(`${API_URL}/recipes_batch${paramStr}`);
+            const recipes = await res.json();
+            if (!res.ok) throw new Error(recipes.detail || 'Failed to fetch recipes');
+            return recipes;
+        } catch (e) {
+            throw e;
+        }
+
     },
     updateRecipe: () => { },
     deleteRecipe: () => { },
 
     searchRecipesGPT: async (ingredients: string) => {
         const userLS = getLSUserData();
-        if (!userLS.idToken) {throw new Error("User is not signed in");}
+        if (!userLS.idToken) { throw new Error("User is not signed in"); }
 
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
@@ -105,10 +131,10 @@ export const recipeHandler = {
             // Step 1: Search with ingredients only
             const queryParams = new URLSearchParams();
             if (ingredients) queryParams.append("ingredients", ingredients);
-            else return recipeHandler.getRecipes(null);
+            else return recipeHandler.getRecipes(null, 10, 0);
 
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
-            
+
             const resIngredients = await fetch(`${API_URL}/recipes/search_recipe_database${paramStr}`);
             const resData = await resIngredients.json();
             if (resIngredients.ok && resData !== "item not found") {
@@ -117,16 +143,15 @@ export const recipeHandler = {
                     recipes: resData.recipes,
                     isLoading: false,
                     currentRecipe: resData.recipes[0].recipe_id,
-                    currentIndex: 0
                 }));
                 return resData.recipes;
             }
-            
+
 
             // Step 2: Search with GPT
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}&id_token=${userLS.idToken}&allergies=${userLS.allergies}`);
 
-            if (!res.ok) throw new Error(res.statusText ||"Failed to search for recipes with ingredients " + ingredients);
+            if (!res.ok) throw new Error(res.statusText || "Failed to search for recipes with ingredients " + ingredients);
 
             const recipes = await res.json();
             console.log("Found recipes from GPT", recipes)
@@ -136,10 +161,9 @@ export const recipeHandler = {
                     recipes,
                     isLoading: false,
                     currentRecipe: recipes[0].recipe_id,
-                    currentIndex: 0
                 }))
             } else throw new Error(`No recipes with ingredients ${ingredients} found`)
-            
+
         } catch (e) {
             recipeStore.update((state) => ({
                 ...state,
