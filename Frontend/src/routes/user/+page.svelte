@@ -8,6 +8,7 @@
 	import { customStyles } from '$src/custom';
 	import { showToast } from '$lib/stores/alertStore';
 	import ChangeProfileImageModal from '$lib/components/ChangeProfileImageModal.svelte';
+	import FavoriteRecipeList from '$lib/components/FavoriteRecipeList.svelte';
 
 	export let userId: string | null;
 	export let user: UserDTO | null;
@@ -290,7 +291,7 @@
 	</div>
 	<!-- Favorite Recipes -->
 	<p class={customStyles.userP}>Favorite Recipes</p>
-	<RecipeList userRecipes={myRecipes}/>
+	<FavoriteRecipeList userRecipes={myRecipes}/>
 	<div class="mt-6 flex justify-center gap-4">
 		<!-- Cancel Button -->
 		<Button

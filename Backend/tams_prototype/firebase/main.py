@@ -158,22 +158,51 @@ async def update_all_user_data(user_data: allUserDataModel, id_token: str = Quer
     return await update_all_u_d(user_data)
 
 
-
+import math
 
 #GET cannot pass a body, only parameters
-@app.get("/recipes", tags=['Recipes'])
+@app.get("/recipes", tags=['Recipes'], response_model=None)
 async def get_recipes(
     name: Optional[str] = None, 
     author: Optional[str] = None, 
     calories: Optional[int] = None, 
-    time: Optional[int] = None
+    time: Optional[int] = None,
+    limit: Optional[int] = Query(10, ge=1),
+    offset: Optional[int] = Query(0, ge=0),
     ):
-    return await recipe_database_search(name, author, calories, time)
+    recipes, total_recipes = await recipe_database_search(name, author, calories, time, limit, offset)
+    
+    if limit is not None and offset is not None:
+        
+        return {
+            "recipes": recipes,
+            "pagination": {
+                "page": (offset // limit) + 1,
+                "pageSize": min(limit, len(recipes)),
+                "total": total_recipes,
+                "totalPages": math.ceil(total_recipes / limit)
+            }
+        }
+    else:
+        return {
+            "recipes": recipes,
+            "pagination": {
+                "page": 1,
+                "pageSize": len(recipes),
+                "total": len(recipes),
+                "totalPages": 1
+            }
+        }
 
 
 @app.get("/recipes/{recipe_id}", tags=["Recipes"])
 async def get_recipe_by_id(recipe_id: str):
     return await search_recipe_by_id(recipe_id)
+
+@app.get("/recipes_batch", tags=["Recipes"])
+async def get_recipes_batch(recipeIds: str):
+    recipeIds = recipeIds.split(',')
+    return await search_recipe_by_id_batch(recipeIds)
 
 
 @app.post("/recipes/add_recipe", tags=['Recipes'])

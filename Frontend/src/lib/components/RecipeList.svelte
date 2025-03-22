@@ -2,109 +2,93 @@
 	//@ts-nocheck
 	import type { RecipeDTO } from '$lib/types';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
-	import { Card } from 'flowbite-svelte';
-
-	export let userRecipes = [];
-	export let limit: number = 10;
+	import { Card, Pagination, PaginationItem } from 'flowbite-svelte';
+	import { ArrowLeftOutline, ArrowRightOutline } from 'flowbite-svelte-icons';
+	import RecipeItem from './RecipeItem.svelte';
+	import { showToast } from '$lib/stores/alertStore';
 
 	let myRecipesData: RecipeDTO[] = [];
-	let shownDescriptions = {};
-	let page = 1;
-	let totalRecipes = 0;
+	let currentPage = 1;
+	let limit = 10;
+	let offset = 0;
+	let totalPages = 0;
+	let total = 0;
 
-	$: {
-		const allRecipes = $recipeStore.recipes || [];
-		let filteredRecipes = userRecipes.length
-			? allRecipes.filter((recipe) => userRecipes.includes(recipe.recipe_id))
-			: allRecipes;
+	const fetchRecipes = async () => {
+		try {
+			await recipeHandler.getRecipes(null, limit, offset);
+		} catch (e) {
+			showToast('error', 'Error fetching recipes: ' + e.message);
+		}
+	};
 
-		// Sort by creation_time (assuming it’s in the data)
-		filteredRecipes = filteredRecipes.sort(
-			(a, b) => new Date(b.creation_time) - new Date(a.creation_time)
-		);
-
-		totalRecipes = filteredRecipes.length;
-		myRecipesData = filteredRecipes.slice(0, limit * page);
+	function nextPage() {
+		if (currentPage < totalPages) {
+			currentPage += 1;
+			offset = (currentPage - 1) * limit;
+			fetchRecipes();
+		}
+	}
+	function prevPage() {
+		if (currentPage > 1) {
+			currentPage -= 1;
+			offset = (currentPage - 1) * limit;
+			if (offset < 0) {
+				offset = 0;
+			}
+			fetchRecipes();
+		}
 	}
 
-	function loadMore() {
-		page += 1;
-	}
+	recipeStore.subscribe((store) => {
+		const newRecipes = store.recipes || [];
+		total = store.total || 0;
+		totalPages = store.totalPages || 0;
+		currentPage = store.page || 1;
 
-	function toggleDescription(recipeId: string) {
-		shownDescriptions[recipeId] = !shownDescriptions[recipeId];
-		shownDescriptions = { ...shownDescriptions };
-	}
+		if (newRecipes.length > 0) {
+			myRecipesData = newRecipes;
+		}
+	});
 </script>
 
-<div
-	class="mb-4 grid grid-cols-1 place-content-center gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
->
+<div class="mb-4 gap-4">
 	{#if myRecipesData.length > 0}
-		{#each myRecipesData as item (item.recipe_id)}
-			<div class="space-y-4">
-				<Card
-					img={item.img_url}
-					class="m-3 mx-auto flex-shrink-0 rounded-lg bg-cover bg-center bg-no-repeat shadow-lg"
-					href={`/recipe/${item.recipe_id}`}
-					horizontal
-					size="md"
-				>
-					{#if shownDescriptions[item.recipe_id]}
-						<p class="text-md"><strong>⏰ Time:</strong> {item.time} mins</p>
-						<p class="text-md"><strong>🔥 Calories:</strong> {item.calories} kcal</p>
-						<p class="text-md"><strong>🥘 Servings:</strong> {item.servings}</p>
-						<div class="mt-10 flex items-end justify-between">
-							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex w-fit items-center"
-								on:click|preventDefault={() => toggleDescription(item.recipe_id)}
-								aria-label="Hide description"
-							>
-								<span class="mr-2">Back</span>
-								<svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15 19l-7-7 7-7"
-									/>
-								</svg>
-							</button>
-						</div>
-					{:else}
-						<h5
-							class="mb-3 line-clamp-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white"
-						>
-							{item.name}
-						</h5>
-						<div class="mt-10 flex items-end justify-between">
-							<div></div>
-							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex w-fit items-center"
-								on:click|preventDefault={() => toggleDescription(item.recipe_id)}
-							>
-								<span class="mr-2">Summary</span>
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 5l7 7-7 7"
-									/>
-								</svg>
-							</button>
-						</div>
-					{/if}
-				</Card>
+		<div
+			class="grid grid-cols-1 place-content-center sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
+		>
+			{#each myRecipesData as item (item.recipe_id)}
+				<RecipeItem {item} />
+			{/each}
+		</div>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2">
+			<div class="flex justify-start">
+				{#if currentPage > 1}
+					<PaginationItem
+						large
+						class="bg-secondary-forest hover:bg-secondary-forest-light hover:text-white flex items-center rounded-lg px-4 py-2 text-white transition-colors duration-200 disabled:bg-gray-400 disabled:text-gray-600 disabled:hover:bg-gray-400"
+						on:click={prevPage}
+						disabled={currentPage === 1}
+					>
+						<ArrowLeftOutline class="me-2 h-5 w-5" />
+						Previous
+					</PaginationItem>
+				{/if}
 			</div>
-		{/each}
-		{#if myRecipesData.length < totalRecipes}
-			<div class="col-span-full text-center">
-				<button class="bg-primary-green outline-secondary-green rounded-2xl text-sm text-black outline p-2" on:click={loadMore}>
-					Load More
-				</button>
+			<div class="flex justify-end">
+				{#if currentPage < totalPages}
+					<PaginationItem
+						large
+						class="bg-primary-green hover:bg-primary-green-dark flex items-center rounded-lg px-4 py-2 text-black transition-colors duration-200 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:bg-gray-200"
+						on:click={nextPage}
+						disabled={currentPage >= totalPages}
+					>
+						Next
+						<ArrowRightOutline class="ms-2 h-5 w-5" />
+					</PaginationItem>
+				{/if}
 			</div>
-		{/if}
+		</div>
 	{:else}
 		<div class="flex h-full w-full items-center justify-center">
 			<p class="text-center text-teal-600">

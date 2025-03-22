@@ -19,7 +19,7 @@
 		recipeStore.update((state) => ({ ...state, isLoading: true }));
 		if (!searchQuery.trim()) {
 			try {
-				await recipeHandler.getRecipes(null);
+				await recipeHandler.getRecipes(null, 10, 0);
 				return;
 			} catch (e) {
 				console.error((e as Error).message);
@@ -28,7 +28,7 @@
 
 		try {
 			if (searchType === 'name') {
-				await recipeHandler.getRecipes(searchQuery.trim());
+				await recipeHandler.getRecipes(searchQuery.trim(), 10, 0);
 			} else if (searchType === 'ingredients') {
 				//regex to remove all commas and special characters
 				searchQuery = searchQuery.replace(/[^a-zA-Z0-9 ]/g, '');
@@ -38,7 +38,7 @@
 				await new Promise((resolve) => setTimeout(resolve, 13000));
 
 				// After the delay, call getRecipes
-				await recipeHandler.getRecipes(null);
+				await recipeHandler.getRecipes(null, 10, 0);
 			}
 		} catch (e) {
 			console.error(e);
