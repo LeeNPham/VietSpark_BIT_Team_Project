@@ -1,12 +1,11 @@
 <script lang="ts">
 	import '../app.css';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { userHandler, userStore } from '$lib/stores/userStore';
 	import { Navbar, NavLi, NavUl, NavHamburger, NavBrand } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
 	import { browser } from '$app/environment';
-	import { showToast } from '$lib/stores/alertStore';
 	import CustomToast from '$lib/components/CustomToast.svelte';
 
 	/** @type {{children: import('svelte').Snippet}} */
@@ -18,7 +17,7 @@
 
 
 		console.log('Preloading recipes');
-		recipeHandler.getRecipes(null).catch((e) => {
+		recipeHandler.getRecipes(null, 10, 0).catch((e) => {
 			console.log('Recipe fetch error:', e); // Debug log
 		});
 

@@ -303,9 +303,9 @@ async def new_recipe(recipe, uid, author, user_added):
 
     nutritions = await request_nutritions(all_ingredients)
     recipe_nutrition = combined_nutrition(nutritions, recipe.name)
-    print(all_ingredients)
-    print(nutritions)
-    print(recipe_nutrition)
+    print("All ingredients", all_ingredients)
+    print("Nutritions", nutritions)
+    print("Recipe nutrition", recipe_nutrition)
 
     recipe_data = {
         "name": recipe.name,
@@ -315,7 +315,7 @@ async def new_recipe(recipe, uid, author, user_added):
         "img_url": img_url,
         "servings": recipe.servings,
         # "calories": recipe.calories,
-        "calories": recipe_nutrition.calories,
+        "calories": recipe_nutrition.get('calories', 0),
         "nutrition": recipe_nutrition,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
@@ -339,27 +339,40 @@ async def new_recipe(recipe, uid, author, user_added):
     return recipe_doc.id
 
 
-async def recipe_database_search(name, author, calories, time):
+async def recipe_database_search(name, author, calories, time, limit, offset):
+    all_recipes = await get_collection(recipe_collection.stream(), details=True)
+    total_recipes = len(all_recipes)
     if name:
-        return await search_recipe_by(name, "searchable_recipe_name")
-    elif author:
-        collection = recipe_collection.where("author_name", "==", author).stream()
-    elif calories:
-        collection = recipe_collection.where("calories", "==", calories).stream()
-    elif time:
-        collection = recipe_collection.where("time", "==", time).stream()
+        recipes = await search_recipe_by(name, "searchable_recipe_name")
+        return recipes, total_recipes
+    
+    collection = recipe_collection
+    if author:
+        collection = collection.where("author_name", "==", author)
+    if calories:
+        collection = collection.where("calories", "==", calories)
+    if time:
+        collection = collection.where("time", "==", time)
+    
+    collection = collection.order_by('creation_time', direction=firestore.Query.DESCENDING)
+    print("limit", limit, "offset", offset)
+    if limit is not None and offset is not None:
+        collection = collection.offset(offset).limit(limit)
+    
+    recipes =  await get_collection(collection.stream(), details=True)
+
+    for recipe in recipes:
+        format_recipe(recipe, "short")
+    return recipes, total_recipes
+
+async def search_recipe_by_id_batch(ids):
+    if ids:
+        recipes = await get_collection(recipe_collection.where("recipe_id", "in", ids).stream(), details=True)
+        for recipe in recipes:
+            format_recipe(recipe, "short")
+        return recipes
     else:
-        latest_sort = recipe_collection.order_by('creation_time', direction=firestore.Query.DESCENDING).stream()
-        collection =  await get_collection(latest_sort, details=True)
-        for recipe in collection:
-            recipe = format_recipe(recipe, "short")
-        return collection
-
-    collection = await get_collection(collection, details=True)
-    for recipe in collection:
-        recipe = format_recipe(recipe, "short")
-    return collection
-
+        return []
 
 async def search_recipe_by_id(id: str):
     if id.strip():

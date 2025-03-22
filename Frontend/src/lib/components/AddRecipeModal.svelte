@@ -131,7 +131,7 @@
 		console.log('Add new recipe', newRecipe);
 		try {
 			await recipeHandler.addRecipe(newRecipe);
-			await recipeHandler.getRecipes(null);
+			await recipeHandler.getRecipes(null, 10, 0);
 			toggleModal();
 		} catch (error) {
 			showToast('error', (error as Error).message);

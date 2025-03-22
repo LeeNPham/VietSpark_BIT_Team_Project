@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { customStyles } from '../custom';
+	import { customStyles } from '$src/custom';
+
 	import Category from '$lib/components/Category.svelte';
 	import IngredientInput from '$lib/components/IngredientInput.svelte';
 	import RecipeList from '$lib/components/RecipeList.svelte';
@@ -7,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { Button } from 'flowbite-svelte';
-	
+
 	let name = 'Beautiful';
 	let showModal = false;
 	let userId: string | null = null;
@@ -40,7 +41,7 @@
 		<h2 class={customStyles.heading}>Recipes</h2>
 		{#if authenticated}
 			<Button
-				class="bg-primary-green outline-secondary-green rounded-2xl text-sm text-black outline p-2"
+				class="bg-primary-green outline-secondary-green rounded-2xl p-2 text-sm text-black outline"
 				on:click={toggleModal}
 			>
 				+ Recipe

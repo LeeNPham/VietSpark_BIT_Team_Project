@@ -24,6 +24,7 @@
 	let reviewDescription = '';
 	let reviewImages: File[] = [];
 	let reviewVideo: File | null = null;
+	let disableSubmit = false;
 
 	$: recipeId = $page.params.id;
 
@@ -62,6 +63,7 @@
 
 	reviewStore.subscribe((store) => {
 		reviews = store?.reviews ?? [];
+		disableSubmit = store?.isLoading ?? false;
 	});
 
 	async function handleAddFavorite() {
@@ -129,6 +131,7 @@
 			reviewText = '';
 			reviewImages = [];
 			reviewVideo = null;
+			setRating(0);
 		} catch (e) {
 			showToast('error', (e as Error).message);
 		}
@@ -136,7 +139,6 @@
 
 	let selectedImage: string | null = null;
 	let openImage = false;
-	let activeReviewIndex = 0;
 
 	$: openImage = selectedImage !== null;
 
@@ -272,10 +274,12 @@
 					<div class="mt-2 flex space-x-1">
 						{#each [1, 2, 3, 4, 5] as star}
 							<button
-								class="text-gray-400 transition-colors duration-200 hover:text-yellow-400 sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
+								class="{star <= rating
+									? 'text-yellow-400'
+									: 'text-gray-400'} transition-colors duration-200 hover:text-yellow-400 sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl"
 								on:click={() => setRating(star)}
 							>
-								{star <= rating ? '⭐' : '☆'}
+								{star <= rating ? '★' : '✩'}
 							</button>
 						{/each}
 					</div>
@@ -330,8 +334,9 @@
 						<button
 							class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue mt-4 flex items-center space-x-2 rounded-full border-2 bg-white px-5 py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black sm:text-sm md:text-lg lg:text-lg"
 							on:click={submitReview}
+							disabled={!reviewDescription && !reviewText && disableSubmit}
 						>
-							Submit Review
+							{disableSubmit ? 'Submitting' : 'Submit Review'}
 						</button>
 					</div>
 				</div>
@@ -417,9 +422,9 @@
 {/if}
 
 <Modal bind:open={openImage} size="lg" autoclose on:close={() => (selectedImage = null)}>
-    {#if selectedImage}
-        <div class="flex justify-center">
-            <img src={selectedImage} alt="Enlarged Review Image" class="max-h-[80vh] object-contain" />
-        </div>
-    {/if}
+	{#if selectedImage}
+		<div class="flex justify-center">
+			<img src={selectedImage} alt="Enlarged Review Image" class="max-h-[80vh] object-contain" />
+		</div>
+	{/if}
 </Modal>

@@ -46,6 +46,10 @@ export const reviewHandler = {
     },
 
     submitReview: async (reviewData: ReviewAddDTO) => {
+        reviewStore.update((state) => ({
+            ...state,
+            isLoading: true,
+        }));
         const idToken = localStorage.getItem('idToken');
         if (!idToken) { throw new Error("User is not signed in"); }
         try {
@@ -64,9 +68,17 @@ export const reviewHandler = {
             
             
             reviewHandler.getReviews(reviewData.recipe_id, null, null, null);
+            reviewStore.update((state) => ({
+                ...state,
+                isLoading: false,
+            }));
         } catch (error) {
             console.error("Error submitting review", error);
-            throw error
+            reviewStore.update((state) => ({
+                ...state,
+                isLoading: false,
+            }));
+            throw error;
         }
     },
 };

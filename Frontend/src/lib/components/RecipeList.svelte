@@ -2,119 +2,98 @@
 	//@ts-nocheck
 	import type { RecipeDTO } from '$lib/types';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
-	import { Card } from 'flowbite-svelte';
+	import { Card, Pagination, PaginationItem } from 'flowbite-svelte';
+	import { ArrowLeftOutline, ArrowRightOutline } from 'flowbite-svelte-icons';
+	import RecipeItem from './RecipeItem.svelte';
+	import { showToast } from '$lib/stores/alertStore';
 
-	export let myRecipes = []; // passed down option property in the case that a user has favorited recipes
-	export let showFavorites = false;
+	let myRecipesData: RecipeDTO[] = [];
+	let currentPage = 1;
+	let limit = 10;
+	let offset = 0;
+	let totalPages = 0;
+	let total = 0;
 
-	let searchTerm = '';
-	let myRecipesData = [];
-	let recipes: RecipeDTO[] | [] = [];
-	let shownDescriptions = {};
+	const fetchRecipes = async () => {
+		try {
+			await recipeHandler.getRecipes(null, limit, offset);
+		} catch (e) {
+			showToast('error', 'Error fetching recipes: ' + e.message);
+		}
+	};
+
+	function nextPage() {
+		if (currentPage < totalPages) {
+			currentPage += 1;
+			offset = (currentPage - 1) * limit;
+			fetchRecipes();
+		}
+	}
+	function prevPage() {
+		if (currentPage > 1) {
+			currentPage -= 1;
+			offset = (currentPage - 1) * limit;
+			if (offset < 0) {
+				offset = 0;
+			}
+			fetchRecipes();
+		}
+	}
 
 	recipeStore.subscribe((store) => {
-		recipes = store.recipes;
+		const newRecipes = store.recipes || [];
+		total = store.total || 0;
+		totalPages = store.totalPages || 0;
+		currentPage = store.page || 1;
+
+		if (newRecipes.length > 0) {
+			myRecipesData = newRecipes;
+		}
 	});
-
-	// make sure to organize the recipes based on how recent it was created. this means we will need a createdAt attribute that uses new Date().toISOString()
-	$: if (myRecipes.length > 0 || showFavorites) {
-		myRecipesData = recipes.filter((recipe) => myRecipes.includes(recipe.recipe_id));
-	} else {
-		myRecipesData = recipes;
-	}
-
-	// look into fuze.js for better search functionality, this includes details on how to implement a fuzzy
-	// $: if (searchTerm !== '') {
-	// 	myRecipesData = myRecipesData.filter((recipe) =>
-	// 		recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
-	// 	);
-	// } else {
-	// 	myRecipesData = recipes;
-	// }
-
-	function toggleDescription(recipeId: string) {
-		shownDescriptions[recipeId] = !shownDescriptions[recipeId];
-		shownDescriptions = { ...shownDescriptions };
-	}
 </script>
 
-<!-- <input
-	type="text"
-	class="w-full rounded-lg border border-gray-300 p-2"
-	placeholder="Search for recipes"
-	bind:value={searchTerm}
-/> -->
-
-<div
-	class="mb-4 grid grid-cols-1 place-content-center gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
->
-	{#if myRecipesData}
-		{#each myRecipesData as item (item.recipe_id)}
-			<div class="space-y-4">
-				<Card
-					img={item.img_url}
-					class="m-3 mx-auto flex-shrink-0 rounded-lg bg-cover bg-center bg-no-repeat shadow-lg"
-					href={`/recipe/${item.recipe_id}`}
-					horizontal
-					size="md"
-				>
-					{#if shownDescriptions[item.recipe_id]}
-						<p class="text-md"><strong>⏰ Time:</strong> {item.time} mins</p>
-						<p class="text-md"><strong>🔥 Calories:</strong> {item.calories} kcal</p>
-						<p class="text-md"><strong>🥘 Servings:</strong> {item.servings}</p>
-						<div class="mt-10 flex items-end justify-between">
-							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 mt-auto flex w-fit items-center"
-								onclick={(event) => {
-									event.preventDefault();
-									toggleDescription(item.recipe_id);
-								}}
-								aria-label="Hide description"
-							>
-								<span class="mr-2">Back</span>
-								<svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15 19l-7-7 7-7"
-									/>
-								</svg>
-							</button>
-						</div>
-					{:else}
-						<h5
-							class="mb-3 line-clamp-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white"
-						>
-							{item.name}
-						</h5>
-						<div class="mt-10 flex items-end justify-between">
-							<div></div>
-							<button
-								class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 mt-auto flex w-fit items-center"
-								onclick={(event) => {
-									event.preventDefault();
-									toggleDescription(item.recipe_id);
-								}}
-							>
-								<span class="mr-2">Summary</span>
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 5l7 7-7 7"
-									/>
-								</svg>
-							</button>
-						</div>
-					{/if}
-				</Card>
+<div class="mb-4 gap-4">
+	{#if myRecipesData.length > 0}
+		<div
+			class="grid grid-cols-1 place-content-center sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
+		>
+			{#each myRecipesData as item (item.recipe_id)}
+				<RecipeItem {item} />
+			{/each}
+		</div>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2">
+			<div class="flex justify-start">
+				{#if currentPage > 1}
+					<PaginationItem
+						large
+						class="bg-secondary-forest hover:bg-secondary-forest-light hover:text-white flex items-center rounded-lg px-4 py-2 text-white transition-colors duration-200 disabled:bg-gray-400 disabled:text-gray-600 disabled:hover:bg-gray-400"
+						on:click={prevPage}
+						disabled={currentPage === 1}
+					>
+						<ArrowLeftOutline class="me-2 h-5 w-5" />
+						Previous
+					</PaginationItem>
+				{/if}
 			</div>
-		{/each}
+			<div class="flex justify-end">
+				{#if currentPage < totalPages}
+					<PaginationItem
+						large
+						class="bg-primary-green hover:bg-primary-green-dark flex items-center rounded-lg px-4 py-2 text-black transition-colors duration-200 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:bg-gray-200"
+						on:click={nextPage}
+						disabled={currentPage >= totalPages}
+					>
+						Next
+						<ArrowRightOutline class="ms-2 h-5 w-5" />
+					</PaginationItem>
+				{/if}
+			</div>
+		</div>
 	{:else}
 		<div class="flex h-full w-full items-center justify-center">
-			<p class="text-center text-teal-600">No recipes found. Please try again later.</p>
+			<p class="text-center text-teal-600">
+				{$recipeStore.recipes ? 'No recipes found.' : 'Loading recipes...'}
+			</p>
 		</div>
 	{/if}
 </div>
