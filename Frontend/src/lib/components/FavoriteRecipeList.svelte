@@ -2,7 +2,6 @@
 	//@ts-nocheck
 	import type { RecipeDTO } from '$lib/types';
 	import { recipeHandler, recipeStore } from '$lib/stores/recipeStore';
-	import { Card } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import RecipeItem from './RecipeItem.svelte';
 
@@ -25,7 +24,7 @@
 	{:else}
 		<div class="flex h-full w-full items-center justify-center">
 			<p class="text-center text-teal-600">
-				{$recipeStore.recipes ? 'No recipes found.' : 'Loading recipes...'}
+				You have not liked any recipe.
 			</p>
 		</div>
 	{/if}
