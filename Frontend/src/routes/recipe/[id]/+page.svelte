@@ -9,7 +9,6 @@
 	import { Button, Spinner, Modal } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
 	import { goto } from '$app/navigation';
-	import Carousel from 'svelte-carousel/src/components/Carousel/Carousel.svelte';
 
 	let authenticated: boolean = false;
 	let userId: string = '';
@@ -129,6 +128,7 @@
 			await reviewHandler.submitReview(reviewData);
 			showToast('success', 'Review submitted successfully');
 			reviewText = '';
+			reviewDescription = '';
 			reviewImages = [];
 			reviewVideo = null;
 			setRating(0);
@@ -283,14 +283,14 @@
 
 					<!-- Text Review -->
 					<textarea
-						class="h-10 w-full resize-none rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400"
-						placeholder="Review title..."
+						class="h-10 w-full resize-none rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400 overflow-hidden"
+						placeholder="Review title"
 						maxlength="50"
 						bind:value={reviewDescription}
 					></textarea>
 					<textarea
 						class="mt-2 w-full rounded-lg border p-3 text-gray-800 focus:ring-2 focus:ring-blue-400"
-						placeholder="Write your review..."
+						placeholder="Write your review"
 						bind:value={reviewText}
 					></textarea>
 
@@ -378,27 +378,30 @@
 
 							<!-- Display Uploaded Images -->
 							{#if review.images.length > 0}
-								<div class="mt-2 max-w-xs sm:max-w-sm md:max-w-md">
-									<Carousel arrows dots={true}>
-										{#each review.images as image}
-											<div class="flex items-center justify-center">
-												<img
-													src={image}
-													alt={`Review Image ${review.images.indexOf(image) + 1}`}
-													class="max-h-32 max-w-32 cursor-pointer rounded-lg object-contain transition-opacity duration-200 hover:opacity-80
-													   sm:max-h-24 sm:max-w-24 md:max-h-32 md:max-w-32"
-													on:click={() => openReviewImage(image)}
-												/>
-											</div>
-										{/each}
-									</Carousel>
+								<div class="mt-2 flex max-w-xs justify-center gap-4 sm:max-w-sm md:max-w-md">
+									{#each review.images as image}
+										<button
+											type="button"
+											class="max-h-32 max-w-32 cursor-pointer rounded-lg border-none bg-transparent p-0 transition-opacity duration-200 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-green-500 sm:max-h-24 sm:max-w-24 md:max-h-32 md:max-w-32"
+											on:click={() => openReviewImage(image)}
+											aria-label={`Open review image ${review.images.indexOf(image) + 1}`}
+										>
+											<img
+												src={image}
+												alt={`Review Image ${review.images.indexOf(image) + 1}`}
+												class="h-full w-full object-contain"
+											/>
+										</button>
+									{/each}
 								</div>
 							{/if}
 
 							<!-- Display Uploaded Video -->
 							{#if review.video}
 								<div class="mt-2">
-									<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
+									<video src={review.video} controls class="w-full max-w-sm rounded-lg">
+										<track kind="captions" />
+									</video>
 								</div>
 							{/if}
 						</div>
