@@ -212,18 +212,66 @@ async def user_added_recipe(recipe: RecipeModel, id_token: str = Query(...)):
     await update_user_r_a(recipe.author, [recipe_id], None)
     return recipe_id
 
+from typing import Dict, Any
 
-@app.get("/recipes/search_recipe_database/{ingredients}", tags=['Recipes'])
-async def search_by_ingredients(ingredients: str):
-    print(ingredients)
+@app.get("/search_recipe_database", tags=['Recipes'])
+async def search_by_ingredients(
+    ingredients: str = Query(...),
+    limit: Optional[int] = Query(10, ge=1), 
+    offset: Optional[int] = Query(0, ge=0)
+) -> Dict[str, Any]:
+    """
+    Search recipes by ingredients with pagination.
+    Returns {"recipes": [...], "pagination": {...}} format.
+    """
     try:
+        # Fetch all matching recipes
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        if check_ingredients != [] and check_ingredients != 'item not found':
-            return check_ingredients
-        else:
-            raise HTTPException(status_code=404, detail="No recipes found with the given ingredients.")
+        
+        print(f"check_ingredients: {check_ingredients}")
+        # Handle empty or invalid results
+        if not check_ingredients or check_ingredients == 'item not found':
+            return {
+                "recipes": [],
+                "pagination": {
+                    "page": 1,
+                    "pageSize": 0,
+                    "total": 0,
+                    "totalPages": 0
+                }
+            }
+        
+        # Calculate total number of recipes
+        total_recipes = len(check_ingredients)
+        
+        # Check if offset exceeds total results
+        if offset >= total_recipes:
+            return {
+                "recipes": [],
+                "pagination": {
+                    "page": (offset // limit) + 1,
+                    "pageSize": 0,
+                    "total": total_recipes,
+                    "totalPages": math.ceil(total_recipes / limit)
+                }
+            }
+        
+        # Apply pagination
+        recipes = check_ingredients[offset:offset + limit]
+        
+        # Return paginated results with metadata
+        return {
+            "recipes": recipes,
+            "pagination": {
+                "page": (offset // limit) + 1,
+                "pageSize": len(recipes),
+                "total": total_recipes,
+                "totalPages": math.ceil(total_recipes / limit)
+            }
+        }
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error searching recipes: {str(e)}")
 
 
 @app.get("/GPT_ingredients_to_recipe/", tags=['GPT'])
