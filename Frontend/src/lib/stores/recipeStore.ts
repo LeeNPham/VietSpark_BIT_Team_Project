@@ -135,14 +135,18 @@ export const recipeHandler = {
 
             const paramStr = queryParams.toString ? '?' + queryParams.toString() : '';
 
-            const resIngredients = await fetch(`${API_URL}/recipes/search_recipe_database${paramStr}`);
+            const resIngredients = await fetch(`${API_URL}/search_recipe_database${paramStr}`);
             const resData = await resIngredients.json();
+            console.log("Found recipes from search database", resData);
             if (resIngredients.ok && resData !== "item not found") {
                 recipeStore.update((state) => ({
                     ...state,
                     recipes: resData.recipes,
                     isLoading: false,
-                    currentRecipe: resData.recipes[0].recipe_id,
+                    page: resData.pagination.page,
+                    totalPages: resData.pagination.totalPages,
+                    total: resData.pagination.total,
+
                 }));
                 return resData.recipes;
             }
@@ -160,7 +164,9 @@ export const recipeHandler = {
                     ...state,
                     recipes,
                     isLoading: false,
-                    currentRecipe: recipes[0].recipe_id,
+                    page: 1,
+                    totalPages: 1,
+                    total: recipes.length,
                 }))
             } else throw new Error(`No recipes with ingredients ${ingredients} found`)
 
