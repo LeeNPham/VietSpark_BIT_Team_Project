@@ -129,12 +129,12 @@
 	}
 
 	function validatePhoneNumber(phoneNumber: string): boolean {
-		const phoneNumberRegex = /^\d{10}$/;
+		const phoneNumberRegex = /^(?:\d{10}|\+1\d{10})$/;
 		if (!phoneNumber.trim()) {
 			phoneNumberError = 'Please enter a phone number';
 			return false;
 		}
-		
+
 		if (!phoneNumberRegex.test(phoneNumber)) {
 			phoneNumberError = 'Phone number must be 10 digits long';
 			return false;
@@ -167,7 +167,12 @@
 			};
 			if (userName.trim() !== user.userName.trim()) updatedUser.userName = userName;
 			if (email.trim() !== user.userEmail.trim()) updatedUser.userEmail = email;
-			if (phoneNumber.trim() !== user.phoneNumber.trim()) updatedUser.phoneNumber = phoneNumber;
+			
+			let normalizedPhoneNumber = phoneNumber.trim();
+			if (!normalizedPhoneNumber.startsWith('+1')) {
+				normalizedPhoneNumber = '+1' + normalizedPhoneNumber;
+			}
+			if (normalizedPhoneNumber.trim() !== user.phoneNumber.trim()) updatedUser.phoneNumber = normalizedPhoneNumber;
 
 			await userHandler.updateUserDetail(updatedUser);
 			showToast('success', 'User updated successfully');
@@ -291,7 +296,7 @@
 	</div>
 	<!-- Favorite Recipes -->
 	<p class={customStyles.userP}>Favorite Recipes</p>
-	<FavoriteRecipeList userRecipes={myRecipes}/>
+	<FavoriteRecipeList userRecipes={myRecipes} />
 	<div class="mt-6 flex justify-center gap-4">
 		<!-- Cancel Button -->
 		<Button
