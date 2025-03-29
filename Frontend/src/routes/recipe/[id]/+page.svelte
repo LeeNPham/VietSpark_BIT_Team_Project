@@ -227,28 +227,32 @@
 			<h2 class="text-secondary-green mt-4 text-2xl font-medium sm:mt-4 md:mt-6 lg:mt-6">
 				🥗 Ingredients
 			</h2>
-			<ul class="border-secondary-forest mt-4 list-disc rounded-lg border-2 bg-white p-4 pl-10">
-				{#each recipe.ingredients as ingredient}
-					<li class="font-medium text-gray-800">
-						{ingredient.ingredientName} - {ingredient.ingredientAmount}
-					</li>
-				{/each}
-			</ul>
+			<div class="border-secondary-forest mt-4 rounded-lg border-2 bg-white p-4 pl-10">
+				<ul class="list-disc">
+					{#each recipe.ingredients as ingredient}
+						<li class="font-medium text-gray-800">
+							{ingredient.ingredientName} - {ingredient.ingredientAmount}
+						</li>
+					{/each}
+				</ul>
+				<div class="mt-4 flex justify-end">
+					<Button
+						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 whitespace-nowrap rounded-full border-2 bg-white px-4 py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black
+						sm:px-5 sm:text-sm
+						md:px-5 md:text-base
+						lg:px-6 lg:text-lg"
+						onclick={() => {
+							goto('/map');
+						}}
+					>
+						Search stores
+					</Button>
+				</div>
+			</div>
 
 			<!-- Instructions Section -->
 			<div class="mt-4 flex justify-between">
 				<h2 class="text-secondary-green text-2xl font-medium">🍽️ Instructions</h2>
-				<Button
-					class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 whitespace-nowrap rounded-full border-2 bg-white px-2 py-1 text-xs font-semibold shadow-md transition-all duration-300 hover:text-black
-					sm:px-3 sm:py-1 sm:text-sm
-					md:px-4 md:py-1.5 md:text-lg
-					lg:px-5 lg:py-2 lg:text-lg"
-					onclick={() => {
-						goto('/map');
-					}}
-				>
-					Search stores
-				</Button>
 			</div>
 			<ol class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
 				{#each recipe.instructions as instruction, i}
@@ -264,9 +268,8 @@
 
 		{#if authenticated}
 			<div class="mt-4 px-4 sm:px-4 md:px-6 lg:px-0">
+				<h3 class="text-secondary-green text-2xl font-medium">✨ Leave a Review</h3>
 				<div class="border-secondary-forest rounded-lg border-2 bg-white p-4">
-					<h3 class="text-lg font-semibold text-gray-800">Leave a Review</h3>
-
 					<!-- Star Rating -->
 					<div class="mt-2 flex space-x-1">
 						{#each [1, 2, 3, 4, 5] as star}
@@ -283,7 +286,7 @@
 
 					<!-- Text Review -->
 					<textarea
-						class="h-10 w-full resize-none rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400 overflow-hidden"
+						class="h-10 w-full resize-none overflow-hidden rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400"
 						placeholder="Review title"
 						maxlength="50"
 						bind:value={reviewDescription}
@@ -333,7 +336,7 @@
 							on:click={submitReview}
 							disabled={!reviewDescription && !reviewText && disableSubmit}
 						>
-							{disableSubmit ? 'Submitting' : 'Submit Review'}
+							{disableSubmit ? 'Submitting' : 'Submit'}
 						</button>
 					</div>
 				</div>
@@ -348,7 +351,7 @@
 				</div>
 			{:else}
 				<h2 class="text-secondary-green mt-4 text-2xl font-medium sm:mt-4 md:mt-6 lg:mt-6">
-					✨Reviews
+					🤩Reviews
 				</h2>
 
 				<div class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
