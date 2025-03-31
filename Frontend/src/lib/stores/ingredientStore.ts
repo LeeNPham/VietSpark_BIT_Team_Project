@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 export const ingredients = writable<string[]>([]);
 
 export const categories = writable([
-    "Chicken", "Beef", "Fish", "Pork"
+    "Chicken", "Beef", "Fish", "Pork", "Tofu"
 ])
 export const ingredientHandler = {
     /**

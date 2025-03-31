@@ -3,10 +3,13 @@
 	import { onMount } from 'svelte';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { userHandler, userStore } from '$lib/stores/userStore';
-	import { Navbar, NavLi, NavUl, NavHamburger, NavBrand } from 'flowbite-svelte';
+	import { Navbar, NavLi, NavUl, NavHamburger, NavBrand, Avatar } from 'flowbite-svelte';
 	import { customStyles } from '$src/custom';
 	import { browser } from '$app/environment';
 	import CustomToast from '$lib/components/CustomToast.svelte';
+
+	let profileImageURL = $derived($userStore.currentUser?.profileImageURL)
+
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
@@ -66,8 +69,14 @@
 		<NavUl>
 			<NavLi href="/" class={customStyles.aTag}>Home</NavLi>
 			{#if authenticated}
-				<NavLi href="/user" class={customStyles.aTag}>User</NavLi>
 				<NavLi href="/" class={customStyles.aTag} on:click={handlerSignOut}>Sign out</NavLi>
+				<NavLi href="/user" class={customStyles.aTag}>
+					{#if profileImageURL}
+						<Avatar src={profileImageURL} alt="User Icon" />
+					{:else}
+						<div class={customStyles.aTag}>User</div>
+					{/if}
+				</NavLi>
 			{:else}
 				<NavLi href="/login" class={customStyles.aTag}>Login</NavLi>
 			{/if}
