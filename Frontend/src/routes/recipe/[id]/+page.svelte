@@ -188,37 +188,34 @@
 				{/if}
 			</div>
 
-			<div class="mt-2 flex justify-center sm:mt-2 md:mt-6 lg:mt-8">
+			<div class="relative mt-2 flex justify-center sm:mt-2 md:mt-6 lg:mt-8">
 				<!-- Image with Shadow & Hover Effect -->
 				<img
 					src={recipe.img_url}
-					class="border-secondary-forest mt-4 w-5/6 rounded-lg border-2 object-cover sm:w-5/6 md:w-[40%]"
+					class="relative border-secondary-forest mt-4 w-5/6 rounded-lg border-2 object-cover sm:w-5/6 md:w-[40%]"
 					alt={recipe.name}
 				/>
-			</div>
 
 			<!-- Right Column: Buttons -->
-			<div class="mt-10 flex justify-center space-x-4">
+			<div class="absolute bottom-3 left-[63%]">
 				{#if authenticated && !userRecipes.includes(recipeId)}
 					<Button
-						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2
-						rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 
-						hover:text-black sm:text-sm md:text-lg lg:text-lg"
+						class="bg-transparent p-0 border-none focus:ring-0 hover:bg-transparent"
 						onclick={handleAddFavorite}
 					>
-						<span>❤️</span> <span>Add to favorite</span>
+						<span class="text-4xl">❤️</span>
 					</Button>
 				{:else if authenticated}
 					<Button
-						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 
-						rounded-full border-2 bg-white px-5  py-1 text-sm font-semibold shadow-md transition-all duration-300 
-						hover:text-black sm:text-sm md:text-lg lg:text-lg"
+						class="bg-transparent p-0 border-none focus:ring-0 hover:bg-transparent"
 						onclick={handleRemoveFavorite}
 					>
-						<span>💔 </span> <span>Remove from favorite</span>
+						<span class="text-4xl">💔 </span>
 					</Button>
 				{/if}
 			</div>
+			</div>
+
 			<!-- Left Column: Details -->
 			<div class="mt-8 flex flex-col justify-evenly sm:flex-col md:flex-row lg:flex-row">
 				<p class="text-lg"><strong>⏰ Time:</strong> {recipe.time} mins</p>

@@ -2,6 +2,7 @@
 	import { categories } from '$lib/stores/ingredientStore';
 	import { recipeHandler } from '$lib/stores/recipeStore';
 	import { customStyles } from '$src/custom';
+	import { Button } from 'flowbite-svelte';
 
 	async function handleCategoryClick(category: string) {
 		try {
@@ -16,9 +17,9 @@
 <div class="flex flex-col p-3 sm:p-3 md:p-5 lg:p-9">
 	<div class="flex flex-wrap justify-center gap-3">
 		{#each $categories as category, i}
-		<button class={customStyles.categoryBtn} onclick={() => handleCategoryClick(category)} aria-label="selection button">
+		<Button class={customStyles.categoryBtn} onclick={() => handleCategoryClick(category)} aria-label="selection button">
 				<img src="/{category}.png" alt="{category}">
-		</button>
+		</Button>
 		{/each}
 	</div>
 </div>
