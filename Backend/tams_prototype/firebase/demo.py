@@ -315,7 +315,7 @@ async def new_recipe(recipe, uid, author, user_added):
         "img_url": img_url,
         "servings": recipe.servings,
         # "calories": recipe.calories,
-        "calories": recipe_nutrition.get('calories', 0),
+        "calories": recipe_nutrition.calories,
         "nutrition": recipe_nutrition,
         "searchable_recipe_name": lower_searchable_name,
         "searchable_ingredient": lower_searchable_ingredient,
