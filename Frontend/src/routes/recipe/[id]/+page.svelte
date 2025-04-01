@@ -9,7 +9,6 @@
 	import { Button, Spinner, Modal } from 'flowbite-svelte';
 	import { showToast } from '$lib/stores/alertStore';
 	import { goto } from '$app/navigation';
-	import Carousel from 'svelte-carousel/src/components/Carousel/Carousel.svelte';
 
 	let authenticated: boolean = false;
 	let userId: string = '';
@@ -129,6 +128,7 @@
 			await reviewHandler.submitReview(reviewData);
 			showToast('success', 'Review submitted successfully');
 			reviewText = '';
+			reviewDescription = '';
 			reviewImages = [];
 			reviewVideo = null;
 			setRating(0);
@@ -227,28 +227,32 @@
 			<h2 class="text-secondary-green mt-4 text-2xl font-medium sm:mt-4 md:mt-6 lg:mt-6">
 				🥗 Ingredients
 			</h2>
-			<ul class="border-secondary-forest mt-4 list-disc rounded-lg border-2 bg-white p-4 pl-10">
-				{#each recipe.ingredients as ingredient}
-					<li class="font-medium text-gray-800">
-						{ingredient.ingredientName} - {ingredient.ingredientAmount}
-					</li>
-				{/each}
-			</ul>
+			<div class="border-secondary-forest mt-4 rounded-lg border-2 bg-white p-4 pl-10">
+				<ul class="list-disc">
+					{#each recipe.ingredients as ingredient}
+						<li class="font-medium text-gray-800">
+							{ingredient.ingredientName} - {ingredient.ingredientAmount}
+						</li>
+					{/each}
+				</ul>
+				<div class="mt-4 flex justify-end">
+					<Button
+						class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 whitespace-nowrap rounded-full border-2 bg-white px-4 py-1 text-sm font-semibold shadow-md transition-all duration-300 hover:text-black
+						sm:px-5 sm:text-sm
+						md:px-5 md:text-base
+						lg:px-6 lg:text-lg"
+						onclick={() => {
+							goto('/map');
+						}}
+					>
+						Search stores
+					</Button>
+				</div>
+			</div>
 
 			<!-- Instructions Section -->
 			<div class="mt-4 flex justify-between">
 				<h2 class="text-secondary-green text-2xl font-medium">🍽️ Instructions</h2>
-				<Button
-					class="text-secondary-forest border-secondary-forest hover:bg-secondary-blue flex items-center space-x-2 whitespace-nowrap rounded-full border-2 bg-white px-2 py-1 text-xs font-semibold shadow-md transition-all duration-300 hover:text-black
-					sm:px-3 sm:py-1 sm:text-sm
-					md:px-4 md:py-1.5 md:text-lg
-					lg:px-5 lg:py-2 lg:text-lg"
-					onclick={() => {
-						goto('/map');
-					}}
-				>
-					Search stores
-				</Button>
 			</div>
 			<ol class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
 				{#each recipe.instructions as instruction, i}
@@ -264,9 +268,8 @@
 
 		{#if authenticated}
 			<div class="mt-4 px-4 sm:px-4 md:px-6 lg:px-0">
+				<h3 class="text-secondary-green text-2xl font-medium">✨ Leave a Review</h3>
 				<div class="border-secondary-forest rounded-lg border-2 bg-white p-4">
-					<h3 class="text-lg font-semibold text-gray-800">Leave a Review</h3>
-
 					<!-- Star Rating -->
 					<div class="mt-2 flex space-x-1">
 						{#each [1, 2, 3, 4, 5] as star}
@@ -283,14 +286,14 @@
 
 					<!-- Text Review -->
 					<textarea
-						class="h-10 w-full resize-none rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400"
-						placeholder="Review title..."
+						class="h-10 w-full resize-none overflow-hidden rounded-lg border text-gray-800 focus:ring-2 focus:ring-blue-400"
+						placeholder="Review title"
 						maxlength="50"
 						bind:value={reviewDescription}
 					></textarea>
 					<textarea
 						class="mt-2 w-full rounded-lg border p-3 text-gray-800 focus:ring-2 focus:ring-blue-400"
-						placeholder="Write your review..."
+						placeholder="Write your review"
 						bind:value={reviewText}
 					></textarea>
 
@@ -333,7 +336,7 @@
 							on:click={submitReview}
 							disabled={!reviewDescription && !reviewText && disableSubmit}
 						>
-							{disableSubmit ? 'Submitting' : 'Submit Review'}
+							{disableSubmit ? 'Submitting' : 'Submit'}
 						</button>
 					</div>
 				</div>
@@ -348,7 +351,7 @@
 				</div>
 			{:else}
 				<h2 class="text-secondary-green mt-4 text-2xl font-medium sm:mt-4 md:mt-6 lg:mt-6">
-					✨Reviews
+					🤩Reviews
 				</h2>
 
 				<div class="border-secondary-forest mt-4 space-y-2 rounded-lg border-2 bg-white p-4">
@@ -378,27 +381,30 @@
 
 							<!-- Display Uploaded Images -->
 							{#if review.images.length > 0}
-								<div class="mt-2 max-w-xs sm:max-w-sm md:max-w-md">
-									<Carousel arrows dots={true}>
-										{#each review.images as image}
-											<div class="flex items-center justify-center">
-												<img
-													src={image}
-													alt={`Review Image ${review.images.indexOf(image) + 1}`}
-													class="max-h-32 max-w-32 cursor-pointer rounded-lg object-contain transition-opacity duration-200 hover:opacity-80
-													   sm:max-h-24 sm:max-w-24 md:max-h-32 md:max-w-32"
-													on:click={() => openReviewImage(image)}
-												/>
-											</div>
-										{/each}
-									</Carousel>
+								<div class="mt-2 flex max-w-xs justify-center gap-4 sm:max-w-sm md:max-w-md">
+									{#each review.images as image}
+										<button
+											type="button"
+											class="max-h-32 max-w-32 cursor-pointer rounded-lg border-none bg-transparent p-0 transition-opacity duration-200 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-green-500 sm:max-h-24 sm:max-w-24 md:max-h-32 md:max-w-32"
+											on:click={() => openReviewImage(image)}
+											aria-label={`Open review image ${review.images.indexOf(image) + 1}`}
+										>
+											<img
+												src={image}
+												alt={`Review Image ${review.images.indexOf(image) + 1}`}
+												class="h-full w-full object-contain"
+											/>
+										</button>
+									{/each}
 								</div>
 							{/if}
 
 							<!-- Display Uploaded Video -->
 							{#if review.video}
 								<div class="mt-2">
-									<video src={review.video} controls class="w-full max-w-sm rounded-lg"></video>
+									<video src={review.video} controls class="w-full max-w-sm rounded-lg">
+										<track kind="captions" />
+									</video>
 								</div>
 							{/if}
 						</div>
