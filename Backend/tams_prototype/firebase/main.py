@@ -184,7 +184,7 @@ async def get_recipes(
             "recipes": recipes,
             "pagination": {
                 "page": page,
-                "pageSize": page_size,,
+                "pageSize": page_size,
                 "total": total_recipes,
                 "totalPages": total_pages
             }
