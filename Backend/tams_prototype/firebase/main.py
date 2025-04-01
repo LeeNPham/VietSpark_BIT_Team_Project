@@ -218,11 +218,7 @@ async def search_by_ingredients(ingredients: str):
     print(ingredients)
     try:
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-<<<<<<< HEAD
         if check_ingredients != [] and check_ingredients != 'item not found':
-=======
-        if check_ingredients != []:
->>>>>>> 6131f10 (Enhance recipe search functionality and add new index route; update Firestore queries and include datastore dependency)
             return check_ingredients
         else:
             raise HTTPException(status_code=404, detail="No recipes found with the given ingredients.")
