@@ -32,7 +32,6 @@
 			} else if (searchType === 'ingredients') {
 				//regex to remove all commas and special characters
 				searchQuery = searchQuery.replace(/[^a-zA-Z0-9 ]/g, '');
-				console.log('searchQuery', searchQuery);
 				await recipeHandler.searchRecipesGPT(searchQuery.trim());
 
 				await new Promise((resolve) => setTimeout(resolve, 13000));
