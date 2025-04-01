@@ -171,16 +171,22 @@ async def get_recipes(
     offset: Optional[int] = Query(0, ge=0),
     ):
     recipes, total_recipes = await recipe_database_search(name, author, calories, time, limit, offset)
-    
     if limit is not None and offset is not None:
+        if len(recipes) > limit * offset:
+            recipes = recipes[offset * limit:offset * limit + limit]
+        else:
+            recipes = []
+        page = (offset // limit) + 1 if total_recipes > 0 else 1
+        page_size = min(limit, len(recipes))
+        total_pages = math.ceil(total_recipes / limit) if limit > 0 else 1
         
         return {
             "recipes": recipes,
             "pagination": {
-                "page": (offset // limit) + 1,
-                "pageSize": min(limit, len(recipes)),
+                "page": page,
+                "pageSize": page_size,,
                 "total": total_recipes,
-                "totalPages": math.ceil(total_recipes / limit)
+                "totalPages": total_pages
             }
         }
     else:
@@ -228,7 +234,6 @@ async def search_by_ingredients(
         # Fetch all matching recipes
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
         
-        print(f"check_ingredients: {check_ingredients}")
         # Handle empty or invalid results
         if not check_ingredients or check_ingredients == 'item not found':
             return {
@@ -331,7 +336,6 @@ async def upload_image(file: UploadFile = File(...), id_token: str = Query(...))
     uid = user_verify['user_id']
     # name = uid + str(int(time.time() * 1000))
     profile_image_url = await image_to_storage(file, uid)
-    print(profile_image_url)
     return profile_image_url
 
 

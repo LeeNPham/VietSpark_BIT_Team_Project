@@ -19,7 +19,6 @@ export const recipeHandler = {
     addRecipe: async (recipeData: RecipeAddDTO) => {
         const idToken = localStorage.getItem("idToken")
         try {
-            console.log("Adding new recipe");
             const res = await fetch(`${API_URL}/recipes/add_recipe?id_token=${idToken}`, {
                 method: 'POST',
                 headers: {
@@ -81,7 +80,6 @@ export const recipeHandler = {
             const resData = await res.json();
 
             if (!res.ok) throw new Error(resData.detail || 'Failed to fetch recipes');
-            console.log("Fetched recipes", resData);
             recipeStore.update((state) => ({
                 ...state,
                 isLoading: false,
@@ -122,8 +120,7 @@ export const recipeHandler = {
     deleteRecipe: () => { },
 
     searchRecipesGPT: async (ingredients: string) => {
-        const userLS = getLSUserData();
-        if (!userLS.idToken) { throw new Error("User is not signed in"); }
+        
 
         if (!ingredients.trim()) throw new Error("There is no ingredients");
 
@@ -137,7 +134,6 @@ export const recipeHandler = {
 
             const resIngredients = await fetch(`${API_URL}/search_recipe_database${paramStr}`);
             const resData = await resIngredients.json();
-            console.log("Found recipes from search database", resData);
             if (resIngredients.ok && resData !== "item not found") {
                 recipeStore.update((state) => ({
                     ...state,
@@ -152,13 +148,25 @@ export const recipeHandler = {
             }
 
 
+            const userLS = getLSUserData();
+            if (!userLS.idToken) { 
+                recipeStore.update((state) => ({
+                    ...state,
+                    recipes: [],
+                    isLoading: false,
+                    page: 0,
+                    totalPages: 0,
+                    total: 0,
+
+                }));
+                return [];
+             }
             // Step 2: Search with GPT
             const res = await fetch(`${API_URL}/GPT_ingredients_to_recipe${paramStr}&id_token=${userLS.idToken}&allergies=${userLS.allergies}`);
 
             if (!res.ok) throw new Error(res.statusText || "Failed to search for recipes with ingredients " + ingredients);
 
             const recipes = await res.json();
-            console.log("Found recipes from GPT", recipes)
             if (recipes.length > 0) {
                 recipeStore.update((state) => ({
                     ...state,

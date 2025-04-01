@@ -23,7 +23,6 @@
 	let authenticated = false;
 	let newAllergy = '';
 	let myRecipes: string[] = [];
-	let showFavorites = true;
 	let profileImageURL = '';
 	let showProfileImageModal = false;
 	let profileImagePreview: string | null = null;

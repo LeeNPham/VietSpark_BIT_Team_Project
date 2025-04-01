@@ -337,13 +337,15 @@ async def new_recipe(recipe, uid, author, user_added):
 
 
 async def recipe_database_search(name, author, calories, time, limit, offset):
-    all_recipes = await get_collection(recipe_collection.stream(), details=True)
-    total_recipes = len(all_recipes)
+    
     if name:
         recipes = await search_recipe_by(name, "searchable_recipe_name")
-        return recipes, total_recipes
+        return recipes, len(recipes)
     
+    all_recipes = await get_collection(recipe_collection.stream(), details=True)
+    total_recipes = len(all_recipes)  
     collection = recipe_collection
+    
     if author:
         collection = collection.where("author_name", "==", author)
     if calories:
