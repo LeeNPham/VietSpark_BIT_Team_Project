@@ -172,21 +172,14 @@ async def get_recipes(
     ):
     recipes, total_recipes = await recipe_database_search(name, author, calories, time, limit, offset)
     if limit is not None and offset is not None:
-        if len(recipes) > limit * offset:
-            recipes = recipes[offset * limit:offset * limit + limit]
-        else:
-            recipes = []
-        page = (offset // limit) + 1 if total_recipes > 0 else 1
-        page_size = min(limit, len(recipes))
-        total_pages = math.ceil(total_recipes / limit) if limit > 0 else 1
         
         return {
             "recipes": recipes,
             "pagination": {
-                "page": page,
-                "pageSize": page_size,
+                "page": (offset // limit) + 1,
+                "pageSize": min(limit, len(recipes)),
                 "total": total_recipes,
-                "totalPages": total_pages
+                "totalPages": math.ceil(total_recipes / limit)
             }
         }
     else:

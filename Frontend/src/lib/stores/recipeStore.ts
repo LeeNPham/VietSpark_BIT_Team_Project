@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import { getLSUserData } from "$lib/stores/userStore";
 import type { RecipeAddDTO } from "../types";
+import { goto } from '$app/navigation';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -134,7 +135,7 @@ export const recipeHandler = {
 
             const resIngredients = await fetch(`${API_URL}/search_recipe_database${paramStr}`);
             const resData = await resIngredients.json();
-            if (resIngredients.ok && resData !== "item not found") {
+            if (resIngredients.ok && resData !== "item not found" && resData.recipes.length > 0) {
                 recipeStore.update((state) => ({
                     ...state,
                     recipes: resData.recipes,
@@ -168,14 +169,10 @@ export const recipeHandler = {
 
             const recipes = await res.json();
             if (recipes.length > 0) {
-                recipeStore.update((state) => ({
-                    ...state,
-                    recipes,
-                    isLoading: false,
-                    page: 1,
-                    totalPages: 1,
-                    total: recipes.length,
-                }))
+                // sleep a bit to load the recipe
+                const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+                await sleep(1000);
+                goto(`/recipe/${recipes[0].recipe_id}`);
             } else throw new Error(`No recipes with ingredients ${ingredients} found`)
 
         } catch (e) {
