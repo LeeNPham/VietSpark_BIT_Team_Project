@@ -37,7 +37,15 @@ Our application is designed to make your culinary journey easier and more enjoya
 
 ### Backend
 ```
-
+backend/
+└── tams_prototype/
+    └── firebase/
+        ├── additionalFunction.py/        # Additional utility functions
+        ├── demo.py/                      # Demo and utility functions (image/video storage)
+        ├── main.py/                      # Main FastAPI application
+        ├── models.py/                    # Data models (Pydantic)
+        ├── requirements.txt              # Project dependencies
+        └── vercel.json                   # Vercel deployment configuration
 ```
 ### Frontend
 ```
