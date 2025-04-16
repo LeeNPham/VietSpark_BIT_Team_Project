@@ -2,6 +2,8 @@
 
 Welcome to our Full-Stack Recipe Application! This project is a comprehensive solution for all your recipe needs, combining the power of **Svelte** on the frontend and **Python** on the backend. The project is designed to showcase a web application with a clean separation between client-side (frontend) and server-side (backend) code.
 
+<img width="1636" alt="VietSpark " src="https://github.com/user-attachments/assets/e88a1d38-a860-469a-a7ca-8aee8798a243" />
+
 ## Project Overview
 
 Our application is designed to make your culinary journey easier and more enjoyable. With a sleek and intuitive interface, you can effortlessly generate, save, add, and delete recipes. The application is fully deployed and mobile-friendly, ensuring you can access your recipes anytime, anywhere.
