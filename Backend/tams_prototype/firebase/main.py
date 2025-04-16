@@ -121,7 +121,7 @@ async def update_user_recipes_allergies(user_data: UserUpdateRecipeAllergiesMode
         if not user_data.recipes and not user_data.allergies:
             raise HTTPException(status_code=400, detail="At least one of 'recipes' or 'allergies' must be provided.")
         return await update_user_r_a(user_data.user_id, user_data.recipes, user_data.allergies)
-    
+
     except HTTPException as e:
         print(f"HTTP exception: {str(e.detail)}")
         raise e
@@ -163,16 +163,16 @@ import math
 #GET cannot pass a body, only parameters
 @app.get("/recipes", tags=['Recipes'], response_model=None)
 async def get_recipes(
-    name: Optional[str] = None, 
-    author: Optional[str] = None, 
-    calories: Optional[int] = None, 
+    name: Optional[str] = None,
+    author: Optional[str] = None,
+    calories: Optional[int] = None,
     time: Optional[int] = None,
     limit: Optional[int] = Query(10, ge=1),
     offset: Optional[int] = Query(0, ge=0),
     ):
     recipes, total_recipes = await recipe_database_search(name, author, calories, time, limit, offset)
     if limit is not None and offset is not None:
-        
+
         return {
             "recipes": recipes,
             "pagination": {
@@ -216,7 +216,7 @@ from typing import Dict, Any
 @app.get("/search_recipe_database", tags=['Recipes'])
 async def search_by_ingredients(
     ingredients: str = Query(...),
-    limit: Optional[int] = Query(10, ge=1), 
+    limit: Optional[int] = Query(10, ge=1),
     offset: Optional[int] = Query(0, ge=0)
 ) -> Dict[str, Any]:
     """
@@ -226,7 +226,7 @@ async def search_by_ingredients(
     try:
         # Fetch all matching recipes
         check_ingredients = await search_recipe_by(ingredients, "searchable_ingredient")
-        
+
         # Handle empty or invalid results
         if not check_ingredients or check_ingredients == 'item not found':
             return {
@@ -238,10 +238,10 @@ async def search_by_ingredients(
                     "totalPages": 0
                 }
             }
-        
+
         # Calculate total number of recipes
         total_recipes = len(check_ingredients)
-        
+
         # Check if offset exceeds total results
         if offset >= total_recipes:
             return {
@@ -253,10 +253,10 @@ async def search_by_ingredients(
                     "totalPages": math.ceil(total_recipes / limit)
                 }
             }
-        
+
         # Apply pagination
         recipes = check_ingredients[offset:offset + limit]
-        
+
         # Return paginated results with metadata
         return {
             "recipes": recipes,
@@ -267,7 +267,7 @@ async def search_by_ingredients(
                 "totalPages": math.ceil(total_recipes / limit)
             }
         }
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching recipes: {str(e)}")
 
@@ -372,7 +372,7 @@ async def get_current_user(authorization: str = Header(...)):
 async def get_reviews(
     recipe_id: str,
     review_id: Optional[str] = Query(None, description="Filter by review ID"),
-    rating: Optional[int] = Query(None, description="Filter by rating 1 - 5", ge=1, le=5), 
+    rating: Optional[int] = Query(None, description="Filter by rating 1 - 5", ge=1, le=5),
     has_image: Optional[bool] = Query(None, description="Filter by has image or not"),
     ):
     reviews = []
@@ -383,7 +383,7 @@ async def get_reviews(
         print(f"Error in get_reviews: {str(e)}")
         raise HTTPException(status_code=500, detail=f"{str(e)}")
 
-    
+
 @app.post("/reviews", tags=['Reviews'])
 async def add_review(review: ReviewAdd, id_token: str = Query(...)):
     user_data = await verify_id_token(id_token)
@@ -392,6 +392,44 @@ async def add_review(review: ReviewAdd, id_token: str = Query(...)):
     review_id = await create_review(review, user_data['user_id'], user_data['name'])
     return review_id
 
- 
+@app.get("/categories", tags=["Categories"])
+async def populate_and_fetch_categories():
+    try:
+        categories = category_collection.stream()
+
+        categories_with_recipes = {}
+
+        for category_doc in categories:
+            category_data = category_doc.to_dict()
+            category_name = category_data.get("name", "").lower()
+
+            categories_with_recipes[category_name] = []
+
+            existing_recipe_ids = set(category_data.get("recipes", []))
+
+            all_recipes = recipe_collection.stream()
+
+            for recipe_doc in all_recipes:
+                recipe_data = recipe_doc.to_dict()
+                recipe_id = recipe_doc.id
+                ingredients = recipe_data.get("ingredients", [])
+
+                if any(category_name in ingredient.get("ingredientName", "").lower() for ingredient in ingredients):
+
+                    if recipe_id not in existing_recipe_ids:
+
+                        category_collection.document(category_doc.id).update({"recipes": firestore.ArrayUnion([recipe_id])})
+                        existing_recipe_ids.add(recipe_id)
+
+                    categories_with_recipes[category_name].append({
+                        "recipe_id": recipe_id,
+                        **recipe_data
+                    })
+
+        return categories_with_recipes
+
+    except Exception as e:
+        print(f"Error in populate_and_fetch_categories: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 # for route in app.routes:
 #     print(f"Path: {route.path}")
