@@ -304,9 +304,6 @@ async def new_recipe(recipe, uid, author, user_added):
 
     nutritions = await request_nutritions(all_ingredients)
     recipe_nutrition = combined_nutrition(nutritions, recipe.name)
-    print("All ingredients", all_ingredients)
-    print("Nutritions", nutritions)
-    print("Recipe nutrition", recipe_nutrition)
 
     recipe_data = {
         "name": recipe.name,
@@ -341,13 +338,16 @@ async def new_recipe(recipe, uid, author, user_added):
 
 
 async def recipe_database_search(name, author, calories, time, limit, offset):
-    all_recipes = await get_collection(recipe_collection.stream(), details=True)
-    total_recipes = len(all_recipes)
+    
     if name:
         recipes = await search_recipe_by(name, "searchable_recipe_name")
-        return recipes, total_recipes
+        return recipes, len(recipes)
+    
+    all_recipes = await get_collection(recipe_collection.stream(), details=True)
+    total_recipes = len(all_recipes)  
 
     collection = recipe_collection
+    
     if author:
         collection = collection.where("author_name", "==", author)
     if calories:
@@ -356,7 +356,6 @@ async def recipe_database_search(name, author, calories, time, limit, offset):
         collection = collection.where("time", "==", time)
 
     collection = collection.order_by('creation_time', direction=firestore.Query.DESCENDING)
-    print("limit", limit, "offset", offset)
     if limit is not None and offset is not None:
         collection = collection.offset(offset).limit(limit)
 
@@ -383,12 +382,11 @@ async def search_recipe_by_id(id: str):
     else:
         raise HTTPException(status_code=422, detail="Recipe ID is required!")
 
-
-async def search_recipe_by(data, search_type):
-    print(data)
+async def search_recipe_by(data: str, search_type: str):
     data = data.lower().split()
     clean_data = clean_words(remove_accents(data))
     recipe_list = []
+    
     for word in clean_data:
         collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
@@ -400,17 +398,18 @@ async def search_recipe_by(data, search_type):
             recipe_list = list(set(recipe_list) & set(recipe_id))
             if not recipe_list:
                 return []
+    
     match_recipe = []
     for recipe_id in recipe_list:
         recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
         recipe.pop("searchable_ingredient", None)
         recipe.pop("searchable_recipe_name", None)
         match_recipe.append(recipe)
+    
     return match_recipe
 
 
 async def GPT_to_recipe(ingredients, allergies):
-    print("GPT working...")
     OAI_api_key = os.getenv("OAI_API_KEY")
     client = OpenAI(api_key=OAI_api_key)
     if not OAI_api_key:
@@ -463,7 +462,6 @@ async def GPT_to_recipe(ingredients, allergies):
 
 
 async def GPT_image(item, recipe_id):
-    print("GPT imaging...")
     OAI_api_key = os.getenv("OAI_API_KEY")
     client = OpenAI(api_key=OAI_api_key)
 
@@ -533,7 +531,6 @@ async def image_to_storage(file, path):
         blob.upload_from_file(image_data, content_type='image/jpeg')
         blob.make_public()
         image_url = blob.public_url
-        print(image_url)
         return image_url
 
     except Exception as e:
@@ -543,7 +540,6 @@ async def video_to_storage(file, path):
     video_data = await file.read()
     try:
         bucket = storage.bucket()
-        print("Video", path)
         blob = bucket.blob(f"{path}")
         blob.upload_from_string(video_data, content_type='video/mp4')
         blob.make_public()
@@ -627,8 +623,6 @@ async def create_review(review: ReviewAdd, user_id, userName):
 async def return_index():
     collection = recipe_collection.order_by('calories').offset(15).limit(10).stream()
     collection = await get_collection(collection, details=True)
-    print(len(collection))
-    print(collection)
     for recipe in collection:
         recipe = format_recipe(recipe, "short")
     return collection

@@ -46,9 +46,7 @@
 		totalPages = store.totalPages || 0;
 		currentPage = store.page || 1;
 
-		if (newRecipes.length > 0) {
-			myRecipesData = newRecipes;
-		}
+		myRecipesData = newRecipes;
 	});
 </script>
 
