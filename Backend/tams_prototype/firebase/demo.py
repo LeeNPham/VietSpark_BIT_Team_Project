@@ -69,6 +69,7 @@ ingredient_collection = db.collection("ingredient")
 user_collection = db.collection("user")
 recipe_collection = db.collection("recipe")
 review_collection = db.collection("review")
+category_collection = db.collection("category")
 print("Firebase initialized successfully!")
 
 
@@ -141,7 +142,7 @@ async def add_user_data(user_id, signup_data):
             "allergies": []
         }
         user_collection.document(user_id).set(user_data)
-        return {"data_response": f"User {signup_data.email} added to Firestore!"} 
+        return {"data_response": f"User {signup_data.email} added to Firestore!"}
     except Exception as e:
         return str(e)
 
@@ -171,7 +172,7 @@ async def verify_id_token(id_token):
 
 
 def refresh_id_token(refresh_token):
-    url = f"https://securetoken.googleapis.com/v1/token?key={apiKey}" 
+    url = f"https://securetoken.googleapis.com/v1/token?key={apiKey}"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {
         'grant_type': 'refresh_token',
@@ -211,7 +212,7 @@ async def update_user_data(user_data):
         for key, value in update_data.items():
             if value is None:
                 user_data[key] = user.get(key, value)
-        
+
         user_collection.document(user_data.user_id).update(update_data)
         return user
     except Exception as e:
@@ -268,7 +269,7 @@ async def update_all_u_d(user_data):
         updated_doc = user_ref.get()
         if not updated_doc.exists:
             raise HTTPException(status_code=404, detail="User not found in Firestore")
-        
+
         updated_data = updated_doc.to_dict()
         updated_data["user_id"] = user_data.user_id
         return updated_data
@@ -283,18 +284,18 @@ async def update_all_u_d(user_data):
 
 async def new_recipe(recipe, uid, author, user_added):
     ingredient_data = []
-    searchable_ingredient = [] 
+    searchable_ingredient = []
     all_ingredients = ""
     for ingredient in recipe.ingredients:
-        all_ingredients += ingredient.ingredientAmount + " " + ingredient.ingredientName + ", " 
+        all_ingredients += ingredient.ingredientAmount + " " + ingredient.ingredientName + ", "
         ingredient_data.append(ingredient.dict())
-        searchable_ingredient = list(set(searchable_ingredient + ingredient.ingredientName.split())) 
-    
+        searchable_ingredient = list(set(searchable_ingredient + ingredient.ingredientName.split()))
+
     lower_searchable_ingredient = [item.lower() for item in searchable_ingredient]
     lower_searchable_ingredient = clean_words(remove_accents(lower_searchable_ingredient))
     lower_searchable_name = [item.lower() for item in recipe.name.split()]
     lower_searchable_name = clean_words(remove_accents(lower_searchable_name))
-    
+
     if user_added == False:
         img_url = "https://s3.gifyu.com/images/b2PWA.gif"
     else:
@@ -337,26 +338,26 @@ async def new_recipe(recipe, uid, author, user_added):
 
 
 async def recipe_database_search(name, author, calories, time, limit, offset):
-    
+
     if name:
         recipes = await search_recipe_by(name, "searchable_recipe_name")
         return recipes, len(recipes)
-    
+
     all_recipes = await get_collection(recipe_collection.stream(), details=True)
-    total_recipes = len(all_recipes)  
+    total_recipes = len(all_recipes)
     collection = recipe_collection
-    
+
     if author:
         collection = collection.where("author_name", "==", author)
     if calories:
         collection = collection.where("calories", "==", calories)
     if time:
         collection = collection.where("time", "==", time)
-    
+
     collection = collection.order_by('creation_time', direction=firestore.Query.DESCENDING)
     if limit is not None and offset is not None:
         collection = collection.offset(offset).limit(limit)
-    
+
     recipes =  await get_collection(collection.stream(), details=True)
 
     for recipe in recipes:
@@ -384,7 +385,7 @@ async def search_recipe_by(data: str, search_type: str):
     data = data.lower().split()
     clean_data = clean_words(remove_accents(data))
     recipe_list = []
-    
+
     for word in clean_data:
         collection = recipe_collection.where(f"{search_type}", "array_contains", word).stream()
         recipe_id = await get_collection(collection, details=False)
@@ -396,16 +397,16 @@ async def search_recipe_by(data: str, search_type: str):
             recipe_list = list(set(recipe_list) & set(recipe_id))
             if not recipe_list:
                 return []
-    
+
     match_recipe = []
     for recipe_id in recipe_list:
         recipe = await get_document(recipe_collection.document(str(recipe_id)), details=True)
         recipe.pop("searchable_ingredient", None)
         recipe.pop("searchable_recipe_name", None)
         match_recipe.append(recipe)
-    
+
     return match_recipe
-    
+
 
 async def GPT_to_recipe(ingredients, allergies):
     OAI_api_key = os.getenv("OAI_API_KEY")
@@ -442,7 +443,7 @@ async def GPT_to_recipe(ingredients, allergies):
     )
     if not response.choices or not response.choices[0].message.content:
         raise ValueError("Received empty or invalid response from OpenAI.")
-    
+
     ChatGPT_reply = response.choices[0].message.content
     ChatGPT_reply = ChatGPT_reply.replace('```', '')
     ChatGPT_reply = ChatGPT_reply.replace('json', '')
@@ -450,7 +451,7 @@ async def GPT_to_recipe(ingredients, allergies):
         recipe_json = json.loads(ChatGPT_reply)
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to decode JSON from the response: {e}")
-    
+
     recipe_json["author"] = "string"
     recipe_name = recipe_json['name']
     recipe = RecipeModel.model_validate(recipe_json)
@@ -492,7 +493,7 @@ async def request_nutritions(ingredients):
         response.raise_for_status()  # Raise an exception for bad status codes
         nutritions_json = response.json()
         return nutritions_json
-    
+
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail={str(e)})
     except json.JSONDecodeError as e:
@@ -554,15 +555,15 @@ async def delete_media_from_firebase(url):
         return True
     except Exception as e:
         return False
-    
-    
+
+
 async def get_image_from_firebase(file_name):
     try:
         bucket = storage.bucket()
         blob = bucket.blob(file_name)
         img_url = blob.public_url
         return img_url
-        
+
     except Exception as e:
         print(f"Error downloading file: {e}")
 
@@ -578,7 +579,7 @@ async def search_reviews(recipe_id: str, review_id: Optional[str] = None, rating
             collection = query.where("stars", "==", rating)
         if has_image:
             collection = query.where("images", "!=", []) if has_image else query.where("images", "==", [])
-        
+
         reviews_stream = query.stream()
         reviews = [doc.to_dict() for doc in reviews_stream]
         return reviews
@@ -593,9 +594,9 @@ async def get_review_by_id(review_id: str):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
-        
+
 async def create_review(review: ReviewAdd, user_id, userName):
-    
+
     # Check if the user has already reviewed this recipe
     existing_review = review_collection.where("user_id", "==", user_id).where("recipe_id", "==", review.recipe_id).stream()
     for doc in existing_review:
@@ -604,7 +605,7 @@ async def create_review(review: ReviewAdd, user_id, userName):
     try:
         user_ref = user_collection.document(user_id)
         user_data = await get_document(user_ref, details=True)
-        
+
         review_data = review.dict()
         review_doc = review_collection.document()
         review_data["review_id"] = review_doc.id
