@@ -53,7 +53,7 @@
 <div class="mb-4 gap-4">
 	{#if myRecipesData.length > 0}
 		<div
-			class="grid grid-cols-1 place-content-center sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
+			class="grid grid-cols-1 place-content-center gap-4 sm:grid-cols-2 md:p-5 lg:grid-cols-2 xl:grid-cols-2"
 		>
 			{#each myRecipesData as item (item.recipe_id)}
 				<RecipeItem {item} />
