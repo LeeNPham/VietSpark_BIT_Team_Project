@@ -10,7 +10,7 @@
 		authenticated = state.authenticated;
 	});
 
-	let searchType = (authenticated ? 'ingredients' : 'name'); // default: search by name, other: by ingredients
+	let searchType = authenticated ? 'ingredients' : 'name'; // default: search by name, other: by ingredients
 	let searchQuery = '';
 
 	const isLoading = derived(recipeStore, ($recipeStore) => $recipeStore.isLoading);
@@ -60,14 +60,22 @@
 
 	<!-- Search Mode Selector -->
 	<div class="mb-4 flex space-x-4">
-		{#if authenticated}
+		<div class="group relative">
+			{#if !authenticated}
+				<span
+					class="absolute left-0 bottom-full z-10 mt-2 hidden w-max rounded-md bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:block group-hover:opacity-100 sm:text-sm"
+				>
+					Log in to use this feature
+				</span>
+			{/if}
 			<label
 				class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl"
 			>
-				<input type="radio" bind:group={searchType} value="ingredients" />
-				<span> AI Generated Recipe </span>
+				<input type="radio" bind:group={searchType} value="ingredients" disabled={!authenticated} />
+				<span>AI Generated Recipe</span>
 			</label>
-		{/if}
+			
+		</div>
 		<label
 			class="flex cursor-pointer items-center space-x-2 text-sm sm:text-sm md:text-xl lg:text-2xl"
 		>
